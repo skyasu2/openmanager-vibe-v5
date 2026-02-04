@@ -80,18 +80,55 @@ export interface EnhancedServerMetrics {
  */
 interface HourlyJsonData {
   hour: number;
-  _pattern: string; // JSON 필드명 (외부 노출 방지)
+  scrapeConfig: {
+    scrapeInterval: string;
+    evaluationInterval: string;
+    source: string;
+  };
+  _scenario?: string;
   dataPoints: Array<{
-    timestamp: string; // "00:00", "00:10", ...
-    servers: Record<string, RawServerData>;
+    timestampMs: number;
+    targets: Record<string, PrometheusTargetData>;
   }>;
   metadata: {
     version: string;
+    format: string;
     totalDataPoints: number;
     intervalMinutes: number;
     serverCount: number;
     affectedServers: number;
   };
+}
+
+interface PrometheusTargetData {
+  job: string;
+  instance: string;
+  labels: {
+    hostname: string;
+    datacenter: string;
+    environment: string;
+    server_type: string;
+    os: string;
+    os_version: string;
+  };
+  metrics: {
+    up: 0 | 1;
+    node_cpu_usage_percent: number;
+    node_memory_usage_percent: number;
+    node_filesystem_usage_percent: number;
+    node_network_transmit_bytes_rate: number;
+    node_load1: number;
+    node_load5: number;
+    node_boot_time_seconds: number;
+    node_procs_running: number;
+    node_http_request_duration_milliseconds: number;
+  };
+  nodeInfo: {
+    cpu_cores: number;
+    memory_total_bytes: number;
+    disk_total_bytes: number;
+  };
+  logs: string[];
 }
 
 interface RawServerData {
@@ -117,6 +154,57 @@ interface RawServerData {
   };
   services: string[];
   processes: number;
+}
+
+/**
+ * PrometheusTargetData → RawServerData 변환
+ */
+function targetToRawServerData(target: PrometheusTargetData): RawServerData {
+  const serverId = target.instance.replace(/:9100$/, '');
+  const cpu = target.metrics.node_cpu_usage_percent;
+  const memory = target.metrics.node_memory_usage_percent;
+  const disk = target.metrics.node_filesystem_usage_percent;
+  const network = target.metrics.node_network_transmit_bytes_rate;
+
+  let status: RawServerData['status'] = 'online';
+  if (target.metrics.up === 0) {
+    status = 'offline';
+  } else if (cpu >= 90 || memory >= 90 || disk >= 90 || network >= 85) {
+    status = 'critical';
+  } else if (cpu >= 80 || memory >= 80 || disk >= 80 || network >= 70) {
+    status = 'warning';
+  }
+
+  return {
+    id: serverId,
+    name: target.labels.hostname.replace('.openmanager.kr', ''),
+    hostname: target.labels.hostname,
+    type: target.labels.server_type,
+    location: target.labels.datacenter,
+    environment: target.labels.environment,
+    status,
+    cpu,
+    memory,
+    disk,
+    network,
+    responseTime: target.metrics.node_http_request_duration_milliseconds,
+    uptime: Math.round(
+      Date.now() / 1000 - target.metrics.node_boot_time_seconds
+    ),
+    ip: '',
+    os: `${target.labels.os} ${target.labels.os_version}`,
+    specs: {
+      cpu_cores: target.nodeInfo.cpu_cores,
+      memory_gb: Math.round(
+        target.nodeInfo.memory_total_bytes / (1024 * 1024 * 1024)
+      ),
+      disk_gb: Math.round(
+        target.nodeInfo.disk_total_bytes / (1024 * 1024 * 1024)
+      ),
+    },
+    services: [],
+    processes: target.metrics.node_procs_running,
+  };
 }
 
 // JSON 캐시 (메모리 최적화)
@@ -196,14 +284,14 @@ export async function loadHourlyScenarioData(): Promise<
     );
     const dataPoint = hourlyData.dataPoints[clampedIndex];
 
-    if (!dataPoint?.servers) {
+    if (!dataPoint?.targets) {
       logger.error(`[ScenarioLoader] dataPoint[${clampedIndex}] 없음`);
       return [];
     }
 
-    // RawServerData → EnhancedServerMetrics 변환
-    return Object.values(dataPoint.servers).map((serverData) =>
-      convertToEnhancedMetrics(serverData, currentHour)
+    // PrometheusTarget → RawServerData → EnhancedServerMetrics 변환
+    return Object.values(dataPoint.targets).map((target) =>
+      convertToEnhancedMetrics(targetToRawServerData(target), currentHour)
     );
   } catch (error) {
     logger.error('[ScenarioLoader] 데이터 로드 오류:', error);
@@ -318,7 +406,7 @@ export async function getCurrentScenario(): Promise<{
     if (!hourlyData) return null;
 
     return {
-      scenario: hourlyData._pattern, // _pattern에서 읽어서 내부 scenario로 매핑
+      scenario: hourlyData._scenario || '', // _scenario에서 읽어서 내부 scenario로 매핑
       hour: currentHour,
     };
   } catch {

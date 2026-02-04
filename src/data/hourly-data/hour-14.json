@@ -1,2668 +1,2746 @@
 {
   "hour": 14,
-  "_pattern": "14시 정상 운영",
+  "scrapeConfig": {
+    "scrapeInterval": "10m",
+    "evaluationInterval": "10m",
+    "source": "node-exporter"
+  },
+  "_scenario": "14시 정상 운영",
   "dataPoints": [
     {
-      "minute": 0,
-      "timestamp": "14:00",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 45,
-          "disk": 29,
-          "network": 55,
-          "responseTime": 135,
-          "uptime": 2626740,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+      "timestampMs": 1770181200000,
+      "targets": {
+        "web-nginx-icn-01:9100": {
+          "instance": "web-nginx-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 143,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 37,
+            "node_memory_usage_percent": 45,
+            "node_filesystem_usage_percent": 29,
+            "node_network_transmit_bytes_rate": 55,
+            "node_load1": 1.33,
+            "node_load5": 1.1,
+            "node_boot_time_seconds": 1736007921,
+            "node_procs_running": 148,
+            "node_http_request_duration_milliseconds": 171
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 31,
-          "memory": 38,
-          "disk": 26,
-          "network": 55,
-          "responseTime": 140,
-          "uptime": 2661159,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-icn-02:9100": {
+          "instance": "web-nginx-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 133,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 31,
+            "node_memory_usage_percent": 38,
+            "node_filesystem_usage_percent": 26,
+            "node_network_transmit_bytes_rate": 55,
+            "node_load1": 1.16,
+            "node_load5": 1.06,
+            "node_boot_time_seconds": 1735991402,
+            "node_procs_running": 102,
+            "node_http_request_duration_milliseconds": 145
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "critical",
-          "cpu": 21,
-          "memory": 91,
-          "disk": 24,
-          "network": 48,
-          "responseTime": 460,
-          "uptime": 2646510,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-pus-01:9100": {
+          "instance": "web-nginx-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nginx",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting nginx"
-            },
-            {
-              "name": "php-fpm",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting php-fpm"
-            }
-          ],
-          "processes": 199,
-          "logs": [
-            {
-              "timestamp": "14:00:00",
-              "level": "ERROR",
-              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
-            },
-            {
-              "timestamp": "14:01:00",
-              "level": "WARN",
-              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 21,
+            "node_memory_usage_percent": 34,
+            "node_filesystem_usage_percent": 24,
+            "node_network_transmit_bytes_rate": 44,
+            "node_load1": 0.69,
+            "node_load5": 0.6,
+            "node_boot_time_seconds": 1735945242,
+            "node_procs_running": 132,
+            "node_http_request_duration_milliseconds": 176
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
+          "logs": []
         },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 79,
-          "memory": 57,
-          "disk": 36,
-          "network": 50,
-          "responseTime": 250,
-          "uptime": 2665567,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-01:9100": {
+          "instance": "api-was-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 48,
+            "node_memory_usage_percent": 57,
+            "node_filesystem_usage_percent": 36,
+            "node_network_transmit_bytes_rate": 50,
+            "node_load1": 3.41,
+            "node_load5": 3.14,
+            "node_boot_time_seconds": 1735988445,
+            "node_procs_running": 146,
+            "node_http_request_duration_milliseconds": 156
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [
-            {
-              "name": "java",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            },
-            {
-              "name": "tomcat",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            }
-          ],
-          "processes": 179,
-          "logs": [
-            {
-              "timestamp": "14:00:00",
-              "level": "WARN",
-              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
-            }
-          ]
+          "logs": []
         },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 45,
-          "memory": 51,
-          "disk": 33,
-          "network": 49,
-          "responseTime": 165,
-          "uptime": 2655768,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-02:9100": {
+          "instance": "api-was-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 45,
+            "node_memory_usage_percent": 51,
+            "node_filesystem_usage_percent": 33,
+            "node_network_transmit_bytes_rate": 49,
+            "node_load1": 3.97,
+            "node_load5": 3.56,
+            "node_boot_time_seconds": 1735960705,
+            "node_procs_running": 124,
+            "node_http_request_duration_milliseconds": 147
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 116,
           "logs": []
         },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 21,
-          "memory": 39,
-          "disk": 29,
-          "network": 31,
-          "responseTime": 146,
-          "uptime": 2643937,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-pus-01:9100": {
+          "instance": "api-was-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 21,
+            "node_memory_usage_percent": 39,
+            "node_filesystem_usage_percent": 29,
+            "node_network_transmit_bytes_rate": 31,
+            "node_load1": 1.64,
+            "node_load5": 1.43,
+            "node_boot_time_seconds": 1735957613,
+            "node_procs_running": 130,
+            "node_http_request_duration_milliseconds": 125
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 114,
           "logs": []
         },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 53,
-          "memory": 69,
-          "disk": 46,
-          "network": 38,
-          "responseTime": 59,
-          "uptime": 2648372,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-primary:9100": {
+          "instance": "db-mysql-icn-primary:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-primary.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 53,
+            "node_memory_usage_percent": 69,
+            "node_filesystem_usage_percent": 46,
+            "node_network_transmit_bytes_rate": 38,
+            "node_load1": 9.94,
+            "node_load5": 8.75,
+            "node_boot_time_seconds": 1735973024,
+            "node_procs_running": 127,
+            "node_http_request_duration_milliseconds": 50
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 123,
           "logs": []
         },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 43,
-          "memory": 57,
-          "disk": 40,
-          "network": 31,
-          "responseTime": 43,
-          "uptime": 2651156,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-replica:9100": {
+          "instance": "db-mysql-icn-replica:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-replica.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 43,
+            "node_memory_usage_percent": 57,
+            "node_filesystem_usage_percent": 40,
+            "node_network_transmit_bytes_rate": 31,
+            "node_load1": 5.92,
+            "node_load5": 5.25,
+            "node_boot_time_seconds": 1735958990,
+            "node_procs_running": 139,
+            "node_http_request_duration_milliseconds": 42
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 115,
           "logs": []
         },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 21,
-          "memory": 43,
-          "disk": 37,
-          "network": 26,
-          "responseTime": 55,
-          "uptime": 2592240,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-pus-dr:9100": {
+          "instance": "db-mysql-pus-dr:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-pus-dr.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 21,
+            "node_memory_usage_percent": 43,
+            "node_filesystem_usage_percent": 37,
+            "node_network_transmit_bytes_rate": 26,
+            "node_load1": 3.7,
+            "node_load5": 2.78,
+            "node_boot_time_seconds": 1736017199,
+            "node_procs_running": 137,
+            "node_http_request_duration_milliseconds": 53
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 148,
           "logs": []
         },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 76,
-          "disk": 22,
-          "network": 43,
-          "responseTime": 24,
-          "uptime": 2670175,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-01:9100": {
+          "instance": "cache-redis-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 141,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 76,
+            "node_filesystem_usage_percent": 22,
+            "node_network_transmit_bytes_rate": 43,
+            "node_load1": 1.29,
+            "node_load5": 1.2,
+            "node_boot_time_seconds": 1736005270,
+            "node_procs_running": 137,
+            "node_http_request_duration_milliseconds": 21
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 70,
-          "disk": 16,
-          "network": 45,
-          "responseTime": 20,
-          "uptime": 2642826,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-02:9100": {
+          "instance": "cache-redis-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 140,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 26,
+            "node_memory_usage_percent": 70,
+            "node_filesystem_usage_percent": 16,
+            "node_network_transmit_bytes_rate": 45,
+            "node_load1": 1.06,
+            "node_load5": 0.92,
+            "node_boot_time_seconds": 1736002397,
+            "node_procs_running": 132,
+            "node_http_request_duration_milliseconds": 18
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 27,
-          "memory": 42,
-          "disk": 86,
-          "network": 53,
-          "responseTime": 250,
-          "uptime": 2652581,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
+        "storage-nfs-icn-01:9100": {
+          "instance": "storage-nfs-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-nfs-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nfs-server",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            },
-            {
-              "name": "rpcbind",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            }
-          ],
-          "processes": 104,
-          "logs": [
-            {
-              "timestamp": "14:00:00",
-              "level": "WARN",
-              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 42,
+            "node_filesystem_usage_percent": 67,
+            "node_network_transmit_bytes_rate": 53,
+            "node_load1": 0.93,
+            "node_load5": 0.83,
+            "node_boot_time_seconds": 1735941138,
+            "node_procs_running": 122,
+            "node_http_request_duration_milliseconds": 176
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 5368709120000
+          },
+          "logs": []
         },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 38,
-          "disk": 54,
-          "network": 64,
-          "responseTime": 147,
-          "uptime": 2601566,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "storage-s3gw-pus-01:9100": {
+          "instance": "storage-s3gw-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-s3gw-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 22,
+            "node_memory_usage_percent": 38,
+            "node_filesystem_usage_percent": 54,
+            "node_network_transmit_bytes_rate": 64,
+            "node_load1": 0.43,
+            "node_load5": 0.33,
+            "node_boot_time_seconds": 1735933780,
+            "node_procs_running": 126,
+            "node_http_request_duration_milliseconds": 159
+          },
+          "nodeInfo": {
             "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 100,
           "logs": []
         },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 40,
-          "memory": 37,
-          "disk": 13,
-          "network": 70,
-          "responseTime": 131,
-          "uptime": 2592268,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-icn-01:9100": {
+          "instance": "lb-haproxy-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 123,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 40,
+            "node_memory_usage_percent": 37,
+            "node_filesystem_usage_percent": 13,
+            "node_network_transmit_bytes_rate": 70,
+            "node_load1": 1.4,
+            "node_load5": 1.05,
+            "node_boot_time_seconds": 1735972548,
+            "node_procs_running": 117,
+            "node_http_request_duration_milliseconds": 161
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 36,
-          "disk": 15,
-          "network": 66,
-          "responseTime": 177,
-          "uptime": 2636810,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-pus-01:9100": {
+          "instance": "lb-haproxy-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 132,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 37,
+            "node_memory_usage_percent": 36,
+            "node_filesystem_usage_percent": 15,
+            "node_network_transmit_bytes_rate": 66,
+            "node_load1": 1.75,
+            "node_load5": 1.49,
+            "node_boot_time_seconds": 1735988784,
+            "node_procs_running": 123,
+            "node_http_request_duration_milliseconds": 132
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         }
       }
     },
     {
-      "minute": 10,
-      "timestamp": "14:10",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 30,
-          "memory": 45,
-          "disk": 31,
-          "network": 58,
-          "responseTime": 149,
-          "uptime": 2650419,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+      "timestampMs": 1770181800000,
+      "targets": {
+        "web-nginx-icn-01:9100": {
+          "instance": "web-nginx-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 137,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 30,
+            "node_memory_usage_percent": 45,
+            "node_filesystem_usage_percent": 31,
+            "node_network_transmit_bytes_rate": 58,
+            "node_load1": 1.19,
+            "node_load5": 1.05,
+            "node_boot_time_seconds": 1735998249,
+            "node_procs_running": 125,
+            "node_http_request_duration_milliseconds": 165
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 39,
-          "disk": 26,
-          "network": 56,
-          "responseTime": 176,
-          "uptime": 2607640,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-icn-02:9100": {
+          "instance": "web-nginx-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 145,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 39,
+            "node_filesystem_usage_percent": 26,
+            "node_network_transmit_bytes_rate": 56,
+            "node_load1": 1.27,
+            "node_load5": 1,
+            "node_boot_time_seconds": 1736010615,
+            "node_procs_running": 117,
+            "node_http_request_duration_milliseconds": 122
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "critical",
-          "cpu": 17,
-          "memory": 91,
-          "disk": 27,
-          "network": 49,
-          "responseTime": 460,
-          "uptime": 2657752,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-pus-01:9100": {
+          "instance": "web-nginx-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nginx",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting nginx"
-            },
-            {
-              "name": "php-fpm",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting php-fpm"
-            }
-          ],
-          "processes": 199,
-          "logs": [
-            {
-              "timestamp": "14:10:00",
-              "level": "ERROR",
-              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
-            },
-            {
-              "timestamp": "14:11:00",
-              "level": "WARN",
-              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 17,
+            "node_memory_usage_percent": 35,
+            "node_filesystem_usage_percent": 27,
+            "node_network_transmit_bytes_rate": 39,
+            "node_load1": 0.64,
+            "node_load5": 0.58,
+            "node_boot_time_seconds": 1735993724,
+            "node_procs_running": 133,
+            "node_http_request_duration_milliseconds": 160
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
+          "logs": []
         },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 79,
-          "memory": 58,
-          "disk": 34,
-          "network": 45,
-          "responseTime": 250,
-          "uptime": 2650004,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-01:9100": {
+          "instance": "api-was-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 49,
+            "node_memory_usage_percent": 58,
+            "node_filesystem_usage_percent": 34,
+            "node_network_transmit_bytes_rate": 45,
+            "node_load1": 3.42,
+            "node_load5": 3.02,
+            "node_boot_time_seconds": 1735958473,
+            "node_procs_running": 136,
+            "node_http_request_duration_milliseconds": 162
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [
-            {
-              "name": "java",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            },
-            {
-              "name": "tomcat",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            }
-          ],
-          "processes": 179,
-          "logs": [
-            {
-              "timestamp": "14:10:00",
-              "level": "WARN",
-              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
-            }
-          ]
+          "logs": []
         },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 39,
-          "memory": 55,
-          "disk": 33,
-          "network": 49,
-          "responseTime": 149,
-          "uptime": 2640619,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-02:9100": {
+          "instance": "api-was-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 39,
+            "node_memory_usage_percent": 55,
+            "node_filesystem_usage_percent": 33,
+            "node_network_transmit_bytes_rate": 49,
+            "node_load1": 3.11,
+            "node_load5": 2.68,
+            "node_boot_time_seconds": 1736005924,
+            "node_procs_running": 145,
+            "node_http_request_duration_milliseconds": 122
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 142,
           "logs": []
         },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 41,
-          "disk": 28,
-          "network": 39,
-          "responseTime": 156,
-          "uptime": 2638931,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-pus-01:9100": {
+          "instance": "api-was-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 41,
+            "node_filesystem_usage_percent": 28,
+            "node_network_transmit_bytes_rate": 39,
+            "node_load1": 2.25,
+            "node_load5": 1.93,
+            "node_boot_time_seconds": 1736011864,
+            "node_procs_running": 107,
+            "node_http_request_duration_milliseconds": 152
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 145,
           "logs": []
         },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 50,
-          "memory": 69,
-          "disk": 46,
-          "network": 43,
-          "responseTime": 56,
-          "uptime": 2628127,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-primary:9100": {
+          "instance": "db-mysql-icn-primary:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-primary.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 50,
+            "node_memory_usage_percent": 69,
+            "node_filesystem_usage_percent": 46,
+            "node_network_transmit_bytes_rate": 43,
+            "node_load1": 8.89,
+            "node_load5": 7.41,
+            "node_boot_time_seconds": 1735950892,
+            "node_procs_running": 100,
+            "node_http_request_duration_milliseconds": 58
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 110,
           "logs": []
         },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 58,
-          "disk": 41,
-          "network": 34,
-          "responseTime": 50,
-          "uptime": 2660474,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-replica:9100": {
+          "instance": "db-mysql-icn-replica:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-replica.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 41,
+            "node_memory_usage_percent": 58,
+            "node_filesystem_usage_percent": 41,
+            "node_network_transmit_bytes_rate": 34,
+            "node_load1": 6.54,
+            "node_load5": 5.94,
+            "node_boot_time_seconds": 1735945834,
+            "node_procs_running": 101,
+            "node_http_request_duration_milliseconds": 58
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 107,
           "logs": []
         },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 16,
-          "memory": 48,
-          "disk": 42,
-          "network": 21,
-          "responseTime": 42,
-          "uptime": 2652151,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-pus-dr:9100": {
+          "instance": "db-mysql-pus-dr:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-pus-dr.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 16,
+            "node_memory_usage_percent": 48,
+            "node_filesystem_usage_percent": 42,
+            "node_network_transmit_bytes_rate": 21,
+            "node_load1": 2.17,
+            "node_load5": 1.93,
+            "node_boot_time_seconds": 1736009692,
+            "node_procs_running": 137,
+            "node_http_request_duration_milliseconds": 47
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 144,
           "logs": []
         },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 73,
-          "disk": 22,
-          "network": 41,
-          "responseTime": 20,
-          "uptime": 2646336,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-01:9100": {
+          "instance": "cache-redis-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 115,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 24,
+            "node_memory_usage_percent": 73,
+            "node_filesystem_usage_percent": 22,
+            "node_network_transmit_bytes_rate": 41,
+            "node_load1": 0.94,
+            "node_load5": 0.82,
+            "node_boot_time_seconds": 1735958632,
+            "node_procs_running": 115,
+            "node_http_request_duration_milliseconds": 22
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 74,
-          "disk": 19,
-          "network": 44,
-          "responseTime": 22,
-          "uptime": 2674805,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-02:9100": {
+          "instance": "cache-redis-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 118,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 26,
+            "node_memory_usage_percent": 74,
+            "node_filesystem_usage_percent": 19,
+            "node_network_transmit_bytes_rate": 44,
+            "node_load1": 1.15,
+            "node_load5": 1.08,
+            "node_boot_time_seconds": 1735965196,
+            "node_procs_running": 142,
+            "node_http_request_duration_milliseconds": 23
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 30,
-          "memory": 39,
-          "disk": 86,
-          "network": 53,
-          "responseTime": 250,
-          "uptime": 2608167,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
+        "storage-nfs-icn-01:9100": {
+          "instance": "storage-nfs-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-nfs-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nfs-server",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            },
-            {
-              "name": "rpcbind",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            }
-          ],
-          "processes": 124,
-          "logs": [
-            {
-              "timestamp": "14:10:00",
-              "level": "WARN",
-              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 30,
+            "node_memory_usage_percent": 39,
+            "node_filesystem_usage_percent": 63,
+            "node_network_transmit_bytes_rate": 53,
+            "node_load1": 1.02,
+            "node_load5": 0.8,
+            "node_boot_time_seconds": 1735974702,
+            "node_procs_running": 137,
+            "node_http_request_duration_milliseconds": 148
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 5368709120000
+          },
+          "logs": []
         },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 37,
-          "disk": 54,
-          "network": 57,
-          "responseTime": 155,
-          "uptime": 2605836,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "storage-s3gw-pus-01:9100": {
+          "instance": "storage-s3gw-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-s3gw-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 24,
+            "node_memory_usage_percent": 37,
+            "node_filesystem_usage_percent": 54,
+            "node_network_transmit_bytes_rate": 57,
+            "node_load1": 0.5,
+            "node_load5": 0.39,
+            "node_boot_time_seconds": 1735974895,
+            "node_procs_running": 134,
+            "node_http_request_duration_milliseconds": 123
+          },
+          "nodeInfo": {
             "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 124,
           "logs": []
         },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 36,
-          "memory": 38,
-          "disk": 16,
-          "network": 67,
-          "responseTime": 179,
-          "uptime": 2594691,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-icn-01:9100": {
+          "instance": "lb-haproxy-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 124,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 36,
+            "node_memory_usage_percent": 38,
+            "node_filesystem_usage_percent": 16,
+            "node_network_transmit_bytes_rate": 67,
+            "node_load1": 1.71,
+            "node_load5": 1.29,
+            "node_boot_time_seconds": 1735975659,
+            "node_procs_running": 119,
+            "node_http_request_duration_milliseconds": 140
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 34,
-          "memory": 29,
-          "disk": 13,
-          "network": 71,
-          "responseTime": 145,
-          "uptime": 2643177,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-pus-01:9100": {
+          "instance": "lb-haproxy-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 137,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 34,
+            "node_memory_usage_percent": 29,
+            "node_filesystem_usage_percent": 13,
+            "node_network_transmit_bytes_rate": 71,
+            "node_load1": 1.31,
+            "node_load5": 1.14,
+            "node_boot_time_seconds": 1735997199,
+            "node_procs_running": 128,
+            "node_http_request_duration_milliseconds": 147
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         }
       }
     },
     {
-      "minute": 20,
-      "timestamp": "14:20",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 35,
-          "memory": 44,
-          "disk": 30,
-          "network": 56,
-          "responseTime": 124,
-          "uptime": 2643711,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+      "timestampMs": 1770182400000,
+      "targets": {
+        "web-nginx-icn-01:9100": {
+          "instance": "web-nginx-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 112,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 35,
+            "node_memory_usage_percent": 44,
+            "node_filesystem_usage_percent": 30,
+            "node_network_transmit_bytes_rate": 56,
+            "node_load1": 1.16,
+            "node_load5": 1.01,
+            "node_boot_time_seconds": 1735953595,
+            "node_procs_running": 141,
+            "node_http_request_duration_milliseconds": 165
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 29,
-          "memory": 45,
-          "disk": 28,
-          "network": 50,
-          "responseTime": 130,
-          "uptime": 2651707,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-icn-02:9100": {
+          "instance": "web-nginx-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 104,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 29,
+            "node_memory_usage_percent": 45,
+            "node_filesystem_usage_percent": 28,
+            "node_network_transmit_bytes_rate": 50,
+            "node_load1": 1.01,
+            "node_load5": 0.9,
+            "node_boot_time_seconds": 1735939871,
+            "node_procs_running": 135,
+            "node_http_request_duration_milliseconds": 137
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "critical",
-          "cpu": 22,
-          "memory": 91,
-          "disk": 24,
-          "network": 47,
-          "responseTime": 460,
-          "uptime": 2660413,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-pus-01:9100": {
+          "instance": "web-nginx-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nginx",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting nginx"
-            },
-            {
-              "name": "php-fpm",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting php-fpm"
-            }
-          ],
-          "processes": 199,
-          "logs": [
-            {
-              "timestamp": "14:20:00",
-              "level": "ERROR",
-              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
-            },
-            {
-              "timestamp": "14:21:00",
-              "level": "WARN",
-              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 22,
+            "node_memory_usage_percent": 37,
+            "node_filesystem_usage_percent": 24,
+            "node_network_transmit_bytes_rate": 42,
+            "node_load1": 0.85,
+            "node_load5": 0.77,
+            "node_boot_time_seconds": 1735965907,
+            "node_procs_running": 119,
+            "node_http_request_duration_milliseconds": 122
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
+          "logs": []
         },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 79,
-          "memory": 55,
-          "disk": 36,
-          "network": 52,
-          "responseTime": 250,
-          "uptime": 2656330,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-01:9100": {
+          "instance": "api-was-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 47,
+            "node_memory_usage_percent": 55,
+            "node_filesystem_usage_percent": 36,
+            "node_network_transmit_bytes_rate": 52,
+            "node_load1": 3.73,
+            "node_load5": 3.35,
+            "node_boot_time_seconds": 1736002279,
+            "node_procs_running": 131,
+            "node_http_request_duration_milliseconds": 169
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [
-            {
-              "name": "java",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            },
-            {
-              "name": "tomcat",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            }
-          ],
-          "processes": 179,
-          "logs": [
-            {
-              "timestamp": "14:20:00",
-              "level": "WARN",
-              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
-            }
-          ]
+          "logs": []
         },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 38,
-          "memory": 53,
-          "disk": 30,
-          "network": 49,
-          "responseTime": 137,
-          "uptime": 2667873,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-02:9100": {
+          "instance": "api-was-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 38,
+            "node_memory_usage_percent": 53,
+            "node_filesystem_usage_percent": 30,
+            "node_network_transmit_bytes_rate": 49,
+            "node_load1": 2.78,
+            "node_load5": 2.57,
+            "node_boot_time_seconds": 1735960137,
+            "node_procs_running": 126,
+            "node_http_request_duration_milliseconds": 167
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 115,
           "logs": []
         },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 39,
-          "disk": 29,
-          "network": 32,
-          "responseTime": 169,
-          "uptime": 2606473,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-pus-01:9100": {
+          "instance": "api-was-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 22,
+            "node_memory_usage_percent": 39,
+            "node_filesystem_usage_percent": 29,
+            "node_network_transmit_bytes_rate": 32,
+            "node_load1": 1.98,
+            "node_load5": 1.55,
+            "node_boot_time_seconds": 1735975395,
+            "node_procs_running": 129,
+            "node_http_request_duration_milliseconds": 137
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 124,
           "logs": []
         },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 57,
-          "memory": 73,
-          "disk": 42,
-          "network": 36,
-          "responseTime": 56,
-          "uptime": 2623176,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-primary:9100": {
+          "instance": "db-mysql-icn-primary:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-primary.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 57,
+            "node_memory_usage_percent": 73,
+            "node_filesystem_usage_percent": 42,
+            "node_network_transmit_bytes_rate": 36,
+            "node_load1": 10.22,
+            "node_load5": 8.4,
+            "node_boot_time_seconds": 1735997808,
+            "node_procs_running": 141,
+            "node_http_request_duration_milliseconds": 52
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 137,
           "logs": []
         },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 63,
-          "disk": 40,
-          "network": 31,
-          "responseTime": 46,
-          "uptime": 2647176,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-replica:9100": {
+          "instance": "db-mysql-icn-replica:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-replica.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 41,
+            "node_memory_usage_percent": 63,
+            "node_filesystem_usage_percent": 40,
+            "node_network_transmit_bytes_rate": 31,
+            "node_load1": 6.06,
+            "node_load5": 5.32,
+            "node_boot_time_seconds": 1735958492,
+            "node_procs_running": 139,
+            "node_http_request_duration_milliseconds": 54
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 114,
           "logs": []
         },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 48,
-          "disk": 39,
-          "network": 28,
-          "responseTime": 47,
-          "uptime": 2617324,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-pus-dr:9100": {
+          "instance": "db-mysql-pus-dr:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-pus-dr.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 22,
+            "node_memory_usage_percent": 48,
+            "node_filesystem_usage_percent": 39,
+            "node_network_transmit_bytes_rate": 28,
+            "node_load1": 3.29,
+            "node_load5": 2.66,
+            "node_boot_time_seconds": 1735990369,
+            "node_procs_running": 130,
+            "node_http_request_duration_milliseconds": 55
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 133,
           "logs": []
         },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 72,
-          "disk": 20,
-          "network": 45,
-          "responseTime": 23,
-          "uptime": 2627287,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-01:9100": {
+          "instance": "cache-redis-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 106,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 26,
+            "node_memory_usage_percent": 72,
+            "node_filesystem_usage_percent": 20,
+            "node_network_transmit_bytes_rate": 45,
+            "node_load1": 1.21,
+            "node_load5": 1.01,
+            "node_boot_time_seconds": 1735943379,
+            "node_procs_running": 144,
+            "node_http_request_duration_milliseconds": 21
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 72,
-          "disk": 19,
-          "network": 45,
-          "responseTime": 17,
-          "uptime": 2630396,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-02:9100": {
+          "instance": "cache-redis-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 136,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 23,
+            "node_memory_usage_percent": 72,
+            "node_filesystem_usage_percent": 19,
+            "node_network_transmit_bytes_rate": 45,
+            "node_load1": 0.79,
+            "node_load5": 0.66,
+            "node_boot_time_seconds": 1735996396,
+            "node_procs_running": 101,
+            "node_http_request_duration_milliseconds": 23
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 30,
-          "memory": 40,
-          "disk": 86,
-          "network": 53,
-          "responseTime": 250,
-          "uptime": 2628823,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
+        "storage-nfs-icn-01:9100": {
+          "instance": "storage-nfs-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-nfs-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nfs-server",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            },
-            {
-              "name": "rpcbind",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            }
-          ],
-          "processes": 114,
-          "logs": [
-            {
-              "timestamp": "14:20:00",
-              "level": "WARN",
-              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 30,
+            "node_memory_usage_percent": 40,
+            "node_filesystem_usage_percent": 67,
+            "node_network_transmit_bytes_rate": 53,
+            "node_load1": 1.26,
+            "node_load5": 1.05,
+            "node_boot_time_seconds": 1735958067,
+            "node_procs_running": 127,
+            "node_http_request_duration_milliseconds": 172
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 5368709120000
+          },
+          "logs": []
         },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 20,
-          "memory": 33,
-          "disk": 56,
-          "network": 62,
-          "responseTime": 149,
-          "uptime": 2652530,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "storage-s3gw-pus-01:9100": {
+          "instance": "storage-s3gw-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-s3gw-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 20,
+            "node_memory_usage_percent": 33,
+            "node_filesystem_usage_percent": 56,
+            "node_network_transmit_bytes_rate": 62,
+            "node_load1": 0.4,
+            "node_load5": 0.36,
+            "node_boot_time_seconds": 1735944353,
+            "node_procs_running": 117,
+            "node_http_request_duration_milliseconds": 149
+          },
+          "nodeInfo": {
             "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 106,
           "logs": []
         },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 32,
-          "disk": 15,
-          "network": 66,
-          "responseTime": 176,
-          "uptime": 2646680,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-icn-01:9100": {
+          "instance": "lb-haproxy-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 114,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 37,
+            "node_memory_usage_percent": 32,
+            "node_filesystem_usage_percent": 15,
+            "node_network_transmit_bytes_rate": 66,
+            "node_load1": 1.73,
+            "node_load5": 1.52,
+            "node_boot_time_seconds": 1735958574,
+            "node_procs_running": 146,
+            "node_http_request_duration_milliseconds": 157
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 38,
-          "memory": 36,
-          "disk": 12,
-          "network": 71,
-          "responseTime": 180,
-          "uptime": 2640071,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-pus-01:9100": {
+          "instance": "lb-haproxy-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 101,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 38,
+            "node_memory_usage_percent": 36,
+            "node_filesystem_usage_percent": 12,
+            "node_network_transmit_bytes_rate": 71,
+            "node_load1": 1.82,
+            "node_load5": 1.57,
+            "node_boot_time_seconds": 1735934577,
+            "node_procs_running": 111,
+            "node_http_request_duration_milliseconds": 131
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         }
       }
     },
     {
-      "minute": 30,
-      "timestamp": "14:30",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 35,
-          "memory": 43,
-          "disk": 28,
-          "network": 60,
-          "responseTime": 138,
-          "uptime": 2595997,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+      "timestampMs": 1770183000000,
+      "targets": {
+        "web-nginx-icn-01:9100": {
+          "instance": "web-nginx-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 111,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 35,
+            "node_memory_usage_percent": 43,
+            "node_filesystem_usage_percent": 28,
+            "node_network_transmit_bytes_rate": 60,
+            "node_load1": 1.29,
+            "node_load5": 0.98,
+            "node_boot_time_seconds": 1735952154,
+            "node_procs_running": 101,
+            "node_http_request_duration_milliseconds": 122
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 34,
-          "memory": 39,
-          "disk": 30,
-          "network": 52,
-          "responseTime": 165,
-          "uptime": 2634518,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-icn-02:9100": {
+          "instance": "web-nginx-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 127,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 34,
+            "node_memory_usage_percent": 39,
+            "node_filesystem_usage_percent": 30,
+            "node_network_transmit_bytes_rate": 52,
+            "node_load1": 1.5,
+            "node_load5": 1.27,
+            "node_boot_time_seconds": 1735980589,
+            "node_procs_running": 109,
+            "node_http_request_duration_milliseconds": 152
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "critical",
-          "cpu": 24,
-          "memory": 91,
-          "disk": 26,
-          "network": 49,
-          "responseTime": 460,
-          "uptime": 2606069,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-pus-01:9100": {
+          "instance": "web-nginx-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nginx",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting nginx"
-            },
-            {
-              "name": "php-fpm",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting php-fpm"
-            }
-          ],
-          "processes": 199,
-          "logs": [
-            {
-              "timestamp": "14:30:00",
-              "level": "ERROR",
-              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
-            },
-            {
-              "timestamp": "14:31:00",
-              "level": "WARN",
-              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 24,
+            "node_memory_usage_percent": 35,
+            "node_filesystem_usage_percent": 26,
+            "node_network_transmit_bytes_rate": 44,
+            "node_load1": 1.09,
+            "node_load5": 0.85,
+            "node_boot_time_seconds": 1735996088,
+            "node_procs_running": 141,
+            "node_http_request_duration_milliseconds": 146
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
+          "logs": []
         },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 79,
-          "memory": 55,
-          "disk": 36,
-          "network": 47,
-          "responseTime": 250,
-          "uptime": 2609446,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-01:9100": {
+          "instance": "api-was-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 45,
+            "node_memory_usage_percent": 55,
+            "node_filesystem_usage_percent": 36,
+            "node_network_transmit_bytes_rate": 47,
+            "node_load1": 3.49,
+            "node_load5": 2.76,
+            "node_boot_time_seconds": 1735967820,
+            "node_procs_running": 118,
+            "node_http_request_duration_milliseconds": 180
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [
-            {
-              "name": "java",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            },
-            {
-              "name": "tomcat",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            }
-          ],
-          "processes": 179,
-          "logs": [
-            {
-              "timestamp": "14:30:00",
-              "level": "WARN",
-              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
-            }
-          ]
+          "logs": []
         },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 46,
-          "memory": 55,
-          "disk": 31,
-          "network": 52,
-          "responseTime": 146,
-          "uptime": 2610300,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-02:9100": {
+          "instance": "api-was-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 46,
+            "node_memory_usage_percent": 55,
+            "node_filesystem_usage_percent": 31,
+            "node_network_transmit_bytes_rate": 52,
+            "node_load1": 3.58,
+            "node_load5": 2.84,
+            "node_boot_time_seconds": 1735992620,
+            "node_procs_running": 130,
+            "node_http_request_duration_milliseconds": 159
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 134,
           "logs": []
         },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 28,
-          "memory": 38,
-          "disk": 28,
-          "network": 32,
-          "responseTime": 121,
-          "uptime": 2614216,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-pus-01:9100": {
+          "instance": "api-was-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 28,
+            "node_memory_usage_percent": 38,
+            "node_filesystem_usage_percent": 28,
+            "node_network_transmit_bytes_rate": 32,
+            "node_load1": 1.81,
+            "node_load5": 1.45,
+            "node_boot_time_seconds": 1735957731,
+            "node_procs_running": 106,
+            "node_http_request_duration_milliseconds": 155
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 114,
           "logs": []
         },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 53,
-          "memory": 67,
-          "disk": 43,
-          "network": 42,
-          "responseTime": 44,
-          "uptime": 2595232,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-primary:9100": {
+          "instance": "db-mysql-icn-primary:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-primary.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 53,
+            "node_memory_usage_percent": 67,
+            "node_filesystem_usage_percent": 43,
+            "node_network_transmit_bytes_rate": 42,
+            "node_load1": 7.51,
+            "node_load5": 5.69,
+            "node_boot_time_seconds": 1735948561,
+            "node_procs_running": 133,
+            "node_http_request_duration_milliseconds": 45
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 109,
           "logs": []
         },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 36,
-          "memory": 61,
-          "disk": 41,
-          "network": 33,
-          "responseTime": 45,
-          "uptime": 2676000,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-replica:9100": {
+          "instance": "db-mysql-icn-replica:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-replica.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 36,
+            "node_memory_usage_percent": 61,
+            "node_filesystem_usage_percent": 41,
+            "node_network_transmit_bytes_rate": 33,
+            "node_load1": 5.23,
+            "node_load5": 4.94,
+            "node_boot_time_seconds": 1736014414,
+            "node_procs_running": 137,
+            "node_http_request_duration_milliseconds": 58
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 147,
           "logs": []
         },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 43,
-          "disk": 38,
-          "network": 26,
-          "responseTime": 51,
-          "uptime": 2674418,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-pus-dr:9100": {
+          "instance": "db-mysql-pus-dr:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-pus-dr.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 23,
+            "node_memory_usage_percent": 43,
+            "node_filesystem_usage_percent": 38,
+            "node_network_transmit_bytes_rate": 26,
+            "node_load1": 3.72,
+            "node_load5": 3.5,
+            "node_boot_time_seconds": 1735961855,
+            "node_procs_running": 106,
+            "node_http_request_duration_milliseconds": 40
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 116,
           "logs": []
         },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 78,
-          "disk": 18,
-          "network": 41,
-          "responseTime": 22,
-          "uptime": 2613467,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-01:9100": {
+          "instance": "cache-redis-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 113,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 78,
+            "node_filesystem_usage_percent": 18,
+            "node_network_transmit_bytes_rate": 41,
+            "node_load1": 1.19,
+            "node_load5": 0.95,
+            "node_boot_time_seconds": 1735955642,
+            "node_procs_running": 119,
+            "node_http_request_duration_milliseconds": 17
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 18,
-          "memory": 73,
-          "disk": 18,
-          "network": 44,
-          "responseTime": 21,
-          "uptime": 2660676,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-02:9100": {
+          "instance": "cache-redis-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 140,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 18,
+            "node_memory_usage_percent": 73,
+            "node_filesystem_usage_percent": 18,
+            "node_network_transmit_bytes_rate": 44,
+            "node_load1": 0.75,
+            "node_load5": 0.68,
+            "node_boot_time_seconds": 1736002662,
+            "node_procs_running": 149,
+            "node_http_request_duration_milliseconds": 23
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 32,
-          "memory": 36,
-          "disk": 86,
-          "network": 46,
-          "responseTime": 250,
-          "uptime": 2646499,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
+        "storage-nfs-icn-01:9100": {
+          "instance": "storage-nfs-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-nfs-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nfs-server",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            },
-            {
-              "name": "rpcbind",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            }
-          ],
-          "processes": 118,
-          "logs": [
-            {
-              "timestamp": "14:30:00",
-              "level": "WARN",
-              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 32,
+            "node_memory_usage_percent": 36,
+            "node_filesystem_usage_percent": 63,
+            "node_network_transmit_bytes_rate": 46,
+            "node_load1": 1.39,
+            "node_load5": 1.22,
+            "node_boot_time_seconds": 1735965246,
+            "node_procs_running": 135,
+            "node_http_request_duration_milliseconds": 168
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 5368709120000
+          },
+          "logs": []
         },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 15,
-          "memory": 36,
-          "disk": 57,
-          "network": 63,
-          "responseTime": 137,
-          "uptime": 2625033,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "storage-s3gw-pus-01:9100": {
+          "instance": "storage-s3gw-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-s3gw-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 15,
+            "node_memory_usage_percent": 36,
+            "node_filesystem_usage_percent": 57,
+            "node_network_transmit_bytes_rate": 63,
+            "node_load1": 0.27,
+            "node_load5": 0.22,
+            "node_boot_time_seconds": 1735994624,
+            "node_procs_running": 121,
+            "node_http_request_duration_milliseconds": 131
+          },
+          "nodeInfo": {
             "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 135,
           "logs": []
         },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 38,
-          "memory": 34,
-          "disk": 14,
-          "network": 68,
-          "responseTime": 148,
-          "uptime": 2610607,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-icn-01:9100": {
+          "instance": "lb-haproxy-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 124,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 38,
+            "node_memory_usage_percent": 34,
+            "node_filesystem_usage_percent": 14,
+            "node_network_transmit_bytes_rate": 68,
+            "node_load1": 1.5,
+            "node_load5": 1.19,
+            "node_boot_time_seconds": 1735974329,
+            "node_procs_running": 128,
+            "node_http_request_duration_milliseconds": 149
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 33,
-          "memory": 36,
-          "disk": 13,
-          "network": 68,
-          "responseTime": 133,
-          "uptime": 2643783,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-pus-01:9100": {
+          "instance": "lb-haproxy-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 109,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 33,
+            "node_memory_usage_percent": 36,
+            "node_filesystem_usage_percent": 13,
+            "node_network_transmit_bytes_rate": 68,
+            "node_load1": 1.17,
+            "node_load5": 1.02,
+            "node_boot_time_seconds": 1735949904,
+            "node_procs_running": 108,
+            "node_http_request_duration_milliseconds": 130
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         }
       }
     },
     {
-      "minute": 40,
-      "timestamp": "14:40",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 38,
-          "memory": 46,
-          "disk": 27,
-          "network": 62,
-          "responseTime": 131,
-          "uptime": 2621968,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+      "timestampMs": 1770183600000,
+      "targets": {
+        "web-nginx-icn-01:9100": {
+          "instance": "web-nginx-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 111,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 38,
+            "node_memory_usage_percent": 46,
+            "node_filesystem_usage_percent": 27,
+            "node_network_transmit_bytes_rate": 62,
+            "node_load1": 1.33,
+            "node_load5": 1.09,
+            "node_boot_time_seconds": 1735952902,
+            "node_procs_running": 107,
+            "node_http_request_duration_milliseconds": 152
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 42,
-          "disk": 25,
-          "network": 56,
-          "responseTime": 159,
-          "uptime": 2667235,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-icn-02:9100": {
+          "instance": "web-nginx-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 124,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 42,
+            "node_filesystem_usage_percent": 25,
+            "node_network_transmit_bytes_rate": 56,
+            "node_load1": 1.15,
+            "node_load5": 1.06,
+            "node_boot_time_seconds": 1735975674,
+            "node_procs_running": 127,
+            "node_http_request_duration_milliseconds": 138
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "critical",
-          "cpu": 18,
-          "memory": 91,
-          "disk": 25,
-          "network": 45,
-          "responseTime": 460,
-          "uptime": 2647611,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-pus-01:9100": {
+          "instance": "web-nginx-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nginx",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting nginx"
-            },
-            {
-              "name": "php-fpm",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting php-fpm"
-            }
-          ],
-          "processes": 199,
-          "logs": [
-            {
-              "timestamp": "14:40:00",
-              "level": "ERROR",
-              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
-            },
-            {
-              "timestamp": "14:41:00",
-              "level": "WARN",
-              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 18,
+            "node_memory_usage_percent": 32,
+            "node_filesystem_usage_percent": 25,
+            "node_network_transmit_bytes_rate": 36,
+            "node_load1": 0.62,
+            "node_load5": 0.54,
+            "node_boot_time_seconds": 1735989678,
+            "node_procs_running": 111,
+            "node_http_request_duration_milliseconds": 179
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
+          "logs": []
         },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 79,
-          "memory": 55,
-          "disk": 36,
-          "network": 53,
-          "responseTime": 250,
-          "uptime": 2660010,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-01:9100": {
+          "instance": "api-was-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 43,
+            "node_memory_usage_percent": 55,
+            "node_filesystem_usage_percent": 36,
+            "node_network_transmit_bytes_rate": 53,
+            "node_load1": 3.05,
+            "node_load5": 2.77,
+            "node_boot_time_seconds": 1735971227,
+            "node_procs_running": 124,
+            "node_http_request_duration_milliseconds": 149
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [
-            {
-              "name": "java",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            },
-            {
-              "name": "tomcat",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            }
-          ],
-          "processes": 179,
-          "logs": [
-            {
-              "timestamp": "14:40:00",
-              "level": "WARN",
-              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
-            }
-          ]
+          "logs": []
         },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 40,
-          "memory": 49,
-          "disk": 30,
-          "network": 44,
-          "responseTime": 162,
-          "uptime": 2617926,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-02:9100": {
+          "instance": "api-was-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 40,
+            "node_memory_usage_percent": 49,
+            "node_filesystem_usage_percent": 30,
+            "node_network_transmit_bytes_rate": 44,
+            "node_load1": 3.46,
+            "node_load5": 2.8,
+            "node_boot_time_seconds": 1735935701,
+            "node_procs_running": 133,
+            "node_http_request_duration_milliseconds": 160
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 101,
           "logs": []
         },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 38,
-          "disk": 28,
-          "network": 33,
-          "responseTime": 179,
-          "uptime": 2654502,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-pus-01:9100": {
+          "instance": "api-was-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 23,
+            "node_memory_usage_percent": 38,
+            "node_filesystem_usage_percent": 28,
+            "node_network_transmit_bytes_rate": 33,
+            "node_load1": 2.2,
+            "node_load5": 1.97,
+            "node_boot_time_seconds": 1735955024,
+            "node_procs_running": 141,
+            "node_http_request_duration_milliseconds": 179
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 112,
           "logs": []
         },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 54,
-          "memory": 72,
-          "disk": 45,
-          "network": 36,
-          "responseTime": 48,
-          "uptime": 2613445,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-primary:9100": {
+          "instance": "db-mysql-icn-primary:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-primary.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 54,
+            "node_memory_usage_percent": 72,
+            "node_filesystem_usage_percent": 45,
+            "node_network_transmit_bytes_rate": 36,
+            "node_load1": 8.22,
+            "node_load5": 6.57,
+            "node_boot_time_seconds": 1735990720,
+            "node_procs_running": 132,
+            "node_http_request_duration_milliseconds": 50
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 133,
           "logs": []
         },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 43,
-          "memory": 61,
-          "disk": 40,
-          "network": 33,
-          "responseTime": 50,
-          "uptime": 2657869,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-replica:9100": {
+          "instance": "db-mysql-icn-replica:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-replica.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 43,
+            "node_memory_usage_percent": 61,
+            "node_filesystem_usage_percent": 40,
+            "node_network_transmit_bytes_rate": 33,
+            "node_load1": 6.91,
+            "node_load5": 6.24,
+            "node_boot_time_seconds": 1735953948,
+            "node_procs_running": 133,
+            "node_http_request_duration_milliseconds": 54
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 112,
           "logs": []
         },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 48,
-          "disk": 38,
-          "network": 29,
-          "responseTime": 53,
-          "uptime": 2650302,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-pus-dr:9100": {
+          "instance": "db-mysql-pus-dr:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-pus-dr.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 24,
+            "node_memory_usage_percent": 48,
+            "node_filesystem_usage_percent": 38,
+            "node_network_transmit_bytes_rate": 29,
+            "node_load1": 4.04,
+            "node_load5": 3.58,
+            "node_boot_time_seconds": 1735959828,
+            "node_procs_running": 134,
+            "node_http_request_duration_milliseconds": 52
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 115,
           "logs": []
         },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 20,
-          "memory": 78,
-          "disk": 19,
-          "network": 42,
-          "responseTime": 22,
-          "uptime": 2678267,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-01:9100": {
+          "instance": "cache-redis-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 120,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 20,
+            "node_memory_usage_percent": 78,
+            "node_filesystem_usage_percent": 19,
+            "node_network_transmit_bytes_rate": 42,
+            "node_load1": 0.86,
+            "node_load5": 0.82,
+            "node_boot_time_seconds": 1735967407,
+            "node_procs_running": 132,
+            "node_http_request_duration_milliseconds": 19
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 73,
-          "disk": 20,
-          "network": 40,
-          "responseTime": 18,
-          "uptime": 2627532,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-02:9100": {
+          "instance": "cache-redis-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 101,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 26,
+            "node_memory_usage_percent": 73,
+            "node_filesystem_usage_percent": 20,
+            "node_network_transmit_bytes_rate": 40,
+            "node_load1": 0.92,
+            "node_load5": 0.77,
+            "node_boot_time_seconds": 1735935728,
+            "node_procs_running": 143,
+            "node_http_request_duration_milliseconds": 20
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 28,
-          "memory": 40,
-          "disk": 86,
-          "network": 45,
-          "responseTime": 250,
-          "uptime": 2650196,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
+        "storage-nfs-icn-01:9100": {
+          "instance": "storage-nfs-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-nfs-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nfs-server",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            },
-            {
-              "name": "rpcbind",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            }
-          ],
-          "processes": 100,
-          "logs": [
-            {
-              "timestamp": "14:40:00",
-              "level": "WARN",
-              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 28,
+            "node_memory_usage_percent": 40,
+            "node_filesystem_usage_percent": 64,
+            "node_network_transmit_bytes_rate": 45,
+            "node_load1": 1.27,
+            "node_load5": 1.12,
+            "node_boot_time_seconds": 1735932744,
+            "node_procs_running": 102,
+            "node_http_request_duration_milliseconds": 154
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 5368709120000
+          },
+          "logs": []
         },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 18,
-          "memory": 33,
-          "disk": 53,
-          "network": 55,
-          "responseTime": 132,
-          "uptime": 2620367,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "storage-s3gw-pus-01:9100": {
+          "instance": "storage-s3gw-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-s3gw-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 18,
+            "node_memory_usage_percent": 33,
+            "node_filesystem_usage_percent": 53,
+            "node_network_transmit_bytes_rate": 55,
+            "node_load1": 0.32,
+            "node_load5": 0.26,
+            "node_boot_time_seconds": 1735993878,
+            "node_procs_running": 125,
+            "node_http_request_duration_milliseconds": 152
+          },
+          "nodeInfo": {
             "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 135,
           "logs": []
         },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 40,
-          "memory": 31,
-          "disk": 13,
-          "network": 74,
-          "responseTime": 123,
-          "uptime": 2671058,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-icn-01:9100": {
+          "instance": "lb-haproxy-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 104,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 40,
+            "node_memory_usage_percent": 31,
+            "node_filesystem_usage_percent": 13,
+            "node_network_transmit_bytes_rate": 74,
+            "node_load1": 1.31,
+            "node_load5": 1.22,
+            "node_boot_time_seconds": 1735940961,
+            "node_procs_running": 114,
+            "node_http_request_duration_milliseconds": 129
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 33,
-          "memory": 34,
-          "disk": 16,
-          "network": 70,
-          "responseTime": 176,
-          "uptime": 2663848,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-pus-01:9100": {
+          "instance": "lb-haproxy-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 135,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 33,
+            "node_memory_usage_percent": 34,
+            "node_filesystem_usage_percent": 16,
+            "node_network_transmit_bytes_rate": 70,
+            "node_load1": 1.55,
+            "node_load5": 1.42,
+            "node_boot_time_seconds": 1735994215,
+            "node_procs_running": 127,
+            "node_http_request_duration_milliseconds": 170
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         }
       }
     },
     {
-      "minute": 50,
-      "timestamp": "14:50",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 30,
-          "memory": 48,
-          "disk": 30,
-          "network": 60,
-          "responseTime": 173,
-          "uptime": 2663300,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+      "timestampMs": 1770184200000,
+      "targets": {
+        "web-nginx-icn-01:9100": {
+          "instance": "web-nginx-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 132,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 30,
+            "node_memory_usage_percent": 48,
+            "node_filesystem_usage_percent": 30,
+            "node_network_transmit_bytes_rate": 60,
+            "node_load1": 1.39,
+            "node_load5": 1.27,
+            "node_boot_time_seconds": 1735988835,
+            "node_procs_running": 136,
+            "node_http_request_duration_milliseconds": 169
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 38,
-          "disk": 26,
-          "network": 56,
-          "responseTime": 126,
-          "uptime": 2672582,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-icn-02:9100": {
+          "instance": "web-nginx-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 123,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 27,
+            "node_memory_usage_percent": 38,
+            "node_filesystem_usage_percent": 26,
+            "node_network_transmit_bytes_rate": 56,
+            "node_load1": 0.91,
+            "node_load5": 0.85,
+            "node_boot_time_seconds": 1735973761,
+            "node_procs_running": 129,
+            "node_http_request_duration_milliseconds": 170
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
           "logs": []
         },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "critical",
-          "cpu": 17,
-          "memory": 91,
-          "disk": 23,
-          "network": 48,
-          "responseTime": 460,
-          "uptime": 2609578,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
+        "web-nginx-pus-01:9100": {
+          "instance": "web-nginx-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "web-nginx-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "web",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nginx",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting nginx"
-            },
-            {
-              "name": "php-fpm",
-              "status": "degraded",
-              "health": "critical",
-              "message": "High memory usage affecting php-fpm"
-            }
-          ],
-          "processes": 199,
-          "logs": [
-            {
-              "timestamp": "14:50:00",
-              "level": "ERROR",
-              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
-            },
-            {
-              "timestamp": "14:51:00",
-              "level": "WARN",
-              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 17,
+            "node_memory_usage_percent": 33,
+            "node_filesystem_usage_percent": 23,
+            "node_network_transmit_bytes_rate": 39,
+            "node_load1": 0.75,
+            "node_load5": 0.59,
+            "node_boot_time_seconds": 1735946125,
+            "node_procs_running": 132,
+            "node_http_request_duration_milliseconds": 124
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 107374182400
+          },
+          "logs": []
         },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 79,
-          "memory": 51,
-          "disk": 34,
-          "network": 47,
-          "responseTime": 250,
-          "uptime": 2634990,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-01:9100": {
+          "instance": "api-was-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 47,
+            "node_memory_usage_percent": 51,
+            "node_filesystem_usage_percent": 34,
+            "node_network_transmit_bytes_rate": 47,
+            "node_load1": 4.26,
+            "node_load5": 3.62,
+            "node_boot_time_seconds": 1735970225,
+            "node_procs_running": 128,
+            "node_http_request_duration_milliseconds": 132
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [
-            {
-              "name": "java",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            },
-            {
-              "name": "tomcat",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated cpu usage"
-            }
-          ],
-          "processes": 179,
-          "logs": [
-            {
-              "timestamp": "14:50:00",
-              "level": "WARN",
-              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
-            }
-          ]
+          "logs": []
         },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 42,
-          "memory": 50,
-          "disk": 35,
-          "network": 48,
-          "responseTime": 159,
-          "uptime": 2622681,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-icn-02:9100": {
+          "instance": "api-was-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 42,
+            "node_memory_usage_percent": 50,
+            "node_filesystem_usage_percent": 35,
+            "node_network_transmit_bytes_rate": 48,
+            "node_load1": 3.57,
+            "node_load5": 2.93,
+            "node_boot_time_seconds": 1736002862,
+            "node_procs_running": 106,
+            "node_http_request_duration_milliseconds": 179
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 140,
           "logs": []
         },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 42,
-          "disk": 27,
-          "network": 30,
-          "responseTime": 129,
-          "uptime": 2668854,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "api-was-pus-01:9100": {
+          "instance": "api-was-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "api-was-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "application",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 22,
+            "node_memory_usage_percent": 42,
+            "node_filesystem_usage_percent": 27,
+            "node_network_transmit_bytes_rate": 30,
+            "node_load1": 1.51,
+            "node_load5": 1.4,
+            "node_boot_time_seconds": 1735944815,
+            "node_procs_running": 108,
+            "node_http_request_duration_milliseconds": 130
+          },
+          "nodeInfo": {
             "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 107,
           "logs": []
         },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 56,
-          "memory": 69,
-          "disk": 43,
-          "network": 40,
-          "responseTime": 51,
-          "uptime": 2622714,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-primary:9100": {
+          "instance": "db-mysql-icn-primary:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-primary.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 56,
+            "node_memory_usage_percent": 69,
+            "node_filesystem_usage_percent": 43,
+            "node_network_transmit_bytes_rate": 40,
+            "node_load1": 9.18,
+            "node_load5": 7.54,
+            "node_boot_time_seconds": 1736016431,
+            "node_procs_running": 142,
+            "node_http_request_duration_milliseconds": 57
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 148,
           "logs": []
         },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 36,
-          "memory": 62,
-          "disk": 42,
-          "network": 38,
-          "responseTime": 45,
-          "uptime": 2643109,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-icn-replica:9100": {
+          "instance": "db-mysql-icn-replica:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-icn-replica.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 36,
+            "node_memory_usage_percent": 62,
+            "node_filesystem_usage_percent": 42,
+            "node_network_transmit_bytes_rate": 38,
+            "node_load1": 5.16,
+            "node_load5": 4.48,
+            "node_boot_time_seconds": 1735958080,
+            "node_procs_running": 130,
+            "node_http_request_duration_milliseconds": 42
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 114,
           "logs": []
         },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 19,
-          "memory": 47,
-          "disk": 39,
-          "network": 26,
-          "responseTime": 47,
-          "uptime": 2623435,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "db-mysql-pus-dr:9100": {
+          "instance": "db-mysql-pus-dr:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "db-mysql-pus-dr.openmanager.kr",
+            "datacenter": "Busan-PUS-AZ1",
+            "environment": "production",
+            "server_type": "database",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 19,
+            "node_memory_usage_percent": 47,
+            "node_filesystem_usage_percent": 39,
+            "node_network_transmit_bytes_rate": 26,
+            "node_load1": 2.85,
+            "node_load5": 2.34,
+            "node_boot_time_seconds": 1735980185,
+            "node_procs_running": 100,
+            "node_http_request_duration_milliseconds": 49
+          },
+          "nodeInfo": {
             "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
+            "memory_total_bytes": 68719476736,
+            "disk_total_bytes": 1073741824000
           },
-          "services": [],
-          "processes": 127,
           "logs": []
         },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 74,
-          "disk": 18,
-          "network": 48,
-          "responseTime": 18,
-          "uptime": 2656276,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-01:9100": {
+          "instance": "cache-redis-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 111,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 26,
+            "node_memory_usage_percent": 74,
+            "node_filesystem_usage_percent": 18,
+            "node_network_transmit_bytes_rate": 48,
+            "node_load1": 0.96,
+            "node_load5": 0.86,
+            "node_boot_time_seconds": 1735951838,
+            "node_procs_running": 117,
+            "node_http_request_duration_milliseconds": 23
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 71,
-          "disk": 19,
-          "network": 46,
-          "responseTime": 22,
-          "uptime": 2670472,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
+        "cache-redis-icn-02:9100": {
+          "instance": "cache-redis-icn-02:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "cache-redis-icn-02.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ2",
+            "environment": "production",
+            "server_type": "cache",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 100,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 23,
+            "node_memory_usage_percent": 71,
+            "node_filesystem_usage_percent": 19,
+            "node_network_transmit_bytes_rate": 46,
+            "node_load1": 1.03,
+            "node_load5": 0.96,
+            "node_boot_time_seconds": 1735932931,
+            "node_procs_running": 118,
+            "node_http_request_duration_milliseconds": 20
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 34359738368,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 34,
-          "memory": 36,
-          "disk": 86,
-          "network": 51,
-          "responseTime": 250,
-          "uptime": 2667196,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
+        "storage-nfs-icn-01:9100": {
+          "instance": "storage-nfs-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-nfs-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [
-            {
-              "name": "nfs-server",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            },
-            {
-              "name": "rpcbind",
-              "status": "running",
-              "health": "warning",
-              "message": "Elevated disk usage"
-            }
-          ],
-          "processes": 143,
-          "logs": [
-            {
-              "timestamp": "14:50:00",
-              "level": "WARN",
-              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
-            }
-          ]
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 34,
+            "node_memory_usage_percent": 36,
+            "node_filesystem_usage_percent": 67,
+            "node_network_transmit_bytes_rate": 51,
+            "node_load1": 1.43,
+            "node_load5": 1.32,
+            "node_boot_time_seconds": 1736008524,
+            "node_procs_running": 148,
+            "node_http_request_duration_milliseconds": 129
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 17179869184,
+            "disk_total_bytes": 5368709120000
+          },
+          "logs": []
         },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 15,
-          "memory": 34,
-          "disk": 55,
-          "network": 64,
-          "responseTime": 145,
-          "uptime": 2626643,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
+        "storage-s3gw-pus-01:9100": {
+          "instance": "storage-s3gw-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "storage-s3gw-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "storage",
+            "os": "ubuntu",
+            "os_version": "22.04"
+          },
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 15,
+            "node_memory_usage_percent": 34,
+            "node_filesystem_usage_percent": 55,
+            "node_network_transmit_bytes_rate": 64,
+            "node_load1": 0.29,
+            "node_load5": 0.24,
+            "node_boot_time_seconds": 1735992362,
+            "node_procs_running": 124,
+            "node_http_request_duration_milliseconds": 156
+          },
+          "nodeInfo": {
             "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 214748364800
           },
-          "services": [],
-          "processes": 134,
           "logs": []
         },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "warning",
-          "cpu": 39,
-          "memory": 35,
-          "disk": 14,
-          "network": 71,
-          "responseTime": 124,
-          "uptime": 2668961,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-icn-01:9100": {
+          "instance": "lb-haproxy-icn-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-icn-01.openmanager.kr",
+            "datacenter": "Seoul-ICN-AZ1",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 146,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 39,
+            "node_memory_usage_percent": 35,
+            "node_filesystem_usage_percent": 14,
+            "node_network_transmit_bytes_rate": 71,
+            "node_load1": 1.29,
+            "node_load5": 1.2,
+            "node_boot_time_seconds": 1736013479,
+            "node_procs_running": 125,
+            "node_http_request_duration_milliseconds": 178
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 36,
-          "memory": 29,
-          "disk": 15,
-          "network": 69,
-          "responseTime": 145,
-          "uptime": 2629939,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
+        "lb-haproxy-pus-01:9100": {
+          "instance": "lb-haproxy-pus-01:9100",
+          "job": "node-exporter",
+          "labels": {
+            "hostname": "lb-haproxy-pus-01.openmanager.kr",
+            "datacenter": "Busan-PUS-DR",
+            "environment": "production",
+            "server_type": "loadbalancer",
+            "os": "ubuntu",
+            "os_version": "22.04"
           },
-          "services": [],
-          "processes": 108,
+          "metrics": {
+            "up": 1,
+            "node_cpu_usage_percent": 36,
+            "node_memory_usage_percent": 29,
+            "node_filesystem_usage_percent": 15,
+            "node_network_transmit_bytes_rate": 69,
+            "node_load1": 1.39,
+            "node_load5": 1.16,
+            "node_boot_time_seconds": 1735947961,
+            "node_procs_running": 147,
+            "node_http_request_duration_milliseconds": 122
+          },
+          "nodeInfo": {
+            "cpu_cores": 4,
+            "memory_total_bytes": 8589934592,
+            "disk_total_bytes": 53687091200
+          },
           "logs": []
         }
       }
     }
   ],
   "metadata": {
-    "version": "2.1.0",
+    "version": "3.0.0",
+    "format": "prometheus",
     "totalDataPoints": 6,
     "intervalMinutes": 10,
     "serverCount": 15,

@@ -202,11 +202,46 @@ function loadHourlyJson(hour: number): HourlyJsonData | null {
 
 interface HourlyJsonData {
   hour: number;
-  _pattern: string; // JSON 필드명 (외부 노출 방지)
+  scrapeConfig: {
+    scrapeInterval: string;
+    evaluationInterval: string;
+    source: string;
+  };
   dataPoints: Array<{
-    timestamp: string;
-    servers: Record<string, RawServerData>;
+    timestampMs: number;
+    targets: Record<string, PrometheusTargetData>;
   }>;
+}
+
+interface PrometheusTargetData {
+  job: string;
+  instance: string;
+  labels: {
+    hostname: string;
+    datacenter: string;
+    environment: string;
+    server_type: string;
+    os: string;
+    os_version: string;
+  };
+  metrics: {
+    up: 0 | 1;
+    node_cpu_usage_percent: number;
+    node_memory_usage_percent: number;
+    node_filesystem_usage_percent: number;
+    node_network_transmit_bytes_rate: number;
+    node_load1: number;
+    node_load5: number;
+    node_boot_time_seconds: number;
+    node_procs_running: number;
+    node_http_request_duration_milliseconds: number;
+  };
+  nodeInfo: {
+    cpu_cores: number;
+    memory_total_bytes: number;
+    disk_total_bytes: number;
+  };
+  logs: string[];
 }
 
 interface RawServerData {
@@ -218,6 +253,22 @@ interface RawServerData {
   disk: number;
   network: number;
   status?: string;
+}
+
+/**
+ * PrometheusTargetData → RawServerData 변환
+ */
+function targetToRawServer(target: PrometheusTargetData): RawServerData {
+  return {
+    id: target.instance.replace(/:9100$/, ''),
+    name: target.labels.hostname.replace('.openmanager.kr', ''),
+    type: target.labels.server_type,
+    cpu: target.metrics.node_cpu_usage_percent,
+    memory: target.metrics.node_memory_usage_percent,
+    disk: target.metrics.node_filesystem_usage_percent,
+    network: target.metrics.node_network_transmit_bytes_rate,
+    status: target.metrics.up === 0 ? 'offline' : undefined,
+  };
 }
 
 /** 서버 상태 결정 (JSON SSOT와 동일한 용어 사용) */
@@ -344,17 +395,23 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
       const minuteOfDay = slotIndex * 10;
       const timeLabel = `${hour.toString().padStart(2, '0')}:${(slotInHour * 10).toString().padStart(2, '0')}`;
 
-      // 5분 간격 dataPoint에서 해당 슬롯 데이터 가져오기
-      const dataPointIndex = slotInHour * 2; // 0, 2, 4, 6, 8, 10
-      const dataPoint = hourlyData.dataPoints[Math.min(dataPointIndex, hourlyData.dataPoints.length - 1)];
+      // 10분 간격 dataPoint에서 해당 슬롯 데이터 가져오기
+      const dataPoint = hourlyData.dataPoints[Math.min(slotInHour, hourlyData.dataPoints.length - 1)];
 
-      if (!dataPoint?.servers) {
+      if (!dataPoint?.targets) {
         logger.warn(`[PrecomputedState] slot ${slotIndex} 데이터 없음`);
         continue;
       }
 
+      // Prometheus targets → RawServerData 변환 후 스냅샷 생성
+      const rawServers: Record<string, RawServerData> = {};
+      for (const target of Object.values(dataPoint.targets)) {
+        const raw = targetToRawServer(target);
+        rawServers[raw.id] = raw;
+      }
+
       // 서버 스냅샷 생성
-      const servers: ServerSnapshot[] = Object.values(dataPoint.servers).map((s) => ({
+      const servers: ServerSnapshot[] = Object.values(rawServers).map((s) => ({
         id: s.id,
         name: s.name,
         type: s.type,
@@ -375,7 +432,7 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
 
       // 알림 생성
       const alerts: ServerAlert[] = [];
-      for (const rawServer of Object.values(dataPoint.servers)) {
+      for (const rawServer of Object.values(rawServers)) {
         const prevServer = previousServers[rawServer.id];
         alerts.push(...generateAlerts(rawServer, prevServer));
       }
@@ -394,7 +451,7 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
       });
 
       // 다음 슬롯을 위해 현재 서버 저장
-      previousServers = dataPoint.servers;
+      previousServers = rawServers;
     }
   }
 

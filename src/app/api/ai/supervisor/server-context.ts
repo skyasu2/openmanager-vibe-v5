@@ -1,38 +1,25 @@
 /**
- * 서버 컨텍스트 주입 - AI 응답에 실제 서버 데이터 참조 제공
+ * 서버 컨텍스트 주입 - AI 응답에 Monitoring Pipeline 분석 결과 제공
  *
- * Cloud Run 전송 전 system message로 현재 alert 서버 상태를 prepend하여
- * AI가 일반론 대신 구체적 서버 데이터 기반 답변을 생성하도록 함
+ * MonitoringContext의 분석 결과(Health Score, Alert, 그룹별 현황)를
+ * system message로 주입하여 AI가 구체적 데이터 기반 답변을 생성하도록 함
+ *
+ * @updated 2026-02-04 - MonitoringContext 연동 (Prometheus 파이프라인)
  */
 
 import type { NormalizedMessage } from '@/lib/ai/utils/message-normalizer';
-import { MetricsProvider } from '@/services/metrics/MetricsProvider';
+import { MonitoringContext } from '@/services/monitoring/MonitoringContext';
 
 export function buildServerContextMessage(): NormalizedMessage | null {
   try {
-    const provider = MetricsProvider.getInstance();
-    const summary = provider.getSystemSummary();
-    const alerts = provider.getAlertServers();
+    const monitoring = MonitoringContext.getInstance();
+    const context = monitoring.getLLMContext();
 
-    if (!alerts.length) return null;
-
-    const alertLines = alerts
-      .map(
-        (s) =>
-          `- ${s.serverId}: CPU ${s.cpu}%, Memory ${s.memory}%, Disk ${s.disk}% [${s.status}]`
-      )
-      .join('\n');
+    if (!context) return null;
 
     return {
       role: 'system',
-      content: `[현재 인프라 상태 - ${summary.timestamp}]
-전체 ${summary.totalServers}대: 정상 ${summary.onlineServers}, 경고 ${summary.warningServers}, 위험 ${summary.criticalServers}
-평균 CPU ${summary.averageCpu}% | Memory ${summary.averageMemory}% | Disk ${summary.averageDisk}%
-
-주의 서버:
-${alertLines}
-
-위 데이터를 참조하여 구체적으로 답변하세요.`,
+      content: `${context}\n위 모니터링 데이터를 참조하여 구체적으로 답변하세요.`,
     };
   } catch {
     return null;

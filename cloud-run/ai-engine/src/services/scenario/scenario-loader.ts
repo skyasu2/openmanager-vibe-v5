@@ -10,37 +10,47 @@ import { logger } from '../../lib/logger';
  */
 interface HourlyJsonData {
   hour: number;
-  _pattern: string; // JSON 필드명 (외부 노출 방지)
+  scrapeConfig: {
+    scrapeInterval: string;
+    evaluationInterval: string;
+    source: string;
+  };
+  _scenario?: string;
   dataPoints: Array<{
-    timestamp: string; // "00:00", "00:05", ...
-    servers: Record<string, RawServerData>;
+    timestampMs: number;
+    targets: Record<string, PrometheusTargetData>;
   }>;
 }
 
-interface RawServerData {
-  id: string;
-  name: string;
-  hostname: string;
-  type: string;
-  role: string;
-  location: string;
-  environment: string;
-  status: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  responseTime?: number;
-  uptime: number;
-  ip: string;
-  os: string;
-  specs: {
-    cpu_cores: number;
-    memory_gb: number;
-    disk_gb: number;
+interface PrometheusTargetData {
+  job: string;
+  instance: string;
+  labels: {
+    hostname: string;
+    datacenter: string;
+    environment: string;
+    server_type: string;
+    os: string;
+    os_version: string;
   };
-  services?: unknown[];
-  processes?: number;
+  metrics: {
+    up: 0 | 1;
+    node_cpu_usage_percent: number;
+    node_memory_usage_percent: number;
+    node_filesystem_usage_percent: number;
+    node_network_transmit_bytes_rate: number;
+    node_load1: number;
+    node_load5: number;
+    node_boot_time_seconds: number;
+    node_procs_running: number;
+    node_http_request_duration_milliseconds: number;
+  };
+  nodeInfo: {
+    cpu_cores: number;
+    memory_total_bytes: number;
+    disk_total_bytes: number;
+  };
+  logs: string[];
 }
 
 // 캐시: 한 번 읽은 JSON 파일을 메모리에 유지
@@ -70,7 +80,7 @@ function loadHourlyJsonFile(hour: number): HourlyJsonData | null {
         const content = readFileSync(filePath, 'utf-8');
         const data = JSON.parse(content) as HourlyJsonData;
         jsonCache.set(hour, data);
-        console.log(`[ScenarioLoader] JSON 로드 성공: hour-${paddedHour}.json`);
+        logger.info(`[ScenarioLoader] JSON 로드 성공: hour-${paddedHour}.json`);
         return data;
       } catch (error) {
         logger.error(`[ScenarioLoader] JSON 파싱 오류: ${filePath}`, error);
@@ -112,25 +122,28 @@ export async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]>
     const clampedIndex = Math.min(dataPointIndex, hourlyData.dataPoints.length - 1);
     const dataPoint = hourlyData.dataPoints[clampedIndex];
 
-    if (!dataPoint || !dataPoint.servers) {
+    if (!dataPoint || !dataPoint.targets) {
       logger.error(`[ScenarioLoader] dataPoint[${clampedIndex}] 없음`);
       return [];
     }
 
-    // RawServerData → EnhancedServerMetrics 변환
-    return Object.values(dataPoint.servers).map((serverData) => {
-      const cpu = serverData.cpu ?? 0;
-      const memory = serverData.memory ?? 0;
-      const disk = serverData.disk ?? 0;
-      const network = serverData.network ?? 0;
+    // PrometheusTarget → EnhancedServerMetrics 변환
+    return Object.values(dataPoint.targets).map((target) => {
+      const cpu = target.metrics.node_cpu_usage_percent ?? 0;
+      const memory = target.metrics.node_memory_usage_percent ?? 0;
+      const disk = target.metrics.node_filesystem_usage_percent ?? 0;
+      const network = target.metrics.node_network_transmit_bytes_rate ?? 0;
+      const serverId = target.instance.replace(/:9100$/, '');
 
       // 상태 결정 (Dashboard와 동일한 로직)
-      const status = determineServerStatus({ cpu, memory, disk, network });
+      const status = target.metrics.up === 0
+        ? 'offline'
+        : determineServerStatus({ cpu, memory, disk, network });
 
       return {
-        id: serverData.id,
-        name: serverData.name,
-        hostname: serverData.hostname,
+        id: serverId,
+        name: target.labels.hostname.replace('.openmanager.kr', ''),
+        hostname: target.labels.hostname,
         status,
         cpu,
         cpu_usage: cpu,
@@ -141,29 +154,29 @@ export async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]>
         network,
         network_in: network * 0.6,
         network_out: network * 0.4,
-        uptime: serverData.uptime ?? 86400 * 30,
-        responseTime: serverData.responseTime ?? 50 + cpu * 2,
+        uptime: Math.round(Date.now() / 1000 - target.metrics.node_boot_time_seconds),
+        responseTime: target.metrics.node_http_request_duration_milliseconds,
         last_updated: new Date().toISOString(),
-        location: serverData.location,
+        location: target.labels.datacenter,
         alerts: [],
-        ip: serverData.ip,
-        os: serverData.os,
-        type: serverData.type,
-        role: serverData.role,
-        environment: serverData.environment,
+        ip: '',
+        os: `${target.labels.os} ${target.labels.os_version}`,
+        type: target.labels.server_type,
+        role: target.labels.server_type,
+        environment: target.labels.environment,
         provider: 'JSON-SSOT',
         specs: {
-          cpu_cores: serverData.specs?.cpu_cores ?? 8,
-          memory_gb: serverData.specs?.memory_gb ?? 32,
-          disk_gb: serverData.specs?.disk_gb ?? 512,
+          cpu_cores: target.nodeInfo.cpu_cores,
+          memory_gb: Math.round(target.nodeInfo.memory_total_bytes / (1024 * 1024 * 1024)),
+          disk_gb: Math.round(target.nodeInfo.disk_total_bytes / (1024 * 1024 * 1024)),
           network_speed: '1Gbps',
         },
-        services: serverData.services ?? [],
+        services: [],
         systemInfo: {
-          os: serverData.os,
-          uptime: `${Math.floor((serverData.uptime ?? 0) / 3600)}h`,
-          processes: serverData.processes ?? 120 + Math.floor(cpu),
-          loadAverage: `${(cpu / 20).toFixed(2)}`,
+          os: `${target.labels.os} ${target.labels.os_version}`,
+          uptime: `${Math.floor((Date.now() / 1000 - target.metrics.node_boot_time_seconds) / 3600)}h`,
+          processes: target.metrics.node_procs_running,
+          loadAverage: `${target.metrics.node_load1.toFixed(2)}`,
           lastUpdate: new Date().toISOString(),
         },
         networkInfo: {
@@ -228,16 +241,17 @@ export async function loadHistoricalContext(
       const clampedIndex = Math.min(dataPointIndex, hourlyData.dataPoints.length - 1);
       const dataPoint = hourlyData.dataPoints[clampedIndex];
 
-      if (!dataPoint?.servers) continue;
+      if (!dataPoint?.targets) continue;
 
-      // 서버 데이터 찾기
-      const serverData = dataPoint.servers[serverId];
-      if (serverData) {
+      // Prometheus targets에서 서버 데이터 찾기 (instance = "serverId:9100")
+      const instanceKey = `${serverId}:9100`;
+      const target = dataPoint.targets[instanceKey];
+      if (target) {
         history.push({
           timestamp: targetTime.getTime(),
-          cpu: serverData.cpu ?? 0,
-          memory: serverData.memory ?? 0,
-          disk: serverData.disk ?? 0,
+          cpu: target.metrics.node_cpu_usage_percent ?? 0,
+          memory: target.metrics.node_memory_usage_percent ?? 0,
+          disk: target.metrics.node_filesystem_usage_percent ?? 0,
         });
       }
     }
@@ -271,5 +285,5 @@ export async function getServerIds(): Promise<string[]> {
  */
 export function clearJsonCache(): void {
   jsonCache.clear();
-  console.log('[ScenarioLoader] JSON 캐시 초기화됨');
+  logger.info('[ScenarioLoader] JSON 캐시 초기화됨');
 }

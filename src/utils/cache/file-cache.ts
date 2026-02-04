@@ -107,9 +107,26 @@ async function readFileContent(filePath: string): Promise<string> {
 function transformNewFormatToLegacy(
   rawData: {
     hour?: number;
-    _pattern?: string; // JSON 필드명 (외부 노출 방지)
-    dataPoints?: Array<{ timestamp: string; servers: Record<string, unknown> }>;
-    servers?: Record<string, unknown>; // 기존 형식 지원
+    _scenario?: string;
+    dataPoints?: Array<{
+      timestampMs?: number;
+      targets?: Record<
+        string,
+        {
+          instance?: string;
+          metrics?: {
+            up?: number;
+            node_cpu_usage_percent?: number;
+            node_memory_usage_percent?: number;
+            node_filesystem_usage_percent?: number;
+            node_network_transmit_bytes_rate?: number;
+          };
+          labels?: { server_type?: string };
+        }
+      >;
+      servers?: Record<string, unknown>;
+    }>;
+    servers?: Record<string, unknown>;
     metadata?: { serverCount: number; scenarioType: string };
   },
   minute: number
@@ -119,15 +136,44 @@ function transformNewFormatToLegacy(
     return rawData as unknown as HourlyServerData;
   }
 
-  // 새로운 형식 (dataPoints 배열) 변환
+  // dataPoints 배열 변환
   const dataPoints = rawData.dataPoints || [];
   const dataPointCount = dataPoints.length;
 
-  // 5분 단위로 dataPoint 인덱스 계산 (0-11)
-  const dataPointIndex = Math.min(Math.floor(minute / 5), dataPointCount - 1);
+  // 10분 단위로 dataPoint 인덱스 계산 (0-5)
+  const dataPointIndex = Math.min(Math.floor(minute / 10), dataPointCount - 1);
 
   const selectedDataPoint = dataPoints[dataPointIndex] || dataPoints[0];
-  const servers = selectedDataPoint?.servers || {};
+
+  // Prometheus 포맷: targets → servers 변환
+  let servers: Record<string, unknown> = {};
+  if (selectedDataPoint?.targets) {
+    for (const target of Object.values(selectedDataPoint.targets)) {
+      const serverId = target.instance?.replace(/:9100$/, '') || '';
+      const cpu = target.metrics?.node_cpu_usage_percent || 0;
+      const memory = target.metrics?.node_memory_usage_percent || 0;
+      const disk = target.metrics?.node_filesystem_usage_percent || 0;
+      const network = target.metrics?.node_network_transmit_bytes_rate || 0;
+      let status = 'online';
+      if (target.metrics?.up === 0) status = 'offline';
+      else if (cpu >= 90 || memory >= 90 || disk >= 90 || network >= 85)
+        status = 'critical';
+      else if (cpu >= 80 || memory >= 80 || disk >= 80 || network >= 70)
+        status = 'warning';
+
+      servers[serverId] = {
+        id: serverId,
+        status,
+        cpu,
+        memory,
+        disk,
+        network,
+        type: target.labels?.server_type,
+      };
+    }
+  } else if (selectedDataPoint?.servers) {
+    servers = selectedDataPoint.servers;
+  }
 
   // 서버 상태 요약 계산
   const serverValues = Object.values(servers) as Array<{ status?: string }>;
@@ -140,7 +186,7 @@ function transformNewFormatToLegacy(
 
   return {
     servers: servers as HourlyServerData['servers'],
-    scenario: rawData._pattern, // _pattern에서 읽어서 내부 scenario로 매핑
+    scenario: rawData._scenario,
     summary,
   };
 }

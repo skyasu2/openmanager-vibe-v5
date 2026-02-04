@@ -64,11 +64,28 @@ export interface Server24hDataset {
  */
 interface HourlyJsonData {
   hour: number;
-  _pattern: string; // JSON 필드명 (외부 노출 방지)
+  scrapeConfig: {
+    scrapeInterval: string;
+    evaluationInterval: string;
+    source: string;
+  };
+  _scenario?: string;
   dataPoints: Array<{
-    timestamp: string;
-    servers: Record<string, RawServerData>;
+    timestampMs: number;
+    targets: Record<string, PrometheusTargetJson>;
   }>;
+}
+
+interface PrometheusTargetJson {
+  instance: string;
+  labels: { server_type: string; hostname: string; datacenter: string };
+  metrics: {
+    up: 0 | 1;
+    node_cpu_usage_percent: number;
+    node_memory_usage_percent: number;
+    node_filesystem_usage_percent: number;
+    node_network_transmit_bytes_rate: number;
+  };
 }
 
 interface RawServerData {
@@ -337,24 +354,28 @@ function buildDatasetsFromJson(): Server24hDataset[] {
     const hourlyData = loadHourlyJson(hour);
     if (!hourlyData) continue;
 
-    // 각 dataPoint (5분 간격, 12개/시간)
+    // 각 dataPoint (10분 간격, 6개/시간)
     for (let dpIndex = 0; dpIndex < hourlyData.dataPoints.length; dpIndex++) {
       const dataPoint = hourlyData.dataPoints[dpIndex];
-      if (!dataPoint?.servers) continue;
+      if (!dataPoint?.targets) continue;
 
-      // 분 계산 (5분 → 10분으로 반올림)
-      const minuteInHour = dpIndex * 5;
+      // 분 계산 (10분 간격)
+      const minuteInHour = dpIndex * 10;
       const minuteOfDay = hour * 60 + minuteInHour;
       const roundedMinute = Math.floor(minuteOfDay / 10) * 10;
 
-      // 각 서버 데이터 처리
-      for (const [serverId, serverData] of Object.entries(dataPoint.servers)) {
+      // Prometheus targets → 서버 데이터 처리
+      for (const target of Object.values(dataPoint.targets)) {
+        const serverId = target.instance.replace(/:9100$/, '');
+        const serverType = target.labels.server_type;
+        const location = target.labels.datacenter;
+
         // 서버 첫 등장 시 초기화
         if (!serverDataMap.has(serverId)) {
           serverDataMap.set(serverId, {
             serverId,
-            serverType: mapServerType(serverData.type),
-            location: serverData.location,
+            serverType: mapServerType(serverType),
+            location,
             dataPoints: new Map(),
           });
         }
@@ -363,10 +384,10 @@ function buildDatasetsFromJson(): Server24hDataset[] {
 
         // 해당 10분 슬롯에 데이터가 없으면 추가
         if (!serverEntry.dataPoints.has(roundedMinute)) {
-          const cpu = serverData.cpu ?? 0;
-          const memory = serverData.memory ?? 0;
-          const disk = serverData.disk ?? 0;
-          const network = serverData.network ?? 0;
+          const cpu = target.metrics.node_cpu_usage_percent ?? 0;
+          const memory = target.metrics.node_memory_usage_percent ?? 0;
+          const disk = target.metrics.node_filesystem_usage_percent ?? 0;
+          const network = target.metrics.node_network_transmit_bytes_rate ?? 0;
 
           serverEntry.dataPoints.set(roundedMinute, {
             minuteOfDay: roundedMinute,

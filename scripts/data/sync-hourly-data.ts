@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
 /**
- * 🔄 SSOT 데이터 동기화 스크립트
+ * 🔄 SSOT 데이터 동기화 스크립트 (Prometheus 포맷)
  *
- * 목적: fixed-24h-metrics.ts (SSOT)에서 hourly-data JSON 생성
+ * 목적: Prometheus/node_exporter 스타일 JSON 생성
  * - Dashboard와 AI Engine이 동일한 데이터를 사용하도록 보장
  * - 서버 ID 명명규칙: 한국 DC (web-nginx-icn-01, cache-redis-icn-01 등)
+ * - metric 이름: node_* prefix (node_exporter 표준)
  *
  * 사용법:
  *   npx tsx scripts/data/sync-hourly-data.ts
@@ -12,6 +13,7 @@
  * 출력:
  *   - public/hourly-data/hour-XX.json (24개 파일)
  *   - cloud-run/ai-engine/data/hourly-data/hour-XX.json (24개 파일)
+ *   - src/data/hourly-data/hour-XX.json (24개 파일)
  */
 
 import fs from 'fs';
@@ -60,6 +62,8 @@ interface ServerConfig {
   location: string;
   hostname: string;
   ip: string;
+  os: string;
+  osVersion: string;
   specs: {
     cpu_cores: number;
     memory_gb: number;
@@ -89,6 +93,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ1',
     hostname: 'web-nginx-icn-01.openmanager.kr',
     ip: '10.10.1.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
     baseline: { cpu: 35, memory: 45, disk: 30, network: 60 },
   },
@@ -99,6 +105,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ2',
     hostname: 'web-nginx-icn-02.openmanager.kr',
     ip: '10.10.1.12',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
     baseline: { cpu: 32, memory: 42, disk: 28, network: 55 },
   },
@@ -109,6 +117,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Busan-PUS-AZ1',
     hostname: 'web-nginx-pus-01.openmanager.kr',
     ip: '10.20.1.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
     baseline: { cpu: 20, memory: 35, disk: 25, network: 40 },
   },
@@ -121,6 +131,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ1',
     hostname: 'api-was-icn-01.openmanager.kr',
     ip: '10.10.2.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 200 },
     baseline: { cpu: 45, memory: 55, disk: 35, network: 50 },
   },
@@ -131,6 +143,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ2',
     hostname: 'api-was-icn-02.openmanager.kr',
     ip: '10.10.2.12',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 200 },
     baseline: { cpu: 42, memory: 52, disk: 33, network: 48 },
   },
@@ -141,6 +155,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Busan-PUS-AZ1',
     hostname: 'api-was-pus-01.openmanager.kr',
     ip: '10.20.2.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 200 },
     baseline: { cpu: 25, memory: 40, disk: 28, network: 35 },
   },
@@ -153,6 +169,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ1',
     hostname: 'db-mysql-icn-primary.openmanager.kr',
     ip: '10.10.3.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 16, memory_gb: 64, disk_gb: 1000 },
     baseline: { cpu: 55, memory: 70, disk: 45, network: 40 },
   },
@@ -163,6 +181,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ2',
     hostname: 'db-mysql-icn-replica.openmanager.kr',
     ip: '10.10.3.12',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 16, memory_gb: 64, disk_gb: 1000 },
     baseline: { cpu: 40, memory: 60, disk: 42, network: 35 },
   },
@@ -173,6 +193,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Busan-PUS-AZ1',
     hostname: 'db-mysql-pus-dr.openmanager.kr',
     ip: '10.20.3.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 16, memory_gb: 64, disk_gb: 1000 },
     baseline: { cpu: 20, memory: 45, disk: 40, network: 25 },
   },
@@ -185,6 +207,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ1',
     hostname: 'cache-redis-icn-01.openmanager.kr',
     ip: '10.10.4.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 32, disk_gb: 50 },
     baseline: { cpu: 25, memory: 75, disk: 20, network: 45 },
   },
@@ -195,6 +219,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ2',
     hostname: 'cache-redis-icn-02.openmanager.kr',
     ip: '10.10.4.12',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 32, disk_gb: 50 },
     baseline: { cpu: 22, memory: 72, disk: 18, network: 42 },
   },
@@ -207,6 +233,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ1',
     hostname: 'storage-nfs-icn-01.openmanager.kr',
     ip: '10.10.5.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 5000 },
     baseline: { cpu: 30, memory: 40, disk: 65, network: 50 },
   },
@@ -217,6 +245,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Busan-PUS-DR',
     hostname: 'storage-s3gw-pus-01.openmanager.kr',
     ip: '10.20.5.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 2, memory_gb: 8, disk_gb: 200 },
     baseline: { cpu: 20, memory: 35, disk: 55, network: 60 },
   },
@@ -229,6 +259,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Seoul-ICN-AZ1',
     hostname: 'lb-haproxy-icn-01.openmanager.kr',
     ip: '10.10.6.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 50 },
     baseline: { cpu: 40, memory: 35, disk: 15, network: 70 },
   },
@@ -239,6 +271,8 @@ const KOREAN_DC_SERVERS: ServerConfig[] = [
     location: 'Busan-PUS-DR',
     hostname: 'lb-haproxy-pus-01.openmanager.kr',
     ip: '10.20.6.11',
+    os: 'ubuntu',
+    osVersion: '22.04',
     specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 50 },
     baseline: { cpu: 38, memory: 33, disk: 14, network: 68 },
   },
@@ -294,7 +328,6 @@ const FAILURE_SCENARIOS: FailureScenario[] = [
     hour: 3,
     incident: 'DB 슬로우 쿼리 누적 - 성능 저하',
     affectedServers: [
-      // 백업 완료 후 disk는 여전히 높음 (70%대), CPU/Memory 폭증
       { id: 'db-mysql-icn-primary', status: 'critical', metricsOverride: { cpu: 95, memory: 92, disk: 72 } },
       { id: 'api-was-icn-01', status: 'warning', metricsOverride: { cpu: 75, memory: 70 } },
     ],
@@ -527,7 +560,6 @@ function generateLogs(
   server: ServerConfig,
   status: ServerStatus,
   metrics: { cpu: number; memory: number; disk: number; network: number },
-  scenario?: FailureScenario
 ): string[] {
   const logs: string[] = [];
   const templates = LOG_TEMPLATES[server.type];
@@ -577,32 +609,27 @@ function getScenarioForHour(hour: number): FailureScenario | undefined {
 
 /**
  * 현재 시간/분에 대한 장애 단계 결정
- * - 장애 1시간 전: pre (전조)
- * - 장애 시간 00-20분: onset (시작)
- * - 장애 시간 30분: peak (피크)
- * - 장애 시간 40-50분: sustained (지속)
- * - 장애 1시간 후: recovery (회복)
  */
 function getFailurePhase(hour: number, minuteIndex: number): { phase: FailurePhase; scenario: FailureScenario | undefined } {
   // 현재 시간이 장애 시간인 경우
   const currentScenario = getScenarioForHour(hour);
   if (currentScenario) {
-    if (minuteIndex <= 2) return { phase: 'onset', scenario: currentScenario };      // 00, 10, 20분
-    if (minuteIndex === 3) return { phase: 'peak', scenario: currentScenario };       // 30분
-    return { phase: 'sustained', scenario: currentScenario };                          // 40, 50분
+    if (minuteIndex <= 2) return { phase: 'onset', scenario: currentScenario };
+    if (minuteIndex === 3) return { phase: 'peak', scenario: currentScenario };
+    return { phase: 'sustained', scenario: currentScenario };
   }
 
   // 다음 시간이 장애 시간인 경우 (현재는 전조)
   const nextHour = (hour + 1) % 24;
   const nextScenario = getScenarioForHour(nextHour);
-  if (nextScenario && minuteIndex >= 3) { // 후반부(30분 이후)에만 전조 나타남
+  if (nextScenario && minuteIndex >= 3) {
     return { phase: 'pre', scenario: nextScenario };
   }
 
   // 이전 시간이 장애 시간인 경우 (현재는 회복)
   const prevHour = (hour - 1 + 24) % 24;
   const prevScenario = getScenarioForHour(prevHour);
-  if (prevScenario && minuteIndex <= 3) { // 전반부(30분까지)에 회복 진행
+  if (prevScenario && minuteIndex <= 3) {
     return { phase: 'recovery', scenario: prevScenario };
   }
 
@@ -621,37 +648,49 @@ function getStatusForPhase(phase: FailurePhase, peakStatus: ServerStatus): Serve
       return peakStatus === 'critical' ? 'warning' : 'online';
     case 'pre':
     case 'recovery':
-      return 'online'; // 전조/회복 시에는 online이지만 메트릭 높음
+      return 'online';
     default:
       return 'online';
   }
 }
 
-function generateServerMetrics(
+/**
+ * Prometheus 스타일 target 데이터 생성
+ */
+function generatePrometheusTarget(
   server: ServerConfig,
   serverIndex: number,
   hour: number,
   minuteIndex: number
 ): {
-  id: string;
-  name: string;
-  hostname: string;
-  type: ServerType;
-  location: string;
-  environment: string;
-  status: ServerStatus;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  responseTime: number;
-  uptime: number;
-  ip: string;
-  os: string;
-  specs: typeof server.specs;
-  services: string[];
-  processes: number;
-  logs: string[]; // AI 분석용 로그
+  instance: string;
+  job: string;
+  labels: {
+    hostname: string;
+    datacenter: string;
+    environment: string;
+    server_type: string;
+    os: string;
+    os_version: string;
+  };
+  metrics: {
+    up: 0 | 1;
+    node_cpu_usage_percent: number;
+    node_memory_usage_percent: number;
+    node_filesystem_usage_percent: number;
+    node_network_transmit_bytes_rate: number;
+    node_load1: number;
+    node_load5: number;
+    node_boot_time_seconds: number;
+    node_procs_running: number;
+    node_http_request_duration_milliseconds: number;
+  };
+  nodeInfo: {
+    cpu_cores: number;
+    memory_total_bytes: number;
+    disk_total_bytes: number;
+  };
+  logs: string[];
 } {
   // 결정론적 시드: hour * 10000 + serverIndex * 100 + minuteIndex
   const seed = hour * 10000 + serverIndex * 100 + minuteIndex;
@@ -675,7 +714,6 @@ function generateServerMetrics(
   if (scenario && phase !== 'normal') {
     const affected = scenario.affectedServers.find((s) => s.id === server.id);
     if (affected) {
-      // 피크 메트릭과 기본 메트릭 사이를 단계에 따라 보간
       const peakMetrics = { ...metrics, ...affected.metricsOverride };
 
       metrics = {
@@ -685,7 +723,6 @@ function generateServerMetrics(
         network: Math.round(metrics.network + (peakMetrics.network - metrics.network) * multiplier),
       };
 
-      // 상태 결정 (단계에 따라)
       status = getStatusForPhase(phase, affected.status);
     }
   }
@@ -696,35 +733,77 @@ function generateServerMetrics(
   metrics.disk = Math.max(0, Math.min(100, metrics.disk));
   metrics.network = Math.max(0, Math.min(100, metrics.network));
 
-  // 응답 시간 계산 (단계에 따라 점진적)
+  // up 메트릭: online/warning/critical → 1, offline → 0
+  const up: 0 | 1 = status === 'offline' ? 0 : 1;
+
+  // node_load1, node_load5 파생 (CPU 기반)
+  const cpuCores = server.specs.cpu_cores;
+  const node_load1 = Math.round((metrics.cpu / 100) * cpuCores * (0.8 + seededRandom() * 0.4) * 100) / 100;
+  const node_load5 = Math.round(node_load1 * (0.75 + seededRandom() * 0.2) * 100) / 100;
+
+  // boot time: ~30일 전 고정
+  const node_boot_time_seconds = 1735932708 + Math.floor(seededRandom() * 86400);
+
+  // processes
+  const node_procs_running = 100 + Math.floor(seededRandom() * 50);
+
+  // 응답 시간 계산
   const baseResponseTime = server.type === 'cache' ? 20 : server.type === 'database' ? 50 : 150;
   const responseTimeMultiplier = status === 'critical' ? 20 : status === 'warning' ? 3 : (1 + multiplier * 2);
-  const responseTime = Math.round(baseResponseTime * responseTimeMultiplier * (0.8 + seededRandom() * 0.4));
+  const node_http_request_duration_milliseconds = Math.round(baseResponseTime * responseTimeMultiplier * (0.8 + seededRandom() * 0.4));
 
   // AI 분석용 로그 생성
-  const logs = generateLogs(server, status, metrics, scenario);
+  const logs = generateLogs(server, status, metrics);
+
+  const instance = `${server.id}:9100`;
 
   return {
-    id: server.id,
-    name: server.name,
-    hostname: server.hostname,
-    type: server.type,
-    location: server.location,
-    environment: 'production',
-    status,
-    cpu: metrics.cpu,
-    memory: metrics.memory,
-    disk: metrics.disk,
-    network: metrics.network,
-    responseTime,
-    uptime: 2592000 + Math.floor(seededRandom() * 86400), // ~30일
-    ip: server.ip,
-    os: 'Ubuntu 22.04 LTS',
-    specs: server.specs,
-    services: [],
-    processes: 100 + Math.floor(seededRandom() * 50),
+    instance,
+    job: 'node-exporter',
+    labels: {
+      hostname: server.hostname,
+      datacenter: server.location,
+      environment: 'production',
+      server_type: server.type,
+      os: server.os,
+      os_version: server.osVersion,
+    },
+    metrics: {
+      up,
+      node_cpu_usage_percent: metrics.cpu,
+      node_memory_usage_percent: metrics.memory,
+      node_filesystem_usage_percent: metrics.disk,
+      node_network_transmit_bytes_rate: metrics.network,
+      node_load1,
+      node_load5,
+      node_boot_time_seconds,
+      node_procs_running,
+      node_http_request_duration_milliseconds,
+    },
+    nodeInfo: {
+      cpu_cores: server.specs.cpu_cores,
+      memory_total_bytes: server.specs.memory_gb * 1024 * 1024 * 1024,
+      disk_total_bytes: server.specs.disk_gb * 1024 * 1024 * 1024,
+    },
     logs,
   };
+}
+
+/**
+ * 시간대별 timestampMs 계산 (오늘 기준)
+ */
+function getTimestampMs(hour: number, minute: number): number {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstDate = new Date(now.getTime() + kstOffset);
+
+  // 오늘 날짜 기준으로 특정 시:분의 Unix epoch ms
+  const year = kstDate.getUTCFullYear();
+  const month = kstDate.getUTCMonth();
+  const day = kstDate.getUTCDate();
+
+  const targetUTC = Date.UTC(year, month, day, hour, minute, 0) - kstOffset;
+  return targetUTC;
 }
 
 function generateHourlyData(hour: number) {
@@ -736,17 +815,18 @@ function generateHourlyData(hour: number) {
   // 10분 간격 6개 데이터 포인트 (00, 10, 20, 30, 40, 50분)
   for (let minuteIndex = 0; minuteIndex < 6; minuteIndex++) {
     const minute = minuteIndex * 10;
-    const timestamp = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    const servers: Record<string, ReturnType<typeof generateServerMetrics>> = {};
+    const timestampMs = getTimestampMs(hour, minute);
+    const targets: Record<string, ReturnType<typeof generatePrometheusTarget>> = {};
 
     KOREAN_DC_SERVERS.forEach((server, serverIndex) => {
-      servers[server.id] = generateServerMetrics(server, serverIndex, hour, minuteIndex);
+      const instance = `${server.id}:9100`;
+      targets[instance] = generatePrometheusTarget(server, serverIndex, hour, minuteIndex);
     });
 
-    dataPoints.push({ minute, timestamp, servers });
+    dataPoints.push({ timestampMs, targets });
   }
 
-  // 시나리오 텍스트 결정 (현재/전조/회복 상태 반영)
+  // 시나리오 텍스트 결정 (scrapeConfig의 내부 메타데이터)
   let scenarioText: string;
   if (scenario) {
     scenarioText = scenario.incident;
@@ -760,10 +840,16 @@ function generateHourlyData(hour: number) {
 
   return {
     hour,
-    _pattern: scenarioText, // underscore prefix to hide from AI
+    scrapeConfig: {
+      scrapeInterval: '10m',
+      evaluationInterval: '10m',
+      source: 'node-exporter',
+    },
+    _scenario: scenarioText,
     dataPoints,
     metadata: {
-      version: '2.1.0', // 점진적 장애 진행 버전
+      version: '3.0.0',
+      format: 'prometheus',
       totalDataPoints: 6,
       intervalMinutes: 10,
       serverCount: KOREAN_DC_SERVERS.length,
@@ -780,13 +866,10 @@ function generateHourlyData(hour: number) {
 
 function main() {
   try {
-    console.log('🔄 SSOT 데이터 동기화 시작...\n');
-    console.log('📋 SSOT: fixed-24h-metrics.ts (한국 DC 서버 15개)\n');
+    console.log('🔄 SSOT 데이터 동기화 시작 (Prometheus 포맷)...\n');
+    console.log('📋 SSOT: Prometheus/node_exporter 스타일 (한국 DC 서버 15개)\n');
 
     // 출력 디렉토리들 (3곳 동기화)
-    // - public/hourly-data: 원본 SSOT
-    // - cloud-run/ai-engine/data: Cloud Run 배포용
-    // - src/data/hourly-data: Vercel 번들 포함용 (fs 없이 import)
     const outputDirs = [
       path.join(process.cwd(), 'public/hourly-data'),
       path.join(process.cwd(), 'cloud-run/ai-engine/data/hourly-data'),
@@ -824,7 +907,7 @@ function main() {
           ? '🟡'
           : '🟢';
 
-      console.log(`${icon} ${filename} - ${data.scenario} (${(fileSize / 1024).toFixed(1)}KB)`);
+      console.log(`${icon} ${filename} - ${data._scenario} (${(fileSize / 1024).toFixed(1)}KB)`);
     }
 
     console.log(`\n📦 총 크기: ${(totalSize / 1024).toFixed(1)}KB (파일당 평균 ${(totalSize / 24 / 1024).toFixed(1)}KB)`);
@@ -838,6 +921,7 @@ function main() {
     console.log(`   - 서버 수: ${KOREAN_DC_SERVERS.length}개`);
     console.log(`   - 데이터 포인트/파일: 6개 (10분 간격)`);
     console.log(`   - 장애 시나리오: ${FAILURE_SCENARIOS.length}개`);
+    console.log(`   - 포맷: Prometheus/node_exporter`);
   } catch (error) {
     console.error('❌ 동기화 실패:', error instanceof Error ? error.message : error);
     process.exit(1);

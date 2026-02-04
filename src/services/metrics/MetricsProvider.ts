@@ -3,9 +3,11 @@
  *
  * 역할:
  * - 현재 한국 시간(KST) 기준으로 hourly-data JSON 파일에서 메트릭 제공
+ * - Prometheus 포맷 JSON → 내부 ServerMetrics 인터페이스 변환
  * - Cloud Run AI와 동일한 데이터 소스 사용 (데이터 일관성 보장)
  * - 모든 API와 컴포넌트가 이 서비스를 통해 일관된 데이터 접근
  *
+ * @updated 2026-02-04 - Prometheus 포맷 전환
  * @updated 2026-01-19 - Vercel 호환성: 번들 기반 loader로 변경 (fs 제거)
  * @updated 2026-01-04 - hourly-data 통합 (AI와 데이터 동기화)
  */
@@ -18,8 +20,10 @@ import {
   getDataAtMinute,
 } from '@/data/fixed-24h-metrics';
 import {
+  extractServerId,
   getHourlyData as getBundledHourlyData,
   type HourlyData,
+  type PrometheusTarget,
 } from '@/data/hourly-data';
 import { logger } from '@/lib/logging';
 
@@ -43,8 +47,9 @@ function loadHourlyData(hour: number): HourlyData | null {
   const data = getBundledHourlyData(hour);
   if (data) {
     cachedHourlyData = { hour, data };
+    const targetCount = Object.keys(data.dataPoints[0]?.targets || {}).length;
     logger.info(
-      `[MetricsProvider] hourly-data 로드: hour-${hour.toString().padStart(2, '0')} (${Object.keys(data.dataPoints[0]?.servers || {}).length}개 서버)`
+      `[MetricsProvider] hourly-data 로드: hour-${hour.toString().padStart(2, '0')} (${targetCount}개 target)`
     );
     return data;
   }
@@ -54,7 +59,7 @@ function loadHourlyData(hour: number): HourlyData | null {
 }
 
 /**
- * 서버 메트릭 (API 응답용)
+ * 서버 메트릭 (API 응답용) - 내부 인터페이스 (변경 없음)
  */
 export interface ServerMetrics {
   serverId: string;
@@ -189,6 +194,41 @@ export function calculateRelativeDateTime(minutesAgo: number): {
 }
 
 /**
+ * PrometheusTarget → ServerMetrics 변환
+ */
+function targetToServerMetrics(
+  target: PrometheusTarget,
+  timestamp: string,
+  minuteOfDay: number
+): ServerMetrics {
+  const serverId = extractServerId(target.instance);
+  const cpu = target.metrics.node_cpu_usage_percent;
+  const memory = target.metrics.node_memory_usage_percent;
+  const disk = target.metrics.node_filesystem_usage_percent;
+  const network = target.metrics.node_network_transmit_bytes_rate;
+
+  // up=0이면 offline, 그 외는 메트릭 기반 판별
+  const status: ServerMetrics['status'] =
+    target.metrics.up === 0
+      ? 'offline'
+      : determineStatus(cpu, memory, disk, network);
+
+  return {
+    serverId,
+    serverType: target.labels.server_type,
+    location: target.labels.datacenter,
+    timestamp,
+    minuteOfDay,
+    cpu,
+    memory,
+    disk,
+    network,
+    logs: target.logs || [],
+    status,
+  };
+}
+
+/**
  * 🎯 상대 시간 기준 메트릭 조회 (날짜 포함)
  * @param serverId 서버 ID
  * @param minutesAgo 몇 분 전 (0 = 현재)
@@ -288,11 +328,6 @@ export function compareServerMetrics(
  * 메트릭 값 기반 서버 상태 판별
  * @see /src/config/rules/system-rules.json (Single Source of Truth)
  * @see /src/config/rules/loader.ts (rulesLoader.getServerStatus)
- *
- * 임계값은 system-rules.json에서 관리됨:
- * - CPU/Memory: warning 80%, critical 90%
- * - Disk: warning 80%, critical 90%
- * - Network: warning 70%, critical 85%
  */
 function determineStatus(
   cpu: number,
@@ -300,7 +335,6 @@ function determineStatus(
   disk: number,
   network: number
 ): 'online' | 'warning' | 'critical' | 'offline' {
-  // rulesLoader.getServerStatus() 사용 - Single Source of Truth
   return getRulesServerStatus({ cpu, memory, disk, network });
 }
 
@@ -322,7 +356,7 @@ export class MetricsProvider {
 
   /**
    * 현재 시간 기준 단일 서버 메트릭 조회
-   * @description hourly-data JSON에서 로드 (Cloud Run AI와 동일 소스)
+   * Prometheus 포맷 JSON에서 변환
    */
   public getServerMetrics(serverId: string): ServerMetrics | null {
     const minuteOfDay = getKSTMinuteOfDay();
@@ -337,30 +371,13 @@ export class MetricsProvider {
       const dataPoint =
         hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
 
-      if (dataPoint?.servers?.[serverId]) {
-        const server = dataPoint.servers[serverId];
-        return {
-          serverId: server.id,
-          serverType: server.type,
-          location: server.location,
-          timestamp,
-          minuteOfDay,
-          cpu: server.cpu,
-          memory: server.memory,
-          disk: server.disk,
-          network: server.network,
-          logs: [],
-          // JSON의 status 필드 우선 사용 (SSOT 보장)
-          // fallback: 메트릭 기반 재계산 (system-rules.json 임계값)
-          status:
-            server.status ||
-            determineStatus(
-              server.cpu,
-              server.memory,
-              server.disk,
-              server.network
-            ),
-        };
+      if (dataPoint?.targets) {
+        // Prometheus instance 키: "serverId:9100"
+        const instanceKey = `${serverId}:9100`;
+        const target = dataPoint.targets[instanceKey];
+        if (target) {
+          return targetToServerMetrics(target, timestamp, minuteOfDay);
+        }
       }
     }
 
@@ -393,7 +410,7 @@ export class MetricsProvider {
 
   /**
    * 현재 시간 기준 모든 서버 메트릭 조회
-   * @description hourly-data JSON에서 로드 (Cloud Run AI와 동일 소스)
+   * Prometheus 포맷 JSON에서 변환
    */
   public getAllServerMetrics(): ServerMetrics[] {
     const minuteOfDay = getKSTMinuteOfDay();
@@ -404,33 +421,14 @@ export class MetricsProvider {
     // hourly-data 로드 시도
     const hourlyData = loadHourlyData(hour);
     if (hourlyData) {
-      // 10분 단위로 가장 가까운 dataPoint 찾기
       const slotIndex = Math.floor(minute / 10);
       const dataPoint =
         hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
 
-      if (dataPoint?.servers) {
-        return Object.values(dataPoint.servers).map((server) => ({
-          serverId: server.id,
-          serverType: server.type,
-          location: server.location,
-          timestamp,
-          minuteOfDay,
-          cpu: server.cpu,
-          memory: server.memory,
-          disk: server.disk,
-          network: server.network,
-          logs: [], // hourly-data에는 logs 없음
-          // JSON의 status 필드 우선 사용 (SSOT 보장)
-          status:
-            server.status ||
-            determineStatus(
-              server.cpu,
-              server.memory,
-              server.disk,
-              server.network
-            ),
-        }));
+      if (dataPoint?.targets) {
+        return Object.values(dataPoint.targets).map((target) =>
+          targetToServerMetrics(target, timestamp, minuteOfDay)
+        );
       }
     }
 
