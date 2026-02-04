@@ -9,7 +9,14 @@
 
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
 import UnauthorizedAccessUI from '@/components/shared/UnauthorizedAccessUI';
@@ -414,6 +421,28 @@ function DashboardPageContent({
     initialServers,
   });
 
+  // 🎯 상태 필터 (DashboardSummary 카드 클릭 연동)
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  const filteredServers = useMemo(() => {
+    if (!statusFilter) return realServers;
+    return allServers.filter((s) => {
+      const status = s.status?.toLowerCase() ?? '';
+      switch (statusFilter) {
+        case 'online':
+          return ['online', 'running', 'active'].includes(status);
+        case 'warning':
+          return ['warning', 'degraded', 'unstable'].includes(status);
+        case 'critical':
+          return ['critical', 'error', 'failed'].includes(status);
+        case 'offline':
+          return ['offline', 'down', 'disconnected'].includes(status);
+        default:
+          return true;
+      }
+    });
+  }, [statusFilter, realServers, allServers]);
+
   // 🕐 Supabase에서 24시간 데이터를 직접 가져오므로 시간 회전 시스템 제거됨
   // API가 30초마다 다른 시간대 데이터를 자동으로 반환
 
@@ -561,8 +590,10 @@ function DashboardPageContent({
                 - 중복 fetch 제거 (useServerDashboard 호출 1회로 최적화) */}
             <DashboardContent
               showSequentialGeneration={false}
-              servers={realServers}
-              totalServers={allServers.length}
+              servers={statusFilter ? filteredServers : realServers}
+              totalServers={
+                statusFilter ? filteredServers.length : allServers.length
+              }
               currentPage={currentPage}
               totalPages={totalPages}
               pageSize={pageSize}
@@ -572,6 +603,8 @@ function DashboardPageContent({
               onStatsUpdate={handleStatsUpdate}
               onShowSequentialChange={() => {}}
               isAgentOpen={isAgentOpen}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
             />
           </Suspense>
         </div>

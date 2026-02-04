@@ -20,6 +20,8 @@ interface DashboardStats {
 
 interface DashboardSummaryProps {
   stats: DashboardStats;
+  activeFilter?: string | null;
+  onFilterChange?: (filter: string | null) => void;
 }
 
 // 🎨 상태별 그라데이션 설정 (ImprovedServerCard와 통일)
@@ -63,7 +65,20 @@ const statusGradients = {
 
 export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
   stats,
+  activeFilter,
+  onFilterChange,
 }) => {
+  const handleFilterClick = (filter: string) => {
+    if (!onFilterChange) return;
+    onFilterChange(activeFilter === filter ? null : filter);
+  };
+
+  const handleFilterKeyDown = (e: React.KeyboardEvent, filter: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleFilterClick(filter);
+    }
+  };
   // Null-safe 처리
   const safeStats = {
     total: stats?.total ?? 0,
@@ -118,7 +133,16 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
       <div className="grid grid-cols-4 gap-3 lg:col-span-5">
         {/* 온라인 카드 */}
         <div
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.online.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.online.glow}`}
+          {...(onFilterChange
+            ? {
+                role: 'button' as const,
+                tabIndex: 0,
+                onClick: () => handleFilterClick('online'),
+                onKeyDown: (e: React.KeyboardEvent) =>
+                  handleFilterKeyDown(e, 'online'),
+              }
+            : {})}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.online.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.online.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'online' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.online.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
@@ -135,7 +159,16 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
 
         {/* 경고 카드 */}
         <div
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.warning.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.warning.glow}`}
+          {...(onFilterChange
+            ? {
+                role: 'button' as const,
+                tabIndex: 0,
+                onClick: () => handleFilterClick('warning'),
+                onKeyDown: (e: React.KeyboardEvent) =>
+                  handleFilterKeyDown(e, 'warning'),
+              }
+            : {})}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.warning.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.warning.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'warning' ? 'ring-2 ring-amber-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.warning.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
@@ -158,7 +191,16 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
 
         {/* 위험 카드 */}
         <div
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.critical.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.critical.glow}`}
+          {...(onFilterChange
+            ? {
+                role: 'button' as const,
+                tabIndex: 0,
+                onClick: () => handleFilterClick('critical'),
+                onKeyDown: (e: React.KeyboardEvent) =>
+                  handleFilterKeyDown(e, 'critical'),
+              }
+            : {})}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.critical.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.critical.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'critical' ? 'ring-2 ring-rose-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.critical.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
@@ -184,7 +226,16 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
 
         {/* 오프라인 카드 */}
         <div
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.offline.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.offline.glow}`}
+          {...(onFilterChange
+            ? {
+                role: 'button' as const,
+                tabIndex: 0,
+                onClick: () => handleFilterClick('offline'),
+                onKeyDown: (e: React.KeyboardEvent) =>
+                  handleFilterKeyDown(e, 'offline'),
+              }
+            : {})}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.offline.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.offline.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'offline' ? 'ring-2 ring-slate-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.offline.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}

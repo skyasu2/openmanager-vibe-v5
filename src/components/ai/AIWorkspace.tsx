@@ -22,7 +22,7 @@ import {
   User,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { AIFunctionPages } from '@/components/ai-sidebar/AIFunctionPages';
 import { EnhancedAIChat } from '@/components/ai-sidebar/EnhancedAIChat';
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
@@ -195,9 +195,14 @@ interface AIWorkspaceProps {
  */
 export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // 🔧 P2: 핸들러 최적화 - useCallback으로 불필요한 리렌더 방지
   const handleFunctionSelect = useCallback((func: AIAssistantFunction) => {
@@ -251,6 +256,15 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // --- Render Logic ---
+
+  // 🔒 Hydration 불일치 방지 (Zustand persist + 조건부 렌더링)
+  if (!isMounted) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   // 📱 SIDEBAR LAYOUT (Mobile/Compact) - Only used if this component is used in sidebar mode (though AISidebarV4 is preferred)
   // 🎨 화이트 모드 전환 (2025-12 업데이트)

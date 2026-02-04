@@ -51,6 +51,10 @@ interface DashboardContentProps {
   onStatsUpdate: (stats: DashboardStats) => void;
   onShowSequentialChange: (show: boolean) => void;
   isAgentOpen: boolean;
+  /** 현재 활성 상태 필터 */
+  statusFilter?: string | null;
+  /** 상태 필터 변경 핸들러 */
+  onStatusFilterChange?: (filter: string | null) => void;
 }
 
 // 동적 임포트로 성능 최적화
@@ -75,6 +79,8 @@ export default function DashboardContent({
   onStatsUpdate,
   onShowSequentialChange,
   isAgentOpen,
+  statusFilter,
+  onStatusFilterChange,
 }: DashboardContentProps) {
   // 🚀 디버깅 로그 (한 번만 출력 - 리렌더링 스팸 방지)
   if (!hasLoggedRenderOnce) {
@@ -323,7 +329,11 @@ export default function DashboardContent({
           {servers && servers.length > 0 ? (
             <>
               {/* 인프라 전체 현황 (Simple Grid) */}
-              <DashboardSummary stats={serverStats} />
+              <DashboardSummary
+                stats={serverStats}
+                activeFilter={statusFilter}
+                onFilterChange={onStatusFilterChange}
+              />
 
               {/* 서버 카드 목록 */}
               <Suspense

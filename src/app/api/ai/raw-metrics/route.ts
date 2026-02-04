@@ -360,23 +360,13 @@ export const GET = withAuth(async (request: NextRequest) => {
     // 📊 시계열 데이터 요청 처리
     if (includeHistory && serverId && metric) {
       const server = rawMetrics.find((s) => s.id === serverId);
-      if (!server) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'SERVER_NOT_FOUND',
-            message: '서버를 찾을 수 없습니다.',
-          },
-          { status: 404 }
-        );
-      }
-
-      const baseValue = server[metric] ?? 50;
+      const baseValue = server?.[metric] ?? 50;
+      const serverName = server?.name ?? serverId;
       const history = generateMetricHistory(baseValue, metric, range);
 
       const timeSeriesData: TimeSeriesResponse = {
-        serverId: server.id,
-        serverName: server.name,
+        serverId,
+        serverName,
         metric,
         history,
       };
