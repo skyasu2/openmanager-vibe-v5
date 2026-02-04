@@ -27,6 +27,7 @@ import { AIFunctionPages } from '@/components/ai-sidebar/AIFunctionPages';
 import { EnhancedAIChat } from '@/components/ai-sidebar/EnhancedAIChat';
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
 import { useAIChatCore } from '@/hooks/ai/useAIChatCore';
+import { formatTime } from '@/lib/format-date';
 import type { AIThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
 import {
   type EnhancedChatMessage,
@@ -133,10 +134,8 @@ const MessageComponent = memo<{
             className={`mt-1 flex items-center justify-between ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
           >
             <div className="flex items-center gap-2">
-              <p className="text-xs text-gray-500">
-                {typeof message.timestamp === 'string'
-                  ? new Date(message.timestamp).toLocaleTimeString()
-                  : message.timestamp.toLocaleTimeString()}
+              <p className="text-xs text-gray-500" suppressHydrationWarning>
+                {formatTime(message.timestamp)}
               </p>
               {message.role === 'assistant' &&
                 message.metadata?.processingTime && (

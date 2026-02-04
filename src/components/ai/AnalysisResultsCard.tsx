@@ -14,6 +14,7 @@
 'use client';
 
 import { RefreshCw, Server, TrendingUp, XCircle } from 'lucide-react';
+import { formatDateTime } from '@/lib/format-date';
 import type {
   AnalysisResponse,
   CloudRunAnalysisResponse,
@@ -56,8 +57,11 @@ function MultiServerResults({ data }: { data: MultiServerAnalysisResponse }) {
       </div>
 
       {/* 메타 정보 */}
-      <div className="text-center text-xs text-gray-400">
-        분석 시간: {new Date(data.timestamp).toLocaleString('ko-KR')}
+      <div
+        className="text-center text-xs text-gray-400"
+        suppressHydrationWarning
+      >
+        분석 시간: {formatDateTime(data.timestamp)}
       </div>
     </div>
   );
@@ -71,8 +75,11 @@ function SingleServerResults({ data }: { data: CloudRunAnalysisResponse }) {
       {data.trendPrediction && <TrendSection data={data.trendPrediction} />}
       {data.patternAnalysis && <InsightSection data={data.patternAnalysis} />}
 
-      <div className="text-center text-xs text-gray-400">
-        분석 시간: {new Date(data.timestamp).toLocaleString('ko-KR')}
+      <div
+        className="text-center text-xs text-gray-400"
+        suppressHydrationWarning
+      >
+        분석 시간: {formatDateTime(data.timestamp)}
       </div>
     </div>
   );

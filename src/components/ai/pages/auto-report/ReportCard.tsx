@@ -15,6 +15,7 @@ import {
   Server,
   TrendingUp,
 } from 'lucide-react';
+import { formatTime } from '@/lib/format-date';
 import { downloadReport } from './formatters';
 import type { IncidentReport } from './types';
 import {
@@ -216,8 +217,8 @@ export default function ReportCard({
         </div>
         <div className="flex items-center space-x-2">
           <Clock className="h-4 w-4 text-gray-400" />
-          <span className="text-xs text-gray-500">
-            {report.timestamp.toLocaleTimeString()}
+          <span className="text-xs text-gray-500" suppressHydrationWarning>
+            {formatTime(report.timestamp)}
           </span>
         </div>
       </div>

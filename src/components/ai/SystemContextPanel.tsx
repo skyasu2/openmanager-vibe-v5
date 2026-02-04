@@ -16,6 +16,7 @@ import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { AIDebugPanel } from '@/components/ai-sidebar/AIDebugPanel';
 import { AI_PROVIDERS, type AIProviderConfig } from '@/config/ai-providers';
+import { formatTime } from '@/lib/format-date';
 import { useHealthCheck } from '@/hooks/system/useHealthCheck';
 
 /**
@@ -131,8 +132,11 @@ const SystemContextPanel = memo(function SystemContextPanel({
               </div>
             ))}
           </div>
-          <p className="text-right text-2xs text-gray-400">
-            Updated: {lastChecked ? lastChecked.toLocaleTimeString() : '-'}
+          <p
+            className="text-right text-2xs text-gray-400"
+            suppressHydrationWarning
+          >
+            Updated: {formatTime(lastChecked)}
           </p>
         </div>
 
