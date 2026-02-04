@@ -16,8 +16,8 @@ import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { AIDebugPanel } from '@/components/ai-sidebar/AIDebugPanel';
 import { AI_PROVIDERS, type AIProviderConfig } from '@/config/ai-providers';
-import { formatTime } from '@/lib/format-date';
 import { useHealthCheck } from '@/hooks/system/useHealthCheck';
+import { formatTime } from '@/lib/format-date';
 
 /**
  * AI Provider 상태 타입 - AIProviderConfig 기반 확장
