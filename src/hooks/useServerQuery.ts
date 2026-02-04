@@ -31,6 +31,7 @@ export function useServerQuery(options: UseServerQueryOptions = {}) {
     queryKey: ['servers'],
     queryFn: fetchServers,
     initialData: transformedInitialData,
+    initialDataUpdatedAt: transformedInitialData ? Date.now() : undefined,
     refetchInterval: 10 * 60 * 1000, // 10분 폴링 (JSON 데이터 10분 간격에 맞춤)
     staleTime: 9 * 60 * 1000, // 9분간 fresh 유지 (다음 갱신 직전까지)
     gcTime: 15 * 60 * 1000, // 15분 미사용 데이터 보관
