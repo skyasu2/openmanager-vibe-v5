@@ -96,7 +96,7 @@
     "hook:pre-push": "node scripts/hooks/pre-push.js",
     "hook:post-commit": "node scripts/hooks/post-commit.js",
     "hook:validate": "node scripts/hooks/validate-parallel.js",
-    "review:show": "cat logs/validation/validation-complete-latest.md 2>/dev/null || echo '❌ No recent validation found. Run: npm run validate:all'",
+    "review:show": "npm run lint && npm run type-check && echo '✅ All checks pass. Use /review in Claude Code for full analysis.'",
     "review:status": "ps aux | grep '[p]ost-commit-background.sh' > /dev/null && echo '🔄 AI Review is running...' || echo '✅ AI Review is NOT running.'",
     "review:ack": "bash scripts/code-review/review-tracker.sh ack",
     "review:pending": "bash scripts/code-review/review-tracker.sh pending",

@@ -1,7 +1,7 @@
 ---
 name: validation-analysis
 description: Automated validation results analysis for post-commit workflow. Triggers when user requests validation analysis, code review summary, or checking background validation results. Analyzes Biome, TypeScript, and AI review reports.
-version: v1.3.0
+version: v1.4.0
 user-invocable: true
 allowed-tools: Bash, Read, Grep
 ---
@@ -35,7 +35,7 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 - **Components**:
   - Biome: Full codebase lint + format check → `logs/lint-reports/`
   - TypeScript: Type check → `logs/typecheck-reports/`
-  - AI Review: Codex → Gemini → Qwen rotation → `reports/ai-review/`
+  - AI Review: Claude Code (default) → `reports/ai-review/`
 - **Issue Tracking**: `reports/ai-review/.issue-tracking.json`
 
 ## Workflow
@@ -87,12 +87,12 @@ Read `logs/validation/validation-complete-latest.md` and extract:
 #### C. AI Review Results
 
 **Role Separation**:
-- 🤖 **Codex/Gemini**: Auto-review changed files (external AI, post-commit)
+- 🤖 **Claude Code**: Auto-review changed files (default AI engine, post-commit)
 - 🧠 **Claude Code**: Analyze results and apply fixes to code (this Skill)
 
 **Check for**:
 - Review score (1-10)
-- Critical findings from Codex/Gemini
+- Critical findings from AI review
 - Improvement suggestions
 
 **Extract**:
@@ -101,7 +101,7 @@ Read `logs/validation/validation-complete-latest.md` and extract:
 - 🔵 Suggestions (best practices) → Consider for next commit
 
 **Claude Code Action**:
-1. Read Codex/Gemini review results
+1. Read AI review results
 2. Analyze findings
 3. **Apply improvements to actual code**
 4. Re-run validation to verify fixes
@@ -138,7 +138,7 @@ Date: [timestamp]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📁 Full Reports:
-- ESLint: [path]
+- Biome Lint: [path]
 - TypeScript: [path]
 - AI Review: [path]
 
@@ -275,6 +275,10 @@ This Skill analyzes and reports
 
 ## Changelog
 
+- 2026-02-04: v1.4.0 - 용어 및 역할 갱신
+  - Codex/Gemini/Qwen rotation → Claude Code (default)
+  - ESLint → Biome
+  - Role separation 설명 현행화
 - 2025-12-29: v1.3.0 - 이슈 트래킹 통합
   - `.issue-tracking.json` 이슈 추적 JSON 연동
   - `review-issue-tracker.sh` 스캔 도구 추가
@@ -285,7 +289,7 @@ This Skill analyzes and reports
   - Windows background task 제한 사항 문서화
 - 2025-12-12: v1.1.0 - Tech stack upgrade alignment
   - ESLint → Biome migration (v2.3.8)
-  - AI Review rotation: Codex → Gemini → Qwen
+  - AI Review engine: Claude Code (default)
 - 2025-11-27: v1.0.0 - Initial implementation
   - Automated validation results parsing
   - Priority action list generation

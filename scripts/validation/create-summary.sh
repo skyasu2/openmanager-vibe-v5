@@ -26,7 +26,7 @@ echo "📊 Creating validation summary..."
 # 최신 리포트 파일 찾기
 LATEST_LINT=$(ls -t logs/lint-reports/lint-*.md 2>/dev/null | head -1 || echo "")
 LATEST_TYPECHECK=$(ls -t logs/typecheck-reports/typecheck-*.md 2>/dev/null | head -1 || echo "")
-LATEST_REVIEW=$(ls -t logs/code-reviews/review-*.md 2>/dev/null | head -1 || echo "")
+LATEST_REVIEW=$(ls -t reports/ai-review/pending/review-*.md reports/ai-review/history/*/review-*.md 2>/dev/null | head -1 || echo "")
 
 # 요약 파일 생성
 {
@@ -42,7 +42,7 @@ LATEST_REVIEW=$(ls -t logs/code-reviews/review-*.md 2>/dev/null | head -1 || ech
 
   # ESLint 리포트
   if [ -n "$LATEST_LINT" ] && [ -f "$LATEST_LINT" ]; then
-    echo "### 🔍 ESLint 검사"
+    echo "### 🔍 Biome Lint 검사"
     echo ""
     echo "**파일**: \`$LATEST_LINT\`"
     echo ""
@@ -56,7 +56,7 @@ LATEST_REVIEW=$(ls -t logs/code-reviews/review-*.md 2>/dev/null | head -1 || ech
     echo "</details>"
     echo ""
   else
-    echo "### 🔍 ESLint 검사"
+    echo "### 🔍 Biome Lint 검사"
     echo ""
     echo "⚠️  리포트 파일을 찾을 수 없습니다."
     echo ""
@@ -118,7 +118,7 @@ LATEST_REVIEW=$(ls -t logs/code-reviews/review-*.md 2>/dev/null | head -1 || ech
   echo ""
   echo "# 또는 개별 리포트 분석"
   if [ -n "$LATEST_LINT" ]; then
-    echo "cat $LATEST_LINT  # ESLint 결과"
+    echo "cat $LATEST_LINT  # Biome Lint 결과"
   fi
   if [ -n "$LATEST_TYPECHECK" ]; then
     echo "cat $LATEST_TYPECHECK  # TypeScript 결과"
@@ -161,8 +161,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "🤖 역할 분담:"
-echo "  • Codex/Gemini: 변경 파일 자동 리뷰 완료 ✅"
-echo "  • Claude Code: 리뷰 결과 분석 및 코드 개선 ⏳ (당신 차례!)"
+echo "  • Claude Code: AI 리뷰 + 리뷰 결과 분석 및 코드 개선 ⏳ (당신 차례!)"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -190,13 +189,13 @@ echo "🤖 Creating Claude Code review request..."
   echo "## 📋 검증 결과 요약"
   echo ""
   echo "**역할 분담**:"
-  echo "- 🤖 **Codex/Gemini**: 변경된 파일 자동 리뷰 완료 (외부 AI)"
+  echo "- 🤖 **Claude Code**: AI 리뷰 실행 (기본 엔진)"
   echo "- 🧠 **Claude Code**: 리뷰 결과 분석 및 코드 개선 적용 (당신의 역할)"
   echo ""
 
-  # ESLint 결과 요약
+  # Biome Lint 결과 요약
   if [ -n "$LATEST_LINT" ] && [ -f "$LATEST_LINT" ]; then
-    echo "### 🔍 ESLint"
+    echo "### 🔍 Biome Lint"
     if grep -q "✅" "$LATEST_LINT"; then
       echo "- ✅ 통과"
     else
@@ -220,7 +219,7 @@ echo "🤖 Creating Claude Code review request..."
 
   # AI 리뷰 결과 요약
   if [ -n "$LATEST_REVIEW" ] && [ -f "$LATEST_REVIEW" ]; then
-    echo "### 🤖 AI 코드 리뷰 (Codex/Gemini)"
+    echo "### 🤖 AI 코드 리뷰 (Claude)"
     echo "- 📄 리뷰 파일: \`$LATEST_REVIEW\`"
 
     # 점수 추출 시도

@@ -61,7 +61,7 @@ cat reports/ai-review/pending/review-*.md
 
 ```bash
 # 1. 조치 결과 기록
-echo "2026-01-15 | abc1234 | 8/10 | claude | Critical 1건 수정" >> reports/ai-review/.evaluation-log
+echo "$(date +%Y-%m-%d) | abc1234 | 8/10 | claude | Critical 1건 수정" >> reports/ai-review/.evaluation-log
 
 # 2. 해당 리뷰만 즉시 이동 (와일드카드 금지!)
 mkdir -p reports/ai-review/history/$(date +%Y-%m)
@@ -105,7 +105,7 @@ AI 리뷰가 잘못 지적한 경우:
 
 ```bash
 # .evaluation-log에 오탐 사유 기록
-echo "2026-01-15 | abc1234 | 9/10 | gemini | 오탐: limit 검증은 Mock 핸들러라 해당없음" >> reports/ai-review/.evaluation-log
+echo "$(date +%Y-%m-%d) | abc1234 | 9/10 | claude | 오탐: limit 검증은 Mock 핸들러라 해당없음" >> reports/ai-review/.evaluation-log
 ```
 
 ## Changelog
