@@ -334,11 +334,11 @@ function computeRate(
 
   const prevMap = new Map<string, number>();
   for (const s of prevSamples) {
-    prevMap.set(s.labels['instance'] ?? '', s.value);
+    prevMap.set(s.labels.instance ?? '', s.value);
   }
 
   return currentSamples.map((s) => {
-    const prevValue = prevMap.get(s.labels['instance'] ?? '') ?? s.value;
+    const prevValue = prevMap.get(s.labels.instance ?? '') ?? s.value;
     const delta = s.value - prevValue;
     return {
       labels: s.labels,
@@ -398,7 +398,6 @@ export function executePromQL(
       return { resultType: 'vector', result: filtered };
     }
 
-    case 'instant':
     default: {
       const samples = extractSamples(hourlyData, parsed, slotIndex);
       return { resultType: 'vector', result: samples };

@@ -32,13 +32,13 @@ export function buildServerContextMessage(): NormalizedMessage | null {
           if (rising.length > 0) {
             trendContext += ` CPU rising: ${rising
               .slice(0, 3)
-              .map((r) => `${r.labels['instance'] ?? 'unknown'}(+${r.value}%)`)
+              .map((r) => `${r.labels.instance ?? 'unknown'}(+${r.value}%)`)
               .join(', ')}`;
           }
           if (dropping.length > 0) {
             trendContext += ` CPU dropping: ${dropping
               .slice(0, 3)
-              .map((r) => `${r.labels['instance'] ?? 'unknown'}(${r.value}%)`)
+              .map((r) => `${r.labels.instance ?? 'unknown'}(${r.value}%)`)
               .join(', ')}`;
           }
           trendContext += '\n';
