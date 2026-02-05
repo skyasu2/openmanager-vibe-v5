@@ -133,7 +133,7 @@ export async function ensureRedisStateStore(): Promise<boolean> {
     // Redis 실패 시 InMemory fallback - 서버리스 인스턴스별 독립 상태
     logger.warn(
       '[CircuitBreaker] Redis 초기화 실패, InMemory fallback 사용 (서버리스 인스턴스 간 상태 미공유)',
-      error instanceof Error ? error.message : error
+      { error }
     );
     return false;
   }

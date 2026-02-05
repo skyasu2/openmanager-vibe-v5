@@ -10,6 +10,8 @@
  * @updated 2026-01-19 - Vercel 호환성 수정
  */
 
+import { logger } from '@/lib/logging';
+
 // 24개 시간대 JSON 정적 import
 import hour00 from './hour-00.json';
 import hour01 from './hour-01.json';
@@ -155,7 +157,7 @@ export function getTargetsAtTime(
   const dataPoint = hourlyData.dataPoints[slotIndex];
 
   if (!dataPoint) {
-    console.warn(
+    logger.warn(
       `[hourly-data] slot ${slotIndex} not found for hour-${hour} minute-${minute}, returning null`
     );
     return null;
