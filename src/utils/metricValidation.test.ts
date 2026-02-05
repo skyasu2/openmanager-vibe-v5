@@ -3,13 +3,17 @@
  * 서버 메트릭의 안전한 처리를 위한 검증 로직 테스트
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   generateSafeMetricValue,
   type ServerMetrics,
   validateMetricValue,
   validateServerMetrics,
 } from './metricValidation';
+
+vi.mock('@/lib/logging', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
 
 describe('metricValidation', () => {
   describe('validateMetricValue', () => {

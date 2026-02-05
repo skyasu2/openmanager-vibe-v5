@@ -78,12 +78,12 @@ export class UnifiedServerDataSource {
   /**
    * 🎯 서버 데이터 조회 (메인 인터페이스)
    *
-   * **Single Source of Truth**: 모든 서버 데이터는 scenario-loader를 통해 제공됩니다.
+   * **Single Source of Truth**: MetricsProvider → hourly-data JSON
    *
    * @returns {Promise<Server[]>} 15개 서버 데이터 (24시간 회전 JSON)
    *
    * @description
-   * - 서버 사이드: `scenario-loader` → `hourly-data/hour-*.json` (fs 모듈 사용)
+   * - 서버 사이드: MetricsProvider → `hourly-data/hour-*.json`
    * - 클라이언트 사이드: `/api/servers-unified` API 사용 (브라우저 호환)
    * - 캐싱: 10분 TTL (JSON 데이터 10분 간격에 맞춤)
    * - 검증: 서버 수 및 필수 필드 확인
@@ -192,7 +192,7 @@ export class UnifiedServerDataSource {
   /**
    * 🔄 동기 래퍼: 캐시된 서버 데이터 반환 (MockContextLoader용)
    *
-   * Single Source of Truth: scenario-loader 기반 캐시 데이터 동기 접근
+   * MetricsProvider 기반 캐시 데이터 동기 접근
    *
    * @returns 캐시된 서버 데이터 또는 빈 배열 (캐시 미준비 시)
    */

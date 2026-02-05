@@ -5,6 +5,7 @@
  * 예상치 못한 메트릭 값으로 인한 렌더링 오류 방지
  */
 
+import { getThreshold } from '@/config/rules';
 import { logger } from '@/lib/logging';
 export type MetricType = 'cpu' | 'memory' | 'disk' | 'network';
 
@@ -93,22 +94,13 @@ export function validateServerMetrics(
 }
 
 /**
- * 메트릭 타입별 임계값 정의
- */
-export const METRIC_THRESHOLDS = {
-  cpu: { warning: 70, critical: 85 },
-  memory: { warning: 80, critical: 90 },
-  disk: { warning: 80, critical: 95 },
-  network: { warning: 70, critical: 85 }, // 🔧 수정: 60→70, 80→85 (다른 파일과 일관성)
-} as const;
-
-/**
  * 메트릭 값에 따른 상태 판단
+ * 임계값은 system-rules.json (SSOT)에서 로드
  */
 export type MetricStatus = 'normal' | 'warning' | 'critical';
 
 export function getMetricStatus(value: number, type: MetricType): MetricStatus {
-  const threshold = METRIC_THRESHOLDS[type];
+  const threshold = getThreshold(type);
 
   if (value >= threshold.critical) {
     return 'critical';

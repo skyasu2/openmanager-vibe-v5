@@ -20,16 +20,7 @@ export interface StatusColorConfig {
 
 // 🎯 임계값은 외부화된 규칙 시스템 사용
 // @see src/config/rules/system-rules.json (Single Source of Truth)
-import { getAllThresholds, type MetricThreshold } from '@/config/rules';
-
-export type { MetricThreshold };
-
-/**
- * 메트릭별 임계값 (외부 설정에서 로드)
- * @deprecated 직접 사용 대신 `import { getThreshold } from '@/config/rules'` 권장
- */
-export const METRIC_THRESHOLDS: Record<string, MetricThreshold> =
-  getAllThresholds();
+import { getThreshold } from '@/config/rules';
 
 // 서버 상태별 색상 테마
 export const SERVER_STATUS_COLORS = {
@@ -161,7 +152,7 @@ export function getMetricColorConfig(
   }
 
   // 서버 상태가 없으면 메트릭 값 기반 판단
-  const threshold = METRIC_THRESHOLDS[type];
+  const threshold = getThreshold(type);
 
   if (threshold && value >= threshold.critical) {
     const colors = SERVER_STATUS_COLORS.critical;

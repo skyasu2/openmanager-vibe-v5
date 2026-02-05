@@ -7,7 +7,8 @@
  * - Color and gradient calculations for different server states
  */
 
-import type { ServerStatus } from '@/types/server-enums'; // 🔧 수정: Single Source of Truth
+import { getThreshold } from '@/config/rules';
+import type { ServerStatus } from '@/types/server-enums';
 import type {
   MetricColorResult,
   StatusTheme,
@@ -51,15 +52,8 @@ export const getMetricColorByStatus = (
     };
   }
 
-  // 서버 상태가 불명확한 경우 메트릭 값 기반 판단
-  const thresholds = {
-    cpu: { warning: 70, critical: 85 },
-    memory: { warning: 80, critical: 90 },
-    disk: { warning: 80, critical: 95 },
-    network: { warning: 70, critical: 85 }, // 🔧 수정: 60→70, 80→85 (다른 메트릭과 일관성)
-  };
-
-  const threshold = thresholds[type];
+  // 서버 상태가 불명확한 경우 메트릭 값 기반 판단 (SSOT: system-rules.json)
+  const threshold = getThreshold(type);
   if (value >= threshold.critical) {
     return {
       color: '#dc2626', // red-600
@@ -137,14 +131,7 @@ export const getMetricStatus = (
   value: number,
   type: 'cpu' | 'memory' | 'disk' | 'network'
 ): 'normal' | 'warning' | 'critical' => {
-  const thresholds = {
-    cpu: { warning: 70, critical: 85 },
-    memory: { warning: 80, critical: 90 },
-    disk: { warning: 80, critical: 95 },
-    network: { warning: 70, critical: 85 }, // 🔧 수정: 60→70, 80→85 (다른 메트릭과 일관성)
-  };
-
-  const threshold = thresholds[type];
+  const threshold = getThreshold(type);
 
   if (value >= threshold.critical) return 'critical';
   if (value >= threshold.warning) return 'warning';
