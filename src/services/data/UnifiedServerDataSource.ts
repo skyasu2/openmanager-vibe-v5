@@ -234,23 +234,57 @@ export class UnifiedServerDataSource {
 
     // ServerMetrics를 Server 타입으로 변환
     // 🎯 MetricsProvider의 status 직접 사용 (JSON SSOT 보장)
+    // 🎯 Prometheus 데이터 우선 사용, fallback으로 하드코딩 유지
     const servers: Server[] = allMetrics.map((metric) => {
+      // uptime: bootTimeSeconds로부터 계산, fallback 30일
+      const uptime =
+        metric.bootTimeSeconds && metric.bootTimeSeconds > 0
+          ? Math.floor(Date.now() / 1000 - metric.bootTimeSeconds)
+          : 86400 * 30;
+
+      // os: Prometheus labels에서 조합, fallback 'Ubuntu 22.04 LTS'
+      const os =
+        metric.os && metric.osVersion
+          ? `${metric.os.charAt(0).toUpperCase() + metric.os.slice(1)} ${metric.osVersion}`
+          : 'Ubuntu 22.04 LTS';
+
+      // specs: nodeInfo에서 추출, fallback 하드코딩
+      const specs = metric.nodeInfo
+        ? {
+            cpu_cores: metric.nodeInfo.cpuCores,
+            memory_gb: Math.round(metric.nodeInfo.memoryTotalBytes / 1024 ** 3),
+            disk_gb: Math.round(metric.nodeInfo.diskTotalBytes / 1024 ** 3),
+            network_speed: '1Gbps',
+          }
+        : {
+            cpu_cores: 8,
+            memory_gb: 32,
+            disk_gb: 512,
+            network_speed: '1Gbps',
+          };
+
+      // ip: hostname 기반 결정적 생성, fallback 랜덤
+      const ip = metric.hostname
+        ? `10.0.${metric.hostname.charCodeAt(0) % 256}.${metric.hostname.charCodeAt(4) % 256 || 1}`
+        : `10.0.1.${Math.floor(Math.random() * 255)}`;
+
       return {
         id: metric.serverId,
         name: metric.serverId,
-        hostname: `${metric.serverId.toLowerCase()}.internal`,
+        hostname:
+          metric.hostname || `${metric.serverId.toLowerCase()}.internal`,
         type: metric.serverType,
-        status: metric.status, // JSON status 직접 사용 (재계산 X)
+        status: metric.status,
         cpu: metric.cpu,
         memory: metric.memory,
         disk: metric.disk,
         network: metric.network,
-        uptime: 86400 * 30, // 30일 가동 중으로 고정
-        responseTime: 50 + metric.cpu * 2,
+        uptime,
+        responseTime: metric.responseTimeMs ?? 50 + metric.cpu * 2,
         lastUpdate: new Date(),
         location: metric.location,
         provider: 'On-Premise',
-        environment: 'production',
+        environment: metric.environment || 'production',
         logs: metric.logs.map((msg) => ({
           timestamp: new Date().toISOString(),
           level:
@@ -263,15 +297,10 @@ export class UnifiedServerDataSource {
         })),
         services: [],
         alerts: [],
-        specs: {
-          cpu_cores: 8,
-          memory_gb: 32,
-          disk_gb: 512,
-          network_speed: '1Gbps',
-        },
+        specs,
         role: metric.serverType,
-        ip: `10.0.1.${Math.floor(Math.random() * 255)}`,
-        os: 'Ubuntu 22.04 LTS',
+        ip,
+        os,
       } as unknown as Server;
     });
 

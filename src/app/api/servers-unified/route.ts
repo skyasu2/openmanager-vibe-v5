@@ -65,13 +65,44 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
     const allMetrics = metricsProvider.getAllServerMetrics();
 
     return allMetrics.map((metric): EnhancedServerMetrics => {
-      // 업타임 계산 (고정값 기반)
-      const uptimeSeconds = 86400 + metric.minuteOfDay * 60; // 1일 + 현재 시간
+      // uptime: bootTimeSeconds로부터 계산, fallback 1일+현재시간
+      const uptimeSeconds =
+        metric.bootTimeSeconds && metric.bootTimeSeconds > 0
+          ? Math.floor(Date.now() / 1000 - metric.bootTimeSeconds)
+          : 86400 + metric.minuteOfDay * 60;
+
+      // os: Prometheus labels에서 조합, fallback 'Ubuntu 22.04 LTS'
+      const osLabel =
+        metric.os && metric.osVersion
+          ? `${metric.os.charAt(0).toUpperCase() + metric.os.slice(1)} ${metric.osVersion}`
+          : 'Ubuntu 22.04 LTS';
+
+      // specs: nodeInfo에서 추출, fallback serverType 기반
+      const specs = metric.nodeInfo
+        ? {
+            cpu_cores: metric.nodeInfo.cpuCores,
+            memory_gb: Math.round(metric.nodeInfo.memoryTotalBytes / 1024 ** 3),
+            disk_gb: Math.round(metric.nodeInfo.diskTotalBytes / 1024 ** 3),
+            network_speed: '1Gbps',
+          }
+        : {
+            cpu_cores: metric.serverType === 'database' ? 8 : 4,
+            memory_gb: metric.serverType === 'database' ? 32 : 16,
+            disk_gb: metric.serverType === 'storage' ? 1000 : 200,
+            network_speed: '1Gbps',
+          };
+
+      // ip: hostname 기반 결정적 생성
+      const ip = metric.hostname
+        ? `10.0.${metric.hostname.charCodeAt(0) % 256}.${metric.hostname.charCodeAt(4) % 256 || 1}`
+        : `10.0.${metric.serverId.charCodeAt(0) % 256}.${metric.serverId.charCodeAt(4) % 256 || 1}`;
 
       return {
         id: metric.serverId,
         name: metric.serverId,
-        hostname: `${metric.serverId.toLowerCase()}.openmanager.local`,
+        hostname:
+          metric.hostname ||
+          `${metric.serverId.toLowerCase()}.openmanager.local`,
         status: metric.status,
         cpu: metric.cpu,
         cpu_usage: metric.cpu,
@@ -83,7 +114,7 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
         network_in: metric.network * 0.6,
         network_out: metric.network * 0.4,
         uptime: uptimeSeconds,
-        responseTime: 50 + metric.cpu * 2, // CPU 기반 응답시간 추정
+        responseTime: metric.responseTimeMs ?? 50 + metric.cpu * 2,
         last_updated: metric.timestamp,
         location: metric.location,
         alerts: metric.logs
@@ -107,27 +138,26 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
             timestamp: metric.timestamp,
             resolved: false,
           })),
-        ip: `10.0.${metric.serverId.charCodeAt(0) % 256}.${metric.serverId.charCodeAt(4) % 256 || 1}`,
-        os: 'Ubuntu 22.04 LTS',
+        ip,
+        os: osLabel,
         role: metric.serverType as ServerRole,
-        environment: metric.location.includes('Seoul')
-          ? 'production'
-          : ('staging' as ServerEnvironment),
+        environment: (metric.environment ||
+          (metric.location.includes('Seoul')
+            ? 'production'
+            : 'staging')) as ServerEnvironment,
         provider: 'openmanager',
-        specs: {
-          cpu_cores: metric.serverType === 'database' ? 8 : 4,
-          memory_gb: metric.serverType === 'database' ? 32 : 16,
-          disk_gb: metric.serverType === 'storage' ? 1000 : 200,
-          network_speed: '1Gbps',
-        },
+        specs,
         lastUpdate: metric.timestamp,
         services: [],
         systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
+          os: osLabel,
           uptime: `${Math.floor(uptimeSeconds / 3600)}h`,
-          processes: 100 + Math.floor(metric.cpu),
+          processes: metric.procsRunning ?? 100 + Math.floor(metric.cpu),
           zombieProcesses: 0,
-          loadAverage: (metric.cpu / 25).toFixed(2),
+          loadAverage:
+            metric.loadAvg1 != null
+              ? metric.loadAvg1.toFixed(2)
+              : (metric.cpu / 25).toFixed(2),
           lastUpdate: metric.timestamp,
         },
         networkInfo: {

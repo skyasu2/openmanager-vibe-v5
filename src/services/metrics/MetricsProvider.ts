@@ -78,6 +78,17 @@ export interface ServerMetrics {
     memoryTotalBytes: number;
     diskTotalBytes: number;
   };
+
+  // Prometheus 확장 필드 (optional - 하위호환)
+  hostname?: string;
+  environment?: string;
+  os?: string;
+  osVersion?: string;
+  loadAvg1?: number;
+  loadAvg5?: number;
+  bootTimeSeconds?: number;
+  procsRunning?: number;
+  responseTimeMs?: number;
 }
 
 /**
@@ -246,6 +257,16 @@ function targetToServerMetrics(
           diskTotalBytes: target.nodeInfo.disk_total_bytes,
         }
       : undefined,
+    // Prometheus 확장 매핑
+    hostname: target.labels.hostname,
+    environment: target.labels.environment,
+    os: target.labels.os,
+    osVersion: target.labels.os_version,
+    loadAvg1: target.metrics.node_load1,
+    loadAvg5: target.metrics.node_load5,
+    bootTimeSeconds: target.metrics.node_boot_time_seconds,
+    procsRunning: target.metrics.node_procs_running,
+    responseTimeMs: target.metrics.node_http_request_duration_milliseconds,
   };
 }
 
