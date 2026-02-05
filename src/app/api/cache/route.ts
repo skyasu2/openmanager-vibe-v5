@@ -18,7 +18,6 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/__mocks__/data';
 import {
   getCacheStats,
   invalidateCache,
@@ -32,6 +31,7 @@ import type {
   CacheStats,
   CacheWarmupResponse,
 } from '@/schemas/api.schema';
+import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
@@ -220,13 +220,12 @@ async function handleWarmup(options?: {
   targets?: string[];
   pattern?: string;
 }): Promise<CacheWarmupResponse> {
-  const mockSystem = getMockSystem();
   const warmupItems = [];
 
   if (!options?.targets || options.targets.includes('servers')) {
     warmupItems.push({
       key: 'servers:list',
-      fetcher: async () => mockSystem.getServers(),
+      fetcher: async () => metricsProvider.getAllServerMetrics(),
       ttl: 300,
     });
   }
@@ -235,18 +234,13 @@ async function handleWarmup(options?: {
     warmupItems.push({
       key: 'servers:summary',
       fetcher: async () => {
-        const servers = mockSystem.getServers();
-        return servers.length > 0
-          ? {
-              totalServers: servers.length,
-              onlineServers: servers.filter((s) => s.status === 'online')
-                .length,
-              avgCpuUsage:
-                servers.reduce((sum, s) => sum + (s.cpu || 0), 0) /
-                servers.length,
-              timestamp: Date.now(),
-            }
-          : null;
+        const summary = metricsProvider.getSystemSummary();
+        return {
+          totalServers: summary.totalServers,
+          onlineServers: summary.onlineServers,
+          avgCpuUsage: summary.averageCpu,
+          timestamp: Date.now(),
+        };
       },
       ttl: 900,
     });

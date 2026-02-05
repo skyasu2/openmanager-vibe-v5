@@ -1,6 +1,5 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/__mocks__/data';
 import { withAuth } from '@/lib/auth/api-auth';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
 import type {
@@ -9,33 +8,11 @@ import type {
   ServerService,
   ServerSpecs,
 } from '@/schemas/server-schemas/server-details.schema';
+import {
+  metricsProvider,
+  type ServerMetrics,
+} from '@/services/metrics/MetricsProvider';
 import debug from '@/utils/debug';
-
-// Database Server type from Supabase
-interface DatabaseServer {
-  id: string;
-  hostname?: string;
-  name?: string;
-  type?: string;
-  role?: string;
-  environment?: string;
-  status: string;
-  cpu?: number;
-  memory?: number;
-  disk?: number;
-  network?: number;
-  uptime?: number | string;
-  lastUpdate?: string;
-  alerts?: unknown[] | number;
-  metrics?: {
-    cpu?: number;
-    memory?: number;
-    disk?: number;
-    network?: number;
-  };
-  created_at?: string;
-  updated_at?: string;
-}
 
 /**
  * 📊 Mock 시뮬레이션 개별 서버 정보 조회 API
@@ -62,33 +39,22 @@ export const GET = withAuth(
         `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
       );
 
-      // Mock 시스템에서 서버 찾기
-      const mockSystem = getMockSystem({
-        autoRotate: true,
-        rotationInterval: 30000,
-        speed: 1,
-      });
+      // MetricsProvider에서 서버 찾기 (ID 또는 hostname으로 검색)
+      let metric = metricsProvider.getServerMetrics(id);
 
-      const servers = mockSystem.getServers();
-      const serverData = servers.find(
-        (server) =>
-          server.id === id || server.hostname === id || server.name === id
-      );
-
-      if (!serverData) {
-        debug.error(
-          '❌ Mock 시스템에서 서버 조회 실패:',
-          `서버 ID/hostname [${id}] 찾을 수 없음`
-        );
+      // hostname으로도 검색 시도
+      if (!metric) {
+        const allMetrics = metricsProvider.getAllServerMetrics();
+        metric =
+          allMetrics.find((m) => m.hostname === id || m.serverId === id) ??
+          null;
       }
 
-      const server = serverData as DatabaseServer | null;
-
-      if (!server) {
-        // 사용 가능한 서버 목록을 Mock 시스템에서 가져오기
-        const availableServers = servers.slice(0, 10).map((s) => ({
-          id: s.id,
-          hostname: s.hostname,
+      if (!metric) {
+        const allMetrics = metricsProvider.getAllServerMetrics();
+        const availableServers = allMetrics.slice(0, 10).map((m) => ({
+          id: m.serverId,
+          hostname: m.hostname ?? m.serverId,
         }));
 
         return NextResponse.json(
@@ -96,7 +62,7 @@ export const GET = withAuth(
             success: false,
             error: 'Server not found',
             message: `서버 '${id}'를 찾을 수 없습니다`,
-            available_servers: availableServers || [],
+            available_servers: availableServers,
             timestamp: new Date().toISOString(),
           },
           { status: 404 }
@@ -104,8 +70,16 @@ export const GET = withAuth(
       }
 
       debug.log(
-        `✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`
+        `✅ 서버 [${id}] 발견: ${metric.hostname ?? metric.serverId} (${metric.environment ?? 'unknown'}/${metric.serverType})`
       );
+
+      // MetricsProvider에서 가져온 specs 계산
+      const specs = getSpecsFromMetric(metric);
+      const ip = generateIP(metric.serverId);
+      const uptimeSeconds =
+        metric.bootTimeSeconds && metric.bootTimeSeconds > 0
+          ? Math.floor(Date.now() / 1000 - metric.bootTimeSeconds)
+          : 86400 + metric.minuteOfDay * 60;
 
       // 3. 응답 형식에 따른 처리
       if (format === 'prometheus') {
@@ -114,56 +88,45 @@ export const GET = withAuth(
           {
             error: 'Prometheus format is no longer supported',
             message: 'Please use JSON format instead',
-            server_id: server.id,
+            server_id: metric.serverId,
           },
           { status: 410 } // Gone
         );
       } else if (format === 'legacy') {
         // 레거시 형식
         const legacyServer = {
-          id: server.id,
-          hostname: server.hostname || server.id,
-          name: `OpenManager-${server.id}`,
-          type: server.role || 'web',
-          environment: server.environment || 'onpremise',
-          location: getLocationByEnvironment(server.environment || 'onpremise'),
-          provider: getProviderByEnvironment(server.environment || 'onpremise'),
-          status: server.status,
-          cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
-          memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
-          disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
-          uptime:
-            typeof server.uptime === 'number'
-              ? formatUptime(server.uptime)
-              : server.uptime || '0d 0h 0m',
-          lastUpdate: new Date(server.lastUpdate || Date.now()),
-          alerts: Array.isArray(server.alerts)
-            ? server.alerts.length
-            : typeof server.alerts === 'number'
-              ? server.alerts
-              : 0,
-          services: generateServices(server.role || 'web'),
-          specs: generateSpecs(server.id),
-          os: generateSpecs(server.id).os,
-          ip: generateIP(server.id),
+          id: metric.serverId,
+          hostname: metric.hostname ?? metric.serverId,
+          name: `OpenManager-${metric.serverId}`,
+          type: metric.serverType,
+          environment: metric.environment ?? 'onpremise',
+          location: getLocationByEnvironment(metric.environment ?? 'onpremise'),
+          provider: getProviderByEnvironment(metric.environment ?? 'onpremise'),
+          status: metric.status,
+          cpu: Math.round(metric.cpu),
+          memory: Math.round(metric.memory),
+          disk: Math.round(metric.disk),
+          uptime: formatUptime(uptimeSeconds),
+          lastUpdate: new Date(metric.timestamp),
+          alerts: 0,
+          services: generateServices(metric.serverType),
+          specs,
+          os: specs.os,
+          ip,
           metrics: {
-            cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
-            memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
-            disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
-            network_in: Math.round(
-              server.metrics?.network ?? server.network ?? 0
-            ),
-            network_out: Math.round(
-              server.metrics?.network ?? server.network ?? 0
-            ),
-            response_time: 50,
+            cpu: Math.round(metric.cpu),
+            memory: Math.round(metric.memory),
+            disk: Math.round(metric.disk),
+            network_in: Math.round(metric.network * 0.6),
+            network_out: Math.round(metric.network * 0.4),
+            response_time: metric.responseTimeMs ?? 50,
           },
         };
 
         // 히스토리 데이터 생성 (요청시)
         let history = null;
         if (includeHistory) {
-          history = generateServerHistory(server, range);
+          history = generateServerHistory(metric, range);
         }
 
         return NextResponse.json(
@@ -193,49 +156,44 @@ export const GET = withAuth(
         const enhancedResponse = {
           // 기본 서버 정보
           server_info: {
-            id: server.id,
-            hostname: server.hostname,
-            environment: server.environment,
-            role: server.role,
-            status: server.status,
-            uptime:
-              typeof server.uptime === 'number'
-                ? formatUptime(server.uptime)
-                : server.uptime || '0d 0h 0m',
-            last_updated: server.lastUpdate,
+            id: metric.serverId,
+            hostname: metric.hostname ?? metric.serverId,
+            environment: metric.environment ?? 'unknown',
+            role: metric.serverType,
+            status: metric.status,
+            uptime: formatUptime(uptimeSeconds),
+            last_updated: metric.timestamp,
           },
 
-          // 현재 메트릭 (Supabase 데이터 구조에 맞게)
+          // 현재 메트릭 (Prometheus 데이터 기반)
           current_metrics: {
-            cpu_usage: server.metrics?.cpu ?? server.cpu ?? 0,
-            memory_usage: server.metrics?.memory ?? server.memory ?? 0,
-            disk_usage: server.metrics?.disk ?? server.disk ?? 0,
-            network_in: server.metrics?.network ?? server.network ?? 0,
-            network_out: server.metrics?.network ?? server.network ?? 0,
-            response_time: 50,
+            cpu_usage: metric.cpu,
+            memory_usage: metric.memory,
+            disk_usage: metric.disk,
+            network_in: metric.network * 0.6,
+            network_out: metric.network * 0.4,
+            response_time: metric.responseTimeMs ?? 50,
           },
 
-          // 리소스 정보
-          resources: generateSpecs(server.id),
+          // 리소스 정보 (MetricsProvider nodeInfo 기반)
+          resources: specs,
           network: {
-            ip: generateIP(server.id),
-            hostname: server.hostname,
+            ip,
+            hostname: metric.hostname ?? metric.serverId,
             interface: 'eth0',
           },
 
           // 알람 정보
-          alerts: server.alerts || [],
+          alerts: [],
 
           // 서비스 정보
-          services: generateServices(server.role || 'web'),
+          services: generateServices(metric.serverType),
         };
 
-        // 패턴 정보 포함 (요청시) - Supabase에서는 패턴 정보를 별도 처리
+        // 패턴 정보 포함 (요청시)
         let patternInfo: unknown;
         let correlationMetrics: unknown;
         if (includePatterns) {
-          // Supabase에서 패턴 정보를 별도 쿼리로 가져올 수 있음
-          // 현재는 기본값으로 설정
           patternInfo = null;
           correlationMetrics = null;
         }
@@ -243,7 +201,7 @@ export const GET = withAuth(
         // 히스토리 데이터 (요청시)
         let history: ServerHistory | undefined;
         if (includeHistory) {
-          history = generateServerHistory(server, range);
+          history = generateServerHistory(metric, range);
         }
 
         // 메타데이터
@@ -259,7 +217,7 @@ export const GET = withAuth(
               processing_time_ms: Date.now() - startTime,
               timestamp: new Date().toISOString(),
             },
-            dataSource: 'supabase-realtime',
+            dataSource: 'hourly-scenarios',
             scenario: 'production',
           },
           data: {
@@ -272,9 +230,9 @@ export const GET = withAuth(
 
         return NextResponse.json(response, {
           headers: {
-            'X-Server-Id': server.id,
-            'X-Hostname': server.hostname || server.id,
-            'X-Server-Status': server.status,
+            'X-Server-Id': metric.serverId,
+            'X-Hostname': metric.hostname ?? metric.serverId,
+            'X-Server-Status': metric.status,
             'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
             // 개별 서버 정보는 30초 캐싱
             'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
@@ -391,7 +349,7 @@ function generateServices(role: string): ServerService[] {
 }
 
 /**
- * 🌐 서버 ID로 IP 생성
+ * 🌐 서버 ID로 IP 생성 (MetricsProvider에 IP 없을 때 fallback)
  */
 function generateIP(serverId: string): string {
   const hash = serverId.split('').reduce((a, b) => {
@@ -406,28 +364,26 @@ function generateIP(serverId: string): string {
 }
 
 /**
- * 💻 서버 ID로 스펙 생성
+ * 💻 MetricsProvider의 nodeInfo로 스펙 추출
  */
-function generateSpecs(serverId: string): ServerSpecs {
-  const hash = serverId.split('').reduce((a, b) => {
-    a = (a << 5) - a + b.charCodeAt(0);
-    return a & a;
-  }, 0);
+function getSpecsFromMetric(metric: ServerMetrics): ServerSpecs {
+  const GiB = 1024 ** 3;
 
-  const cpuCores = (Math.abs(hash) % 16) + 2; // 2-18 cores
-  const memoryGb = 2 ** ((Math.abs(hash >> 4) % 5) + 2); // 4, 8, 16, 32, 64 GB
-  const diskGb = (Math.abs(hash >> 8) % 500) + 100; // 100-600 GB
+  const osLabel =
+    metric.os && metric.osVersion
+      ? `${metric.os.charAt(0).toUpperCase() + metric.os.slice(1)} ${metric.osVersion}`
+      : 'Ubuntu 22.04 LTS';
 
-  const osOptions = [
-    'Ubuntu 22.04 LTS',
-    'CentOS 8',
-    'RHEL 8',
-    'Amazon Linux 2',
-  ];
-  const os =
-    osOptions[Math.abs(hash >> 12) % osOptions.length] ?? 'Ubuntu 20.04';
-
-  return { cpu_cores: cpuCores, memory_gb: memoryGb, disk_gb: diskGb, os };
+  return {
+    cpu_cores: metric.nodeInfo?.cpuCores ?? 4,
+    memory_gb: metric.nodeInfo
+      ? Math.round(metric.nodeInfo.memoryTotalBytes / GiB)
+      : 16,
+    disk_gb: metric.nodeInfo
+      ? Math.round(metric.nodeInfo.diskTotalBytes / GiB)
+      : 500,
+    os: osLabel,
+  };
 }
 
 /**
@@ -442,10 +398,10 @@ function formatUptime(uptimeSeconds: number): string {
 }
 
 /**
- * 📈 서버 히스토리 생성 (실제 데이터 기반)
+ * 📈 서버 히스토리 생성 (MetricsProvider 데이터 기반)
  */
 function generateServerHistory(
-  server: DatabaseServer,
+  metric: ServerMetrics,
   range: string
 ): ServerHistory {
   const timeRangeMs = parseTimeRange(range);
@@ -460,11 +416,10 @@ function generateServerHistory(
     const timeOfDay = new Date(time).getHours();
     const variation = Math.sin((timeOfDay / 24) * 2 * Math.PI) * 0.3; // 일일 패턴
 
-    // 메트릭 값 추출 (Supabase 데이터 구조에 맞게)
-    const baseCpu = server.metrics?.cpu ?? server.cpu ?? 50;
-    const baseMemory = server.metrics?.memory ?? server.memory ?? 50;
-    const baseDisk = server.metrics?.disk ?? server.disk ?? 50;
-    const baseNetwork = server.metrics?.network ?? server.network ?? 100;
+    const baseCpu = metric.cpu;
+    const baseMemory = metric.memory;
+    const baseDisk = metric.disk;
+    const baseNetwork = metric.network;
 
     data_points.push({
       timestamp: new Date(time).toISOString(),
@@ -491,7 +446,9 @@ function generateServerHistory(
         ),
         response_time: Math.max(
           0,
-          50 + variation * 100 + (Math.random() - 0.5) * 50
+          (metric.responseTimeMs ?? 50) +
+            variation * 100 +
+            (Math.random() - 0.5) * 50
         ),
       },
     });

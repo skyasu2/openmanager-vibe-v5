@@ -1,6 +1,5 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/__mocks__/data';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   type PaginatedServer,
@@ -11,92 +10,15 @@ import {
   ServerPaginatedResponseSchema,
   ServerPaginationQuerySchema,
 } from '@/schemas/api.schema';
-import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가
+import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
-
-/**
- * 🖥️ Mock 시스템 기반 서버 데이터 생성 API
- *
- * ✅ 개선: Mock 시스템을 사용하여 정교한 서버 데이터 제공
- * - 24시간 시뮬레이션 패턴 기반 데이터
- * - 현실적인 서버 스펙 및 메트릭
- * - 시간대별 부하 패턴 반영
- * - 서버 타입별 특성화된 데이터
- *
- * GET: 다음 서버 정보 조회 (Rate Limited: 1분에 20회)
- * POST: 서버 생성 요청 (Rate Limited: 1분에 20회)
- *
- * Mock 시스템 기능:
- * 1. FNV-1a 해시 기반 안정적 데이터 생성
- * 2. 실시간 변동 시뮬레이션
- * 3. 장애 시나리오 포함 현실적 메트릭
- */
-
-// 순차 생성을 위한 상태 관리
-const _currentServerIndex = 0;
-const _isGeneratorInitialized = false;
-
-// Uptime 포맷 유틸리티 함수
-function _formatUptime(hours: number): string {
-  const days = Math.floor(hours / 24);
-  const remainingHours = Math.floor(hours % 24);
-  const minutes = Math.floor((hours % 1) * 60);
-
-  return `${days}d ${remainingHours}h ${minutes}m`;
-}
-
-// 🚫 서버 데이터 생성기 초기화 비활성화 (서버리스 호환)
-const __initializeGenerator = () => {
-  debug.warn('⚠️ 서버 데이터 생성기 초기화 무시됨 - 서버리스 환경');
-  debug.warn('📊 요청별 데이터 생성 사용 권장');
-
-  // 🚫 전역 상태 관리 비활성화
-  // await GCPRealDataService.getInstance()._initialize();
-  // await GCPRealDataService.getInstance().startAutoGeneration();
-
-  debug.log('🚫 서버리스 환경에서는 요청별 처리만 지원');
-};
-
-// 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)
-const _serverCount = 0;
-const _lastGeneratedTime = Date.now();
-// 🚀 생성된 서버들을 메모리에 저장 (실제 환경에서는 데이터베이스 사용)
-const _generatedServers: ServerInfo[] = [];
-
-interface ServerInfo {
-  id: string;
-  hostname: string;
-  name: string;
-  type: string;
-  environment: string;
-  location: string;
-  provider: string;
-  status: 'online' | 'warning' | 'offline';
-  cpu: number;
-  memory: number;
-  disk: number;
-  uptime: string;
-  lastUpdate: Date;
-  alerts: number;
-  services: Array<{
-    name: string;
-    status: 'running' | 'stopped';
-    port: number;
-  }>;
-  specs: {
-    cpu_cores: number;
-    memory_gb: number;
-    disk_gb: number;
-  };
-  os: string;
-  ip: string;
-}
 
 /**
  * 🚀 서버 페이지네이션 API v2.1
  *
  * 목적: 서버 목록을 페이지 단위로 가져오는 최적화된 API
+ * 데이터 소스: MetricsProvider (hourly-data + fixed-24h-metrics fallback)
  *
  * 주요 기능:
  * - 페이지 기반 서버 목록 조회
@@ -126,56 +48,44 @@ const getHandler = createApiRoute()
       status,
     } = context.query;
 
-    // Mock 시스템에서 서버 데이터 가져오기
-    const mockSystem = getMockSystem();
-    const mockServers = mockSystem.getServers();
+    // MetricsProvider에서 서버 데이터 가져오기
+    const allMetrics = metricsProvider.getAllServerMetrics();
 
-    debug.log(`📊 Mock 시스템에서 ${mockServers.length}개 서버 로드됨`);
+    debug.log(`📊 MetricsProvider에서 ${allMetrics.length}개 서버 로드됨`);
 
-    // Mock 시스템 서버 데이터를 API 형식으로 변환
-    const allServers: PaginatedServer[] = mockServers.map((server) => {
-      // 🔧 수정: 'healthy' → 'online', 'error' → 'critical' 타입 변환
-      const rawStatus: unknown = server.status || 'offline';
-      const status = (
-        rawStatus === 'healthy'
-          ? 'online'
-          : rawStatus === 'error'
-            ? 'critical'
-            : rawStatus
-      ) as ServerStatus;
-
-      return {
-        id: server.id,
-        name: server.name,
-        status, // 🔧 수정: 이미 ServerStatus로 변환됨
-        location: server.location || 'Unknown',
-        uptime: typeof server.uptime === 'number' ? server.uptime : 0,
-        lastUpdate:
-          server.lastUpdate instanceof Date
-            ? server.lastUpdate.toISOString()
-            : new Date().toISOString(),
-        metrics: {
-          cpu: Math.round(server.cpu ?? 0),
-          memory: Math.round(server.memory ?? 0),
-          disk: Math.round(server.disk ?? 0),
-          network: {
-            bytesIn: Math.round(server.network ?? 0),
-            bytesOut: Math.round(server.network ?? 0),
-            packetsIn: 0,
-            packetsOut: 0,
-            latency: 0,
-            connections: 0,
-          },
-          processes: 50,
-          loadAverage: [0.5, 0.3, 0.2] as [number, number, number],
+    // MetricsProvider 데이터를 PaginatedServer 형식으로 변환
+    const allServers: PaginatedServer[] = allMetrics.map((metric) => ({
+      id: metric.serverId,
+      name: metric.hostname ?? metric.serverId,
+      status: metric.status,
+      location: metric.location || 'Unknown',
+      uptime: 0,
+      lastUpdate: metric.timestamp,
+      metrics: {
+        cpu: Math.round(metric.cpu),
+        memory: Math.round(metric.memory),
+        disk: Math.round(metric.disk),
+        network: {
+          bytesIn: Math.round(metric.network),
+          bytesOut: Math.round(metric.network),
+          packetsIn: 0,
+          packetsOut: 0,
+          latency: 0,
+          connections: 0,
         },
-        tags: [],
-        metadata: {
-          type: server.type || 'unknown',
-          environment: server.environment || 'production',
-        },
-      }; // 🔧 수정: return 문 닫기
-    });
+        processes: 50,
+        loadAverage: [metric.loadAvg1 ?? 0.5, metric.loadAvg5 ?? 0.3, 0.2] as [
+          number,
+          number,
+          number,
+        ],
+      },
+      tags: [],
+      metadata: {
+        type: metric.serverType || 'unknown',
+        environment: metric.environment || 'production',
+      },
+    }));
 
     // 상태 필터링
     let filteredServers = allServers;

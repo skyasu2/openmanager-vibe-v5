@@ -7,7 +7,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/__mocks__/data';
+import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import debug from '@/utils/debug';
 
 interface PrometheusMetricResult {
@@ -58,56 +58,50 @@ async function executePromQLQuery(
   query: string,
   time?: number
 ): Promise<PrometheusMetricResult[]> {
-  const mockSystem = getMockSystem();
-  const servers = mockSystem.getServers();
+  const metrics = metricsProvider.getAllServerMetrics();
+  const ts = time || Math.floor(Date.now() / 1000);
 
-  // 간단한 PromQL 쿼리 파싱 (실제로는 더 복잡한 파서가 필요)
+  // 간단한 PromQL 쿼리 파싱
   if (query.includes('cpu_usage_percent')) {
-    return servers.map((server) => ({
+    return metrics.map((m) => ({
       metric: {
         __name__: 'cpu_usage_percent',
-        instance: server.id,
-        job: server.role || 'unknown',
-        environment: server.environment || 'production',
+        instance: m.serverId,
+        job: m.serverType,
+        environment: m.environment ?? 'production',
       },
-      value: [
-        time || Math.floor(Date.now() / 1000),
-        (server.cpu || 0).toString(),
-      ],
+      value: [ts, m.cpu.toString()],
     }));
   }
 
   if (query.includes('memory_usage_percent')) {
-    return servers.map((server) => ({
+    return metrics.map((m) => ({
       metric: {
         __name__: 'memory_usage_percent',
-        instance: server.id,
-        job: server.role || 'unknown',
-        environment: server.environment || 'production',
+        instance: m.serverId,
+        job: m.serverType,
+        environment: m.environment ?? 'production',
       },
-      value: [
-        time || Math.floor(Date.now() / 1000),
-        (server.memory || 0).toString(),
-      ],
+      value: [ts, m.memory.toString()],
     }));
   }
 
   if (query.includes('server_status')) {
-    return servers.map((server) => {
+    return metrics.map((m) => {
       let statusValue = 2; // normal/healthy
-      if (server.status === 'offline') statusValue = 3;
-      else if (server.status === 'online') statusValue = 2;
-      else statusValue = 1; // any other status (warning, etc.)
+      if (m.status === 'offline') statusValue = 3;
+      else if (m.status === 'online') statusValue = 2;
+      else statusValue = 1; // any other status (warning, critical, etc.)
 
       return {
         metric: {
           __name__: 'server_status',
-          instance: server.id,
-          job: server.role || 'unknown',
-          environment: server.environment || 'production',
-          status: server.status || 'unknown',
+          instance: m.serverId,
+          job: m.serverType,
+          environment: m.environment ?? 'production',
+          status: m.status,
         },
-        value: [time || Math.floor(Date.now() / 1000), statusValue.toString()],
+        value: [ts, statusValue.toString()],
       };
     });
   }
