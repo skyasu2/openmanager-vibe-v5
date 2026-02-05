@@ -1,13 +1,24 @@
 /**
- * AuthStateManager Tests
- * 인증 상태 관리 싱글톤 테스트
+ * @vitest-environment jsdom
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+/**
+ * AuthStateManager Tests
+ * 인증 상태 관리 싱글톤 테스트
+ *
+ * Note: vi.resetModules() 제거 → static import + singleton reset 방식으로 전환
+ * (WSL 환경에서 매 테스트마다 모듈 재초기화가 worker timeout 유발)
+ */
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ============================================================================
-// Mock 설정
+// Mock 설정 (static - 모듈 재로드 없음)
 // ============================================================================
+
+vi.mock('@/lib/logging', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
 
 // localStorage Mock
 const localStorageMock = (() => {
@@ -64,6 +75,9 @@ vi.mock('@/lib/supabase/client', () => ({
   getSupabase: () => mockSupabaseClient,
 }));
 
+// Static import (모듈 재로드 없음)
+import { AuthStateManager } from './auth-state-manager';
+
 // ============================================================================
 // 테스트
 // ============================================================================
@@ -74,6 +88,10 @@ describe('AuthStateManager', () => {
     vi.clearAllMocks();
     localStorageMock.clear();
     sessionStorageMock.clear();
+
+    // Singleton reset (vi.resetModules() 대신)
+    // biome-ignore lint/suspicious/noExplicitAny: test-only singleton reset
+    (AuthStateManager as any).instance = undefined;
 
     // Setup global mocks
     Object.defineProperty(globalThis, 'localStorage', {
@@ -103,14 +121,8 @@ describe('AuthStateManager', () => {
     mockSupabaseClient.auth.signOut.mockResolvedValue({ error: null });
   });
 
-  afterEach(() => {
-    vi.resetModules();
-  });
-
   describe('Singleton Pattern', () => {
-    it('getInstance()가 항상 동일한 인스턴스를 반환해야 함', async () => {
-      const { AuthStateManager } = await import('./auth-state-manager');
-
+    it('getInstance()가 항상 동일한 인스턴스를 반환해야 함', () => {
       const instance1 = AuthStateManager.getInstance();
       const instance2 = AuthStateManager.getInstance();
 
@@ -120,7 +132,6 @@ describe('AuthStateManager', () => {
 
   describe('Cache Management', () => {
     it('invalidateCache()가 캐시를 무효화해야 함', async () => {
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       // 첫 번째 호출로 캐시 설정
@@ -129,7 +140,6 @@ describe('AuthStateManager', () => {
       // 캐시 무효화
       manager.invalidateCache();
 
-      // 내부 상태 확인 (캐시가 null이 되어야 함)
       // 다시 getAuthState를 호출하면 새로운 상태를 가져옴
       const state = await manager.getAuthState();
       expect(state).toBeDefined();
@@ -138,7 +148,6 @@ describe('AuthStateManager', () => {
 
   describe('getAuthState()', () => {
     it('세션이 없을 때 unknown 상태를 반환해야 함', async () => {
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       const state = await manager.getAuthState();
@@ -162,9 +171,7 @@ describe('AuthStateManager', () => {
       localStorageMock.setItem('auth_user', JSON.stringify(guestUser));
       localStorageMock.setItem('auth_created_at', Date.now().toString());
 
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
-      manager.invalidateCache(); // 이전 테스트의 캐시 무효화
 
       const state = await manager.getAuthState();
 
@@ -201,9 +208,7 @@ describe('AuthStateManager', () => {
         error: null,
       });
 
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
-      manager.invalidateCache();
 
       const state = await manager.getAuthState();
 
@@ -242,9 +247,7 @@ describe('AuthStateManager', () => {
         error: null,
       });
 
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
-      manager.invalidateCache();
 
       const state = await manager.getAuthState();
 
@@ -260,7 +263,6 @@ describe('AuthStateManager', () => {
       localStorageMock.setItem('auth_type', 'guest');
       localStorageMock.setItem('auth_session_id', 'session-123');
 
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       await manager.clearAllAuthData();
@@ -270,7 +272,6 @@ describe('AuthStateManager', () => {
     });
 
     it('특정 타입만 정리할 수 있어야 함', async () => {
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       await manager.clearAllAuthData('guest');
@@ -286,9 +287,7 @@ describe('AuthStateManager', () => {
         new Error('Network error')
       );
 
-      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
-      manager.invalidateCache();
 
       const state = await manager.getAuthState();
 

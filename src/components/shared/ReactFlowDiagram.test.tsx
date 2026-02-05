@@ -14,6 +14,26 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ArchitectureDiagram } from '@/data/architecture-diagrams.data';
 
+// Mock CSS import to prevent worker timeout
+vi.mock('@xyflow/react/dist/style.css', () => ({}));
+
+// Mock heavy @radix-ui dependency
+vi.mock('@radix-ui/react-tooltip', () => ({
+  Root: vi.fn(({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  )),
+  Trigger: vi.fn(({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  )),
+  Content: vi.fn(() => null),
+  Provider: vi.fn(({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  )),
+  Portal: vi.fn(({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  )),
+}));
+
 // React Flow 모킹 (canvas 환경 필요로 인해)
 vi.mock('@xyflow/react', () => ({
   ReactFlow: vi.fn(({ children, nodes, edges }) => (

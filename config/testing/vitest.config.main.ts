@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    css: false,
     env: {
       NEXT_PUBLIC_SUPABASE_URL: 'http://mock-supabase-url.local',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key-for-testing',
@@ -89,26 +90,30 @@ export default defineConfig({
       },
     },
     testTimeout: 30000,
-    hookTimeout: 30000,
-    pool: 'threads',
+    hookTimeout: 120000,
+    pool: 'forks',
     isolate: true, // ✅ Enable test isolation to prevent state pollution
-    poolOptions: {
-      threads: {
-        singleThread: false,
-        minThreads: 2,
-        maxThreads: 4,
-        useAtomics: true,
-      },
-    },
+    // ⚠️ pool: 'forks' 사용 (WSL2에서 'threads'는 무거운 모듈 그래프 파싱 시 hang 발생)
+    // child_process 기반으로 thread 경합 없이 안정적 실행
     server: {
       deps: {
+        // ✅ WSL I/O 병목 방지: 무거운 패키지는 vitest 번들링 건너뜀
+        // resolve.alias가 stub으로 리디렉션하지만, external이 없으면 worker 초기화 시 hang
+        external: ['lucide-react', 'recharts', 'zod'],
         inline: ['whatwg-fetch'],
       },
     },
+    // ✅ Vitest 4: poolOptions → 최상위 옵션으로 이동
+    maxForks: 1,
+    minForks: 1,
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'], // ✅ Auto-resolve .ts files in node environment
     alias: {
+      // ✅ WSL I/O 병목 해소: heavy 모듈을 경량 stub으로 리디렉션
+      // lucide-react: 3800+ icon files → Proxy stub, recharts: D3 transitive deps → noop stubs
+      'lucide-react': path.resolve(__dirname, '../../__mocks__/lucide-react.ts'),
+      recharts: path.resolve(__dirname, '../../__mocks__/recharts.tsx'),
       '@': path.resolve(__dirname, '../../src'),
       '@/components': path.resolve(__dirname, '../../src/components'),
       '@/lib': path.resolve(__dirname, '../../src/lib'),
