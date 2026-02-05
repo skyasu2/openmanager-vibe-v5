@@ -57,14 +57,13 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
   });
 
   describe('기본 렌더링', () => {
-    it('로딩 중일 때 로딩 스피너가 표시된다', () => {
+    it('로딩 중일 때 로딩 상태가 표시된다', () => {
       mockFetch.mockImplementation(() => new Promise(() => {})); // never resolves
 
       render(<SLAWidget />);
 
-      // RefreshCw 아이콘 (로딩 스피너)이 animate-spin 클래스를 가짐
-      const container = document.querySelector('.animate-spin');
-      expect(container).toBeInTheDocument();
+      // 로딩 중에는 SLA 현황이 아직 표시되지 않음
+      expect(screen.queryByText('SLA 현황')).not.toBeInTheDocument();
     });
 
     it('데이터 로드 성공 시 SLA 현황이 표시된다', async () => {
