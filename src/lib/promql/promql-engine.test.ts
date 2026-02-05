@@ -5,9 +5,13 @@
  * @vitest-environment node
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { HourlyData, PrometheusTarget } from '@/data/hourly-data';
 import { debugParsePromQL, executePromQL } from './promql-engine';
+
+vi.mock('@/lib/logging', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
 
 // ============================================================================
 // Test Fixtures
@@ -682,5 +686,72 @@ describe('executePromQL - Edge Cases', () => {
     for (const sample of result.result) {
       expect(Object.keys(sample.labels)).toEqual(['server_type']);
     }
+  });
+});
+
+// ============================================================================
+// Tests: Query Validation
+// ============================================================================
+
+describe('Query Validation', () => {
+  it('빈 쿼리 → executePromQL 빈 결과 반환', () => {
+    const result = executePromQL('', TEST_HOURLY_DATA);
+    expect(result.resultType).toBe('vector');
+    expect(result.result).toHaveLength(0);
+  });
+
+  it('512자 초과 쿼리 → 빈 결과 반환', () => {
+    const longQuery = `node_cpu_usage_percent{hostname="${'a'.repeat(513)}"}`;
+    const result = executePromQL(longQuery, TEST_HOURLY_DATA);
+    expect(result.resultType).toBe('vector');
+    expect(result.result).toHaveLength(0);
+  });
+
+  it('정상 길이 쿼리 → 정상 동작', () => {
+    const result = executePromQL('node_cpu_usage_percent', TEST_HOURLY_DATA);
+    expect(result.result.length).toBeGreaterThan(0);
+  });
+
+  it('matcher 10개 초과 → 10개까지만 파싱', () => {
+    // 12개 matcher를 가진 쿼리 생성
+    const matchers = Array.from(
+      { length: 12 },
+      (_, i) => `key${i}="val${i}"`
+    ).join(',');
+    const query = `node_cpu_usage_percent{${matchers}}`;
+    const parsed = debugParsePromQL(query);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.matchers.length).toBeLessThanOrEqual(10);
+  });
+
+  it('잘못된 정규식 (=~) → 매칭 실패 (예외 안 남)', () => {
+    // "((" 는 잘못된 정규식
+    const result = executePromQL(
+      'node_cpu_usage_percent{server_type=~"(("}',
+      TEST_HOURLY_DATA
+    );
+    // 잘못된 정규식이므로 모든 서버가 매칭 실패 → 빈 결과
+    expect(result.resultType).toBe('vector');
+    expect(result.result).toHaveLength(0);
+  });
+
+  it('라벨 값 128자 초과 → 해당 matcher 무시', () => {
+    const longValue = 'x'.repeat(129);
+    const query = `node_cpu_usage_percent{server_type="${longValue}"}`;
+    const parsed = debugParsePromQL(query);
+    expect(parsed).not.toBeNull();
+    // 128자 초과 라벨 값은 무시되므로 matchers가 비어있음
+    expect(parsed!.matchers).toHaveLength(0);
+  });
+
+  it('debugParsePromQL 빈 쿼리 → null 반환', () => {
+    const result = debugParsePromQL('');
+    expect(result).toBeNull();
+  });
+
+  it('debugParsePromQL 512자 초과 쿼리 → null 반환', () => {
+    const longQuery = 'a'.repeat(513);
+    const result = debugParsePromQL(longQuery);
+    expect(result).toBeNull();
   });
 });

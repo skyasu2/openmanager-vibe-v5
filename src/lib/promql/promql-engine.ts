@@ -48,6 +48,14 @@ type ParsedQuery = {
 };
 
 // ============================================================================
+// Query Limits (DoS 방어)
+// ============================================================================
+
+const QUERY_MAX_LENGTH = 512;
+const QUERY_MAX_MATCHERS = 10;
+const LABEL_VALUE_MAX_LENGTH = 128;
+
+// ============================================================================
 // Metric Name → Prometheus Target Field Mapping
 // ============================================================================
 
@@ -66,6 +74,20 @@ const METRIC_FIELD_MAP: Record<string, keyof PrometheusTarget['metrics']> = {
 };
 
 // ============================================================================
+// Query Validation
+// ============================================================================
+
+function validateQuery(query: string): string | null {
+  if (!query || typeof query !== 'string') {
+    return 'Query must be a non-empty string';
+  }
+  if (query.length > QUERY_MAX_LENGTH) {
+    return `Query exceeds maximum length of ${QUERY_MAX_LENGTH} characters`;
+  }
+  return null;
+}
+
+// ============================================================================
 // Parser
 // ============================================================================
 
@@ -76,10 +98,11 @@ function parseLabelMatchers(matcherStr: string): LabelMatcher[] {
   let match: RegExpExecArray | null;
 
   while ((match = re.exec(matcherStr)) !== null) {
+    if (matchers.length >= QUERY_MAX_MATCHERS) break;
     const name = match[1];
     const op = match[2] as LabelMatcher['op'];
     const value = match[3];
-    if (name && value !== undefined) {
+    if (name && value !== undefined && value.length <= LABEL_VALUE_MAX_LENGTH) {
       matchers.push({ name, op, value });
     }
   }
@@ -173,12 +196,22 @@ function matchLabels(
       case '!=':
         if (labelValue === m.value) return false;
         break;
-      case '=~':
-        if (!new RegExp(m.value).test(labelValue)) return false;
+      case '=~': {
+        try {
+          if (!new RegExp(m.value).test(labelValue)) return false;
+        } catch {
+          return false;
+        }
         break;
-      case '!~':
-        if (new RegExp(m.value).test(labelValue)) return false;
+      }
+      case '!~': {
+        try {
+          if (new RegExp(m.value).test(labelValue)) return false;
+        } catch {
+          return false;
+        }
         break;
+      }
     }
   }
   return true;
@@ -376,6 +409,12 @@ export function executePromQL(
   currentHour?: number,
   slotIndex?: number
 ): PromQLResult {
+  const validationError = validateQuery(query);
+  if (validationError) {
+    logger.warn(`[PromQL] Query rejected: ${validationError}`);
+    return { resultType: 'vector', result: [] };
+  }
+
   const parsed = parsePromQL(query);
 
   switch (parsed.type) {
@@ -417,6 +456,11 @@ export function executePromQL(
 /**
  * PromQL 쿼리 파싱 (테스트/디버그용)
  */
-export function debugParsePromQL(query: string): ParsedQuery {
+export function debugParsePromQL(query: string): ParsedQuery | null {
+  const validationError = validateQuery(query);
+  if (validationError) {
+    logger.warn(`[PromQL] Query rejected: ${validationError}`);
+    return null;
+  }
   return parsePromQL(query);
 }
