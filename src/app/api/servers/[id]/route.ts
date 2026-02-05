@@ -15,9 +15,9 @@ import {
 import debug from '@/utils/debug';
 
 /**
- * 📊 Mock 시뮬레이션 개별 서버 정보 조회 API
+ * 📊 MetricsProvider 기반 개별 서버 정보 조회 API
  * GET /api/servers/[id]
- * 특정 서버의 상세 정보 및 히스토리를 반환합니다 (Mock 데이터 기반)
+ * 특정 서버의 상세 정보 및 히스토리를 반환합니다 (hourly-data + fixed-24h-metrics fallback)
  */
 export const GET = withAuth(
   async (

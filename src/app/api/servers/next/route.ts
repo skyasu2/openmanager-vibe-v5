@@ -59,7 +59,10 @@ const getHandler = createApiRoute()
       name: metric.hostname ?? metric.serverId,
       status: metric.status,
       location: metric.location || 'Unknown',
-      uptime: 0,
+      uptime:
+        metric.bootTimeSeconds && metric.bootTimeSeconds > 0
+          ? Math.floor(Date.now() / 1000 - metric.bootTimeSeconds)
+          : 86400,
       lastUpdate: metric.timestamp,
       metrics: {
         cpu: Math.round(metric.cpu),
