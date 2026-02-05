@@ -301,6 +301,25 @@ export class UnifiedServerDataSource {
         role: metric.serverType,
         ip,
         os,
+        systemInfo: {
+          os,
+          uptime: `${Math.floor(uptime / 3600)}h`,
+          processes: metric.procsRunning ?? 100 + Math.floor(metric.cpu),
+          zombieProcesses: 0,
+          loadAverage:
+            metric.loadAvg1 != null
+              ? metric.loadAvg1.toFixed(2)
+              : (metric.cpu / 25).toFixed(2),
+          lastUpdate: new Date().toISOString(),
+        },
+        networkInfo: {
+          interface: 'eth0',
+          receivedBytes: `${((metric.network ?? 0) * 0.6).toFixed(1)} MB`,
+          sentBytes: `${((metric.network ?? 0) * 0.4).toFixed(1)} MB`,
+          receivedErrors: 0,
+          sentErrors: 0,
+          status: metric.status === 'offline' ? 'offline' : 'online',
+        },
       } as unknown as Server;
     });
 

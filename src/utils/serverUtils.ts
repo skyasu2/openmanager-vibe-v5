@@ -327,6 +327,7 @@ export function mapServerToEnhanced(server: Server): EnhancedServerMetrics {
     // UI에서 필요한 필드
     name: server.name ?? server.id,
     ip: server.ip ?? server.hostname,
+    os: server.os,
 
     // 추가 필드 (Optional)
     location: server.location,
