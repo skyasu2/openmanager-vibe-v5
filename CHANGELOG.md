@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.1.3](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.2...v7.1.3) (2026-02-06)
+
+
+### Features
+
+* **metrics:** add uPlot charts, PromQL engine, and pre-compute pipeline ([a6407ab](https://github.com/skyasu2/openmanager-vibe-v5/commit/a6407ab0c1457751f287cba312f0c0bcfff560ce))
+* **metrics:** convert hourly-data to Prometheus format and add monitoring pipeline ([f5f3645](https://github.com/skyasu2/openmanager-vibe-v5/commit/f5f36454a73cb0ae92944ce28b7f5b4503e91ee9))
+* **prometheus:** unify thresholds and extend AI context with metrics ([5571ef3](https://github.com/skyasu2/openmanager-vibe-v5/commit/5571ef36504afaa5467846434bc5c69f60bdcc58))
+
+
+### Bug Fixes
+
+* **api:** update JSDoc and add uptime calculation from bootTimeSeconds ([0e11284](https://github.com/skyasu2/openmanager-vibe-v5/commit/0e11284cc5166742e1b0f5e5e41a959c5346c44e))
+* **dashboard:** prevent N+1 API calls by setting initialDataUpdatedAt ([b9aad02](https://github.com/skyasu2/openmanager-vibe-v5/commit/b9aad0204236b502458a9e4001d95e09fd86ee53))
+* **dashboard:** resolve 3 QA issues - API 404, hydration mismatch, summary filter ([b0a5e42](https://github.com/skyasu2/openmanager-vibe-v5/commit/b0a5e42d1032e240b1b4cc494b27432b31cc0e63)), closes [#419](https://github.com/skyasu2/openmanager-vibe-v5/issues/419)
+* **hydration:** resolve React Error [#419](https://github.com/skyasu2/openmanager-vibe-v5/issues/419) by fixing suppressHydrationWarning placement and locale consistency ([b8bc1aa](https://github.com/skyasu2/openmanager-vibe-v5/commit/b8bc1aab134fe94e27ccce019cc3677299d1c482))
+* **logging:** replace console.warn with structured logger calls ([2099274](https://github.com/skyasu2/openmanager-vibe-v5/commit/20992748d8fbfc4701b3f38ca475a6b46fe441c5))
+* **metrics:** add os/systemInfo/networkInfo to non-realtime API path ([27cd44b](https://github.com/skyasu2/openmanager-vibe-v5/commit/27cd44b30c2d2e47389e45b8aae7064decb3f3b0))
+* **metrics:** correct KST timestamp ISO format and clarify threshold logic ([554184c](https://github.com/skyasu2/openmanager-vibe-v5/commit/554184c379652d080c0512c40a3f8c5d661515a2))
+* **metrics:** use Prometheus data instead of hardcoded values in data pipeline ([1fccdf2](https://github.com/skyasu2/openmanager-vibe-v5/commit/1fccdf2983367a8581dda5df5fbb474a976ce680))
+* **monitoring:** resolve 11 data pipeline, API, and UI issues from deep analysis ([cd068a9](https://github.com/skyasu2/openmanager-vibe-v5/commit/cd068a96e658433c3ce112f8488ad6a0eec47a40))
+* **review:** replace stale file reads with real-time validation in /review command ([6e138c9](https://github.com/skyasu2/openmanager-vibe-v5/commit/6e138c9aa1d8316ec29966bf3eab6c01e4938d24))
+* **test:** add 16 missing lucide-react icon stubs and fix assertions ([e7b6855](https://github.com/skyasu2/openmanager-vibe-v5/commit/e7b68555d6f73096b89d9d52b19cf4489feec091))
+* **test:** resolve WSL worker timeout with fork pool and module stubs ([16beb31](https://github.com/skyasu2/openmanager-vibe-v5/commit/16beb31c3ce3132b1d214b8041baf88da1808319))
+* **types:** update InputEvent type for @types/react 19.2.10 compatibility ([a3d1c83](https://github.com/skyasu2/openmanager-vibe-v5/commit/a3d1c835385a0fdb6f151e9b185f4e220793e7e5))
+
 ### [7.1.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.1...v7.1.2) (2026-02-03)
 
 
