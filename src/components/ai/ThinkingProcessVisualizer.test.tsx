@@ -10,8 +10,8 @@
 
 import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
 import type { ThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
+import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
 
 // Lucide 아이콘 mock
 vi.mock('lucide-react', () => ({

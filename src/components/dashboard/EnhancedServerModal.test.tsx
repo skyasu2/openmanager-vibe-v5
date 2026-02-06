@@ -12,8 +12,8 @@
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import EnhancedServerModal from './EnhancedServerModal';
 import type { Server } from '@/types/server';
+import EnhancedServerModal from './EnhancedServerModal';
 
 // Mock 5개 탭 컴포넌트
 vi.mock('./EnhancedServerModal.OverviewTab', () => ({
