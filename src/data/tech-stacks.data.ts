@@ -404,12 +404,41 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       category: 'ui',
       importance: 'high',
       description:
-        'React 기반 선언적 차트 라이브러리. D3.js 위에 구축, SVG 렌더링, 반응형 컨테이너, 애니메이션 지원',
-      implementation: '→ 실시간 메트릭 시각화, 반응형 차트 구현. React 19 호환',
+        'React 기반 선언적 차트 라이브러리. D3.js 위에 구축, SVG 렌더링, 반응형 컨테이너, 애니메이션 지원. 예측선, 이상치 영역, Brush 줌 등 풍부한 인터랙션 제공',
+      implementation:
+        '→ TimeSeriesChart(예측+이상치), MiniLineChart(서버카드 스파크라인) 구현. 수백 포인트 규모 데이터에 최적',
       version: '3.6.0',
       status: 'active',
       icon: '📊',
-      tags: ['차트', '오픈소스', '시각화'],
+      tags: ['차트', 'SVG', '인터랙티브'],
+      type: 'opensource',
+    },
+    {
+      name: 'uPlot',
+      category: 'ui',
+      importance: 'high',
+      description:
+        'Canvas 기반 초고성능 시계열 차트 라이브러리. Grafana가 채택한 렌더링 엔진으로, 10,000+ 데이터 포인트도 60fps 유지. SVG 대비 10배 빠른 렌더링',
+      implementation:
+        '→ RealtimeChart에서 사용. pre-computed JSON → prometheus-to-uplot 변환 → Canvas 렌더링. 다크모드, 드래그 줌, auto-resize 지원',
+      version: '1.6.32',
+      status: 'active',
+      icon: '📈',
+      tags: ['Canvas', '고성능', 'Grafana급'],
+      type: 'opensource',
+    },
+    {
+      name: 'Prometheus Format',
+      category: 'framework',
+      importance: 'medium',
+      description:
+        'CNCF 표준 모니터링 데이터 포맷. 라벨 기반 다차원 시계열 모델로 서버 메트릭(CPU, Memory, Disk, Network)을 구조화. 산업 표준 관측성(Observability) 포맷',
+      implementation:
+        '→ hourly-data/hour-XX.json(24개, SSOT) → precompute-metrics.ts로 사전 계산 → Recharts/uPlot 이중 파이프라인으로 시각화',
+      version: 'OpenMetrics',
+      status: 'active',
+      icon: '🔥',
+      tags: ['CNCF', '시계열', 'SSOT'],
       type: 'opensource',
     },
     {
