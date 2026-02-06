@@ -93,7 +93,7 @@ export const AutoResizeTextarea = memo(
 
     // 입력 이벤트 핸들러
     const handleInput = useCallback(
-      (event: React.FormEvent<HTMLTextAreaElement>) => {
+      (event: React.InputEvent<HTMLTextAreaElement>) => {
         autoResize();
         onInput?.(event);
         onValueChange?.(event.currentTarget.value);
