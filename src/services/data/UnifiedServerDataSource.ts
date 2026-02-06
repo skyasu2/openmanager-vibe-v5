@@ -10,6 +10,7 @@
  */
 
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
+import { getServicesForServer } from '@/config/server-services-map';
 import { logger } from '@/lib/logging';
 import type { Server } from '@/types/server';
 
@@ -297,7 +298,11 @@ export class UnifiedServerDataSource {
                 : 'INFO',
           message: msg,
         })),
-        services: [],
+        services: getServicesForServer(
+          metric.hostname || metric.serverId,
+          metric.serverType,
+          { cpu: metric.cpu, memory: metric.memory, status: metric.status }
+        ),
         alerts: [],
         specs,
         role: metric.serverType,

@@ -11,6 +11,7 @@
  */
 
 // Enhanced Server Metrics 인터페이스 (route.ts와 동기화 필요)
+import { getServicesForServer } from '@/config/server-services-map';
 import { logger } from '@/lib/logging';
 export interface EnhancedServerMetrics {
   id: string;
@@ -344,7 +345,11 @@ function convertToEnhancedMetrics(
       network_speed: '1Gbps',
     },
     lastUpdate: new Date().toISOString(),
-    services: serverData.services ?? [],
+    services: getServicesForServer(serverData.hostname, serverData.type, {
+      cpu,
+      memory,
+      status,
+    }),
     systemInfo: {
       os: serverData.os,
       uptime: `${Math.floor((serverData.uptime ?? 2592000) / 3600)}h`,
