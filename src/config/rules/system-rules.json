@@ -34,25 +34,29 @@
       "name": "critical_cpu_memory",
       "condition": "CPU >= critical AND Memory >= critical",
       "resultStatus": "critical",
-      "priority": 1
+      "priority": 1,
+      "for": "5m"
     },
     {
       "name": "critical_single_metric",
       "condition": "ANY metric >= critical",
       "resultStatus": "critical",
-      "priority": 2
+      "priority": 2,
+      "for": "10m"
     },
     {
       "name": "warning_multiple_metrics",
       "condition": "2+ metrics >= warning",
       "resultStatus": "warning",
-      "priority": 3
+      "priority": 3,
+      "for": "10m"
     },
     {
       "name": "warning_single_metric",
       "condition": "ANY metric >= warning",
       "resultStatus": "warning",
-      "priority": 4
+      "priority": 4,
+      "for": "15m"
     },
     {
       "name": "default_online",

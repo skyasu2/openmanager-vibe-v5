@@ -334,6 +334,10 @@ class RulesLoader implements IRulesLoader {
    */
   getSummaryForAI(): string {
     const t = this.rules.thresholds;
+    const statusLines = this.rules.statusRules
+      .map((r) => `| ${r.name} | ${r.condition} | ${r.resultStatus} | P${r.priority} | ${r.for ?? '즉시'} |`)
+      .join('\n');
+
     return `
 ## 현재 시스템 모니터링 임계값 (v${this.rules.version})
 
@@ -344,6 +348,13 @@ class RulesLoader implements IRulesLoader {
 | Disk | ${t.disk.warning}% | ${t.disk.critical}% |
 | Network | ${t.network.warning}% | ${t.network.critical}% |
 | Response Time | ${t.responseTime.warning}ms | ${t.responseTime.critical}ms |
+
+### 상태 결정 규칙 (Prometheus alerting 스타일)
+| 규칙 | 조건 | 상태 | 우선순위 | 지속시간(for) |
+|------|------|------|---------|-------------|
+${statusLines}
+
+> 참고: \`for\` 값은 Prometheus alerting의 지속시간 조건입니다. 조건이 해당 기간 동안 연속 충족되어야 상태가 전환됩니다.
 
 ${this.rules.metadata.aiInstructions}
     `.trim();

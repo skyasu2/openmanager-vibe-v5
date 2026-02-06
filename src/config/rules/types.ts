@@ -23,6 +23,11 @@ export interface MetricThreshold {
 
 /**
  * 서버 상태 결정 규칙
+ *
+ * Prometheus alerting rules의 `for` 개념을 반영:
+ * - 실제 Prometheus에서는 조건이 `for` 기간 동안 지속되어야 firing 상태로 전환
+ * - VIBE에서는 교육적 참조용으로 기록하며, 10분 데이터 슬롯 특성상
+ *   실제 지속시간 검증은 시뮬레이션 수준으로 처리
  */
 export interface ServerStatusRule {
   /** 규칙 이름 */
@@ -33,6 +38,14 @@ export interface ServerStatusRule {
   resultStatus: 'online' | 'warning' | 'critical' | 'offline';
   /** 우선순위 (낮을수록 우선) */
   priority: number;
+  /**
+   * Prometheus 스타일 지속시간 조건 (e.g. "5m", "10m")
+   *
+   * 실제 Prometheus alerting에서는 조건이 이 기간 동안 연속으로 충족되어야
+   * alert가 firing 상태로 전환됩니다. VIBE의 10분 간격 데이터에서는
+   * 이전 슬롯과 비교하여 지속 여부를 판단합니다.
+   */
+  for?: string;
 }
 
 /**

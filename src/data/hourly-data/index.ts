@@ -55,6 +55,128 @@ export type PrometheusMetrics = {
   node_http_request_duration_milliseconds: number;
 };
 
+// ============================================================================
+// Prometheus 원본 메트릭 참조 (교육용)
+// ============================================================================
+// VIBE는 사전 계산된 값을 저장하지만, 실제 Prometheus에서는 원본 counter/gauge를
+// PromQL로 쿼리하여 산출합니다. 이 매핑은 각 VIBE 메트릭이 실제 환경에서
+// 어떤 원본 메트릭과 PromQL 식에서 유래하는지를 기록합니다.
+
+export type PrometheusMetricReference = {
+  vibeMetric: string;
+  realMetric: string;
+  promqlExpression: string;
+  metricType: 'counter' | 'gauge' | 'histogram' | 'info';
+  baseUnit: string;
+  notes: string;
+};
+
+/**
+ * VIBE 메트릭 → 실제 Prometheus/node_exporter 원본 매핑
+ *
+ * @example
+ * ```ts
+ * const ref = PROMETHEUS_METRIC_REFERENCE['node_cpu_usage_percent'];
+ * console.log(ref.promqlExpression);
+ * // "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode='idle'}[5m])) * 100)"
+ * ```
+ */
+export const PROMETHEUS_METRIC_REFERENCE: Record<
+  keyof PrometheusMetrics,
+  PrometheusMetricReference
+> = {
+  up: {
+    vibeMetric: 'up',
+    realMetric: 'up',
+    promqlExpression: 'up{job="node-exporter"}',
+    metricType: 'gauge',
+    baseUnit: 'boolean (0|1)',
+    notes: '동일. Prometheus가 scrape 성공 시 자동 생성하는 메타 메트릭.',
+  },
+  node_cpu_usage_percent: {
+    vibeMetric: 'node_cpu_usage_percent',
+    realMetric: 'node_cpu_seconds_total',
+    promqlExpression:
+      "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode='idle'}[5m])) * 100)",
+    metricType: 'counter',
+    baseUnit: 'seconds (cumulative)',
+    notes:
+      '실제는 CPU 모드별(idle,user,system,iowait...) 누적 초 counter. rate()로 초당 변화율을 구한 뒤 idle을 빼서 사용률 계산.',
+  },
+  node_memory_usage_percent: {
+    vibeMetric: 'node_memory_usage_percent',
+    realMetric: 'node_memory_MemAvailable_bytes',
+    promqlExpression:
+      '(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100',
+    metricType: 'gauge',
+    baseUnit: 'bytes',
+    notes:
+      '실제는 MemAvailable/MemTotal bytes gauge. VIBE는 이미 계산된 퍼센트를 저장.',
+  },
+  node_filesystem_usage_percent: {
+    vibeMetric: 'node_filesystem_usage_percent',
+    realMetric: 'node_filesystem_avail_bytes',
+    promqlExpression:
+      '(1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100',
+    metricType: 'gauge',
+    baseUnit: 'bytes',
+    notes:
+      '실제는 mountpoint/fstype별 avail_bytes gauge. VIBE는 루트 파티션 사용률만 사전 계산.',
+  },
+  node_network_transmit_bytes_rate: {
+    vibeMetric: 'node_network_transmit_bytes_rate',
+    realMetric: 'node_network_transmit_bytes_total',
+    promqlExpression:
+      'rate(node_network_transmit_bytes_total{device!="lo"}[5m])',
+    metricType: 'counter',
+    baseUnit: 'bytes (cumulative)',
+    notes:
+      '실제는 인터페이스별(device label) 누적 전송 바이트 counter. rate()로 초당 전송률 산출.',
+  },
+  node_load1: {
+    vibeMetric: 'node_load1',
+    realMetric: 'node_load1',
+    promqlExpression: 'node_load1',
+    metricType: 'gauge',
+    baseUnit: 'load average',
+    notes: '동일. 1분 평균 로드.',
+  },
+  node_load5: {
+    vibeMetric: 'node_load5',
+    realMetric: 'node_load5',
+    promqlExpression: 'node_load5',
+    metricType: 'gauge',
+    baseUnit: 'load average',
+    notes: '동일. 5분 평균 로드.',
+  },
+  node_boot_time_seconds: {
+    vibeMetric: 'node_boot_time_seconds',
+    realMetric: 'node_boot_time_seconds',
+    promqlExpression: 'node_boot_time_seconds',
+    metricType: 'gauge',
+    baseUnit: 'unix timestamp (seconds)',
+    notes: '동일. 시스템 부팅 시각의 Unix timestamp.',
+  },
+  node_procs_running: {
+    vibeMetric: 'node_procs_running',
+    realMetric: 'node_procs_running',
+    promqlExpression: 'node_procs_running',
+    metricType: 'gauge',
+    baseUnit: 'processes',
+    notes: '동일. 현재 실행 중인 프로세스 수.',
+  },
+  node_http_request_duration_milliseconds: {
+    vibeMetric: 'node_http_request_duration_milliseconds',
+    realMetric: '(node_exporter에 없음)',
+    promqlExpression:
+      'histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))',
+    metricType: 'histogram',
+    baseUnit: 'seconds',
+    notes:
+      'node_exporter는 HTTP 메트릭을 제공하지 않음. 실제로는 애플리케이션 exporter가 histogram으로 노출하며 단위는 seconds.',
+  },
+};
+
 export type PrometheusLabels = {
   hostname: string;
   datacenter: string;
