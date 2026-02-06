@@ -243,96 +243,16 @@ export const FIXED_24H_DATASETS: Server24hDataset[] = [
   }),
 ];
 
-// Helper functions
-export function getServer24hData(
-  serverId: string
-): Server24hDataset | undefined {
-  return FIXED_24H_DATASETS.find((dataset) => dataset.serverId === serverId);
-}
+// Helper functions (사용 중인 함수만 유지)
 
-export function getServersByType(
-  serverType: Server24hDataset['serverType']
-): Server24hDataset[] {
-  return FIXED_24H_DATASETS.filter(
-    (dataset) => dataset.serverType === serverType
-  );
-}
-
-export function getServersByLocation(location: string): Server24hDataset[] {
-  return FIXED_24H_DATASETS.filter((dataset) =>
-    dataset.location.includes(location)
-  );
-}
-
+/**
+ * 특정 시간대의 메트릭 조회
+ * @used MetricsProvider.ts, useFixed24hMetrics.ts
+ */
 export function getDataAtMinute(
   dataset: Server24hDataset,
   minuteOfDay: number
 ): Fixed10MinMetric | undefined {
   const roundedMinute = Math.floor(minuteOfDay / 10) * 10;
   return dataset.data.find((point) => point.minuteOfDay === roundedMinute);
-}
-
-export function getRecentData(
-  dataset: Server24hDataset,
-  minuteOfDay: number,
-  count: number = 6
-): Fixed10MinMetric[] {
-  const currentSlotIndex = Math.floor(minuteOfDay / 10);
-  const result: Fixed10MinMetric[] = [];
-  for (let i = 0; i < count; i++) {
-    const targetIndex = (((currentSlotIndex - i) % 144) + 144) % 144;
-    const dataPoint = dataset.data[targetIndex];
-    if (dataPoint) result.push(dataPoint);
-  }
-  return result;
-}
-
-export function calculateAverageMetrics(minuteOfDay: number): {
-  avgCpu: number;
-  avgMemory: number;
-  avgDisk: number;
-  avgNetwork: number;
-} {
-  let totalCpu = 0,
-    totalMemory = 0,
-    totalDisk = 0,
-    totalNetwork = 0,
-    count = 0;
-  for (const dataset of FIXED_24H_DATASETS) {
-    const dataPoint = getDataAtMinute(dataset, minuteOfDay);
-    if (dataPoint) {
-      totalCpu += dataPoint.cpu;
-      totalMemory += dataPoint.memory;
-      totalDisk += dataPoint.disk;
-      totalNetwork += dataPoint.network;
-      count++;
-    }
-  }
-  return {
-    avgCpu: count ? Math.round((totalCpu / count) * 10) / 10 : 0,
-    avgMemory: count ? Math.round((totalMemory / count) * 10) / 10 : 0,
-    avgDisk: count ? Math.round((totalDisk / count) * 10) / 10 : 0,
-    avgNetwork: count ? Math.round((totalNetwork / count) * 10) / 10 : 0,
-  };
-}
-
-export function getInfrastructureSummary(): {
-  totalServers: number;
-  byZone: Record<string, number>;
-  byType: Record<string, number>;
-} {
-  const byZone: Record<string, number> = {};
-  const byType: Record<string, number> = {};
-
-  for (const dataset of FIXED_24H_DATASETS) {
-    const zone = dataset.location.includes('ICN') ? 'Seoul-ICN' : 'Busan-PUS';
-    byZone[zone] = (byZone[zone] || 0) + 1;
-    byType[dataset.serverType] = (byType[dataset.serverType] || 0) + 1;
-  }
-
-  return {
-    totalServers: FIXED_24H_DATASETS.length,
-    byZone,
-    byType,
-  };
 }
