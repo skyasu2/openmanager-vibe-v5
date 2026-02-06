@@ -351,6 +351,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             />
           </div>
 
+          {/* 🆕 보조 메트릭 (Load, Response Time) */}
+          <SecondaryMetrics server={safeServer} />
+
           {/* Tertiary Details (OS, Uptime, IP) */}
           <div
             className={`space-y-2 overflow-hidden transition-all duration-500 ${showTertiaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
@@ -480,6 +483,55 @@ const DetailRow = ({ icon, label, value }: DetailRowProps) => (
     </div>
   </div>
 );
+
+/**
+ * 🆕 보조 메트릭 표시 (Load Average, Response Time)
+ * - Load > 70% 코어 사용 시 경고 색상
+ * - Response Time >= 2초 시 경고 색상
+ */
+const SecondaryMetrics = ({ server }: { server: ServerType }) => {
+  // 표시할 메트릭이 없으면 렌더링 안함
+  const hasLoad = server.load1 !== undefined && server.cpuCores !== undefined;
+  const hasResponse =
+    server.responseTime !== undefined && server.responseTime > 0;
+
+  if (!hasLoad && !hasResponse) {
+    return null;
+  }
+
+  // Load Average 상태 색상 (코어 대비 70% 이상 = 경고)
+  const loadPercent =
+    hasLoad && server.cpuCores ? (server.load1! / server.cpuCores) * 100 : 0;
+  const loadColor = loadPercent >= 70 ? 'text-amber-600' : 'text-gray-500';
+
+  // Response Time 상태 색상 (2000ms 이상 = 경고, 5000ms 이상 = 위험)
+  const respMs = server.responseTime ?? 0;
+  const respColor =
+    respMs >= 5000
+      ? 'text-red-500'
+      : respMs >= 2000
+        ? 'text-amber-600'
+        : 'text-gray-500';
+
+  return (
+    <div className="mt-2 flex items-center gap-3 text-xs border-t border-gray-200/50 pt-2">
+      {hasLoad && (
+        <span
+          className={loadColor}
+          title={`Load Average (1분): ${server.load1?.toFixed(2)} / ${server.cpuCores} cores`}
+        >
+          Load: {server.load1?.toFixed(1)}/{server.cpuCores}
+        </span>
+      )}
+      {hasResponse && (
+        <span className={respColor} title={`응답 시간: ${respMs}ms`}>
+          Resp:{' '}
+          {respMs >= 1000 ? `${(respMs / 1000).toFixed(1)}s` : `${respMs}ms`}
+        </span>
+      )}
+    </div>
+  );
+};
 
 const ServiceChip = ({ service }: { service: Service }) => {
   const statusColors =

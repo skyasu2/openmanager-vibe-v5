@@ -146,4 +146,10 @@ export interface Server {
     critical: number;
     warning: number;
   };
+
+  // 확장 Prometheus 메트릭 (AI 컨텍스트 및 상세 보기용)
+  load1?: number; // 1분 평균 로드 (node_load1)
+  load5?: number; // 5분 평균 로드 (node_load5)
+  bootTimeSeconds?: number; // 부팅 시간 Unix timestamp (node_boot_time_seconds)
+  cpuCores?: number; // CPU 코어 수 (load 해석용)
 }

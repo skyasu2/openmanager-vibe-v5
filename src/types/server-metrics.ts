@@ -97,6 +97,11 @@ export interface RawServerData {
   events?: string[];
   trend?: 'stable' | 'increasing' | 'decreasing';
   networkStatus?: string;
+
+  // ===== Extended Prometheus Metrics (Optional) =====
+  load1?: number; // 1분 평균 로드 (node_load1)
+  load5?: number; // 5분 평균 로드 (node_load5)
+  bootTimeSeconds?: number; // 부팅 시간 Unix timestamp (node_boot_time_seconds)
 }
 
 /**

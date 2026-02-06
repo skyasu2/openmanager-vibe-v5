@@ -199,12 +199,14 @@ class RulesLoader implements IRulesLoader {
 
   /**
    * 서버 메트릭 전체로 상태 결정
+   * @param metrics - 서버 메트릭 (responseTime은 ms 단위)
    */
   getServerStatus(metrics: {
     cpu?: number;
     memory?: number;
     disk?: number;
     network?: number;
+    responseTime?: number;
   }): 'online' | 'warning' | 'critical' {
     const statuses: Record<string, 'normal' | 'warning' | 'critical'> = {};
 
@@ -220,6 +222,10 @@ class RulesLoader implements IRulesLoader {
     if (metrics.network !== undefined) {
       statuses['network'] = this.getStatus('network', metrics.network);
     }
+    // 🆕 Response Time 상태 판정 (ms 단위)
+    if (metrics.responseTime !== undefined) {
+      statuses['responseTime'] = this.getStatus('responseTime', metrics.responseTime);
+    }
 
     const values = Object.values(statuses);
     const criticalCount = values.filter((s) => s === 'critical').length;
@@ -230,7 +236,7 @@ class RulesLoader implements IRulesLoader {
     if (statuses['cpu'] === 'critical' && statuses['memory'] === 'critical') {
       return 'critical';
     }
-    // P2: ANY metric >= critical
+    // P2: ANY metric >= critical (including responseTime)
     if (criticalCount > 0) return 'critical';
     // P3: 2+ metrics >= warning
     if (warningCount >= 2) return 'warning';
@@ -369,6 +375,7 @@ export const getServerStatus = (metrics: {
   memory?: number;
   disk?: number;
   network?: number;
+  responseTime?: number;
 }) => rulesLoader.getServerStatus(metrics);
 export const getActiveAlertRules = () => rulesLoader.getActiveAlertRules();
 export const getAIInstructions = () => rulesLoader.getAIInstructions();

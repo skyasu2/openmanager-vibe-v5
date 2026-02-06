@@ -36,7 +36,7 @@ export interface ServerAlert {
   severity: 'warning' | 'critical';
 }
 
-/** 서버 스냅샷 (LLM용 최소 정보) */
+/** 서버 스냅샷 (LLM용 정보, 확장 메트릭 포함) */
 export interface ServerSnapshot {
   id: string;
   name: string;
@@ -46,6 +46,12 @@ export interface ServerSnapshot {
   memory: number;
   disk: number;
   network: number;
+  // 확장 메트릭 (AI 컨텍스트 강화)
+  load1?: number;           // 1분 평균 로드
+  load5?: number;           // 5분 평균 로드
+  bootTimeSeconds?: number; // 부팅 시간 (Unix timestamp)
+  responseTimeMs?: number;  // 응답 시간 (ms)
+  cpuCores?: number;        // CPU 코어 수 (load 해석용)
 }
 
 /** 활성 패턴 (시나리오명 숨김) */
@@ -253,6 +259,12 @@ interface RawServerData {
   disk: number;
   network: number;
   status?: string;
+  // 확장 메트릭
+  load1?: number;
+  load5?: number;
+  bootTimeSeconds?: number;
+  responseTimeMs?: number;
+  cpuCores?: number;
 }
 
 /**
@@ -268,6 +280,12 @@ function targetToRawServer(target: PrometheusTargetData): RawServerData {
     disk: target.metrics.node_filesystem_usage_percent,
     network: target.metrics.node_network_transmit_bytes_rate,
     status: target.metrics.up === 0 ? 'offline' : undefined,
+    // 확장 메트릭
+    load1: target.metrics.node_load1,
+    load5: target.metrics.node_load5,
+    bootTimeSeconds: target.metrics.node_boot_time_seconds,
+    responseTimeMs: target.metrics.node_http_request_duration_milliseconds,
+    cpuCores: target.nodeInfo?.cpu_cores,
   };
 }
 
@@ -410,7 +428,7 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
         rawServers[raw.id] = raw;
       }
 
-      // 서버 스냅샷 생성
+      // 서버 스냅샷 생성 (확장 메트릭 포함)
       const servers: ServerSnapshot[] = Object.values(rawServers).map((s) => ({
         id: s.id,
         name: s.name,
@@ -420,6 +438,12 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
         memory: s.memory,
         disk: s.disk,
         network: s.network,
+        // 확장 메트릭
+        load1: s.load1,
+        load5: s.load5,
+        bootTimeSeconds: s.bootTimeSeconds,
+        responseTimeMs: s.responseTimeMs,
+        cpuCores: s.cpuCores,
       }));
 
       // 요약 통계 (healthy 필드명 유지, 값은 online 서버 수)
@@ -854,6 +878,44 @@ export function getLLMContext(): string {
     }
   }
 
+  // 🆕 Load Average 현황 (높은 부하 서버만)
+  const highLoadServers = state.servers.filter(
+    (s) => s.load1 !== undefined && s.cpuCores !== undefined && s.load1 > s.cpuCores * 0.7
+  );
+  if (highLoadServers.length > 0) {
+    context += `\n### Load Average (높은 부하)\n`;
+    for (const server of highLoadServers.slice(0, 5)) {
+      const loadRatio = server.cpuCores ? (server.load1! / server.cpuCores * 100).toFixed(0) : '-';
+      context += `- ${server.id}: ${server.load1?.toFixed(2)}/${server.cpuCores}cores (${loadRatio}%)\n`;
+    }
+  }
+
+  // 🆕 최근 재시작 서버 (7일 이내)
+  const now = Date.now() / 1000;
+  const sevenDaysAgo = now - 7 * 24 * 60 * 60;
+  const recentlyRestarted = state.servers.filter(
+    (s) => s.bootTimeSeconds !== undefined && s.bootTimeSeconds > sevenDaysAgo
+  );
+  if (recentlyRestarted.length > 0) {
+    context += `\n### 최근 재시작 (7일 이내)\n`;
+    for (const server of recentlyRestarted.slice(0, 5)) {
+      const uptimeDays = ((now - server.bootTimeSeconds!) / 86400).toFixed(1);
+      context += `- ${server.id}: ${uptimeDays}일 전 재시작\n`;
+    }
+  }
+
+  // 🆕 Response Time 이상 (2초 이상)
+  const slowServers = state.servers.filter(
+    (s) => s.responseTimeMs !== undefined && s.responseTimeMs >= 2000
+  );
+  if (slowServers.length > 0) {
+    context += `\n### 응답 지연 (≥2초)\n`;
+    for (const server of slowServers.slice(0, 5)) {
+      const severity = server.responseTimeMs! >= 5000 ? '🔴' : '🟠';
+      context += `- ${server.id}: ${(server.responseTimeMs! / 1000).toFixed(1)}초 ${severity}\n`;
+    }
+  }
+
   // 24시간 트렌드 요약 추가
   context += '\n' + get24hTrendLLMContext();
 
@@ -861,7 +923,7 @@ export function getLLMContext(): string {
 }
 
 /**
- * 🎯 특정 서버의 LLM 컨텍스트
+ * 🎯 특정 서버의 LLM 컨텍스트 (확장 메트릭 포함)
  */
 export function getServerLLMContext(serverId: string): string {
   const state = getCurrentState();
@@ -875,6 +937,22 @@ export function getServerLLMContext(serverId: string): string {
   let context = `## ${server.name} (${server.id})\n`;
   context += `상태: ${server.status.toUpperCase()}\n`;
   context += `메트릭: CPU ${server.cpu}% | Memory ${server.memory}% | Disk ${server.disk}% | Network ${server.network}%\n`;
+
+  // 확장 메트릭
+  const extendedMetrics: string[] = [];
+  if (server.load1 !== undefined && server.cpuCores) {
+    extendedMetrics.push(`Load: ${server.load1.toFixed(2)}/${server.cpuCores}cores`);
+  }
+  if (server.bootTimeSeconds !== undefined) {
+    const uptimeDays = ((Date.now() / 1000 - server.bootTimeSeconds) / 86400).toFixed(1);
+    extendedMetrics.push(`Uptime: ${uptimeDays}일`);
+  }
+  if (server.responseTimeMs !== undefined) {
+    extendedMetrics.push(`Response: ${server.responseTimeMs}ms`);
+  }
+  if (extendedMetrics.length > 0) {
+    context += `확장: ${extendedMetrics.join(' | ')}\n`;
+  }
 
   if (alerts.length > 0) {
     context += `\n알림:\n`;
