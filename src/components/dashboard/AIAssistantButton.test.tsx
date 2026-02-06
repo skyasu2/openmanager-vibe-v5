@@ -12,7 +12,7 @@
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AIAssistantButton } from '../../../src/components/dashboard/AIAssistantButton';
+import { AIAssistantButton } from './AIAssistantButton';
 
 describe('🎯 AIAssistantButton - User Event 테스트', () => {
   const mockOnClick = vi.fn();

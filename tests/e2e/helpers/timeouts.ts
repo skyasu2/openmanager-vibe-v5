@@ -23,6 +23,16 @@
  * - EXTENDED: 복잡한 동작 (60초 이상)
  */
 export const TIMEOUTS = {
+  // ⚡ Micro Timeouts (1초 이하)
+  /** 애니메이션 완료 대기 (500ms) - 탭 전환, 모달 페이드 등 */
+  ANIMATION: 500,
+
+  /** 짧은 입력 대기 (300ms) - 디바운스, 키 입력 후 */
+  INPUT_DELAY: 300,
+
+  /** 매우 짧은 대기 (100ms) - 포커스 이동, 마이크로 인터랙션 */
+  MICRO: 100,
+
   // ⚡ Quick Timeouts (5초 이하)
   /** API 응답 대기 (5초) */
   API_RESPONSE: 5000,

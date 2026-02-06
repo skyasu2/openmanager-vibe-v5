@@ -11,6 +11,8 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { guestLogin } from './guest';
+import { skipIfSecurityCheckpoint } from './security';
 import { TIMEOUTS } from './timeouts';
 
 const DASHBOARD_ROUTE_REGEX = /\/(dashboard|main)(\/|\?|$)/;
@@ -169,4 +171,109 @@ export async function completeAdminModeActivationViaUI(
       error
     );
   }
+}
+
+/**
+ * 대시보드로 안전하게 이동
+ *
+ * @description 게스트 로그인 → 시스템 시작 → 대시보드 이동 전체 플로우
+ * @param page Playwright Page 객체
+ * @param options 옵션
+ * @param options.maxRetries 최대 재시도 횟수 (기본값: 3)
+ * @param options.skipGuestLogin 게스트 로그인 건너뛰기 (기본값: false)
+ *
+ * @example
+ * await navigateToDashboard(page);
+ * await navigateToDashboard(page, { skipGuestLogin: true });
+ */
+export async function navigateToDashboard(
+  page: Page,
+  options: { maxRetries?: number; skipGuestLogin?: boolean } = {}
+): Promise<void> {
+  const { maxRetries = 3, skipGuestLogin = false } = options;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      if (!skipGuestLogin) {
+        await guestLogin(page);
+      } else {
+        await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await skipIfSecurityCheckpoint(page);
+      }
+
+      await page.waitForLoadState('networkidle', { timeout: 15000 });
+
+      // 시스템 시작 버튼 시도
+      const startButton = page
+        .locator(
+          'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
+        )
+        .first();
+      const hasStartButton = await startButton
+        .isVisible({ timeout: 5000 })
+        .catch(() => false);
+
+      if (hasStartButton) {
+        await startButton.click();
+        await page.waitForURL('**/dashboard', {
+          timeout: TIMEOUTS.NETWORK_REQUEST,
+        });
+      } else {
+        // 시스템 시작 버튼이 없으면 직접 대시보드로 이동
+        await page.goto('/dashboard', {
+          waitUntil: 'domcontentloaded',
+          timeout: 30000,
+        });
+        await skipIfSecurityCheckpoint(page);
+      }
+
+      await page.waitForLoadState('networkidle', { timeout: 15000 });
+      return; // 성공
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      await page.waitForTimeout(1000);
+    }
+  }
+}
+
+/**
+ * Clarification 다이얼로그 처리
+ *
+ * @description 모호한 질문에 대해 시스템이 명확화를 요청할 때 옵션 선택 또는 취소
+ * @param page Playwright Page 객체
+ * @returns 옵션을 선택했으면 true, 그렇지 않으면 false
+ *
+ * @example
+ * const wasHandled = await handleClarificationIfPresent(page);
+ */
+export async function handleClarificationIfPresent(
+  page: Page
+): Promise<boolean> {
+  // Production에서는 data-testid가 strip됨 → aria-label 기반 감지
+  const dismissBtn = page.locator('button[aria-label="명확화 취소"]').first();
+  const hasClarification = await dismissBtn
+    .isVisible({ timeout: 5000 })
+    .catch(() => false);
+
+  if (!hasClarification) return false;
+
+  // 옵션 버튼을 클릭해야 쿼리가 진행됨
+  const clarificationContainer = dismissBtn.locator('..').locator('..');
+  const optionButtons = clarificationContainer.locator(
+    'button:not([aria-label="명확화 취소"]):not(:has-text("직접 입력하기"))'
+  );
+  const optionCount = await optionButtons.count();
+
+  if (optionCount > 0) {
+    await optionButtons.first().click();
+    await page.waitForTimeout(500);
+    return true;
+  }
+
+  // 옵션 없으면 dismiss (쿼리 취소됨)
+  await dismissBtn.click();
+  await page.waitForTimeout(500);
+  return false;
 }

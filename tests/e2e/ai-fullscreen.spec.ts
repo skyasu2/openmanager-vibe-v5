@@ -13,74 +13,8 @@
 
 import { expect, test } from '@playwright/test';
 import { openAiSidebar } from './helpers/guest';
-import { skipIfSecurityCheckpoint } from './helpers/security';
 import { TIMEOUTS } from './helpers/timeouts';
-
-/**
- * 대시보드로 안전하게 이동하는 헬퍼 함수
- * - 게스트 로그인 → 시스템 시작 flow 시도
- * - 실패 시 직접 대시보드 이동
- * - 네트워크 에러 시 재시도
- */
-async function navigateToDashboard(
-  page: import('@playwright/test').Page
-): Promise<void> {
-  const maxRetries = 3;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      // 먼저 랜딩 페이지로 이동
-      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await skipIfSecurityCheckpoint(page);
-
-      // 게스트 버튼 시도
-      const guestButton = page
-        .locator('button:has-text("게스트로 체험하기")')
-        .first();
-      const hasGuestButton = await guestButton
-        .isVisible({ timeout: 5000 })
-        .catch(() => false);
-
-      if (hasGuestButton) {
-        await guestButton.click();
-        await page.waitForLoadState('networkidle', { timeout: 15000 });
-      }
-
-      // 시스템 시작 버튼 시도
-      const startButton = page
-        .locator(
-          'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
-        )
-        .first();
-      const hasStartButton = await startButton
-        .isVisible({ timeout: 5000 })
-        .catch(() => false);
-
-      if (hasStartButton) {
-        await startButton.click();
-        await page.waitForURL('**/dashboard', {
-          timeout: TIMEOUTS.NETWORK_REQUEST,
-        });
-      } else {
-        // 시스템 시작 없으면 직접 대시보드로 이동
-        await page.goto('/dashboard', {
-          waitUntil: 'domcontentloaded',
-          timeout: 30000,
-        });
-        await skipIfSecurityCheckpoint(page);
-      }
-
-      await page.waitForLoadState('networkidle', { timeout: 15000 });
-      return; // 성공 시 리턴
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error; // 마지막 시도에서도 실패하면 에러 throw
-      }
-      // 재시도 전 잠시 대기
-      await page.waitForTimeout(1000);
-    }
-  }
-}
+import { navigateToDashboard } from './helpers/ui-flow';
 
 test.describe('AI 어시스턴트 풀스크린 테스트', () => {
   test.beforeEach(async ({ page }) => {
@@ -114,7 +48,7 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
       .first();
     await fullscreenButton.waitFor({
       state: 'visible',
-      timeout: 10000,
+      timeout: TIMEOUTS.MODAL_DISPLAY,
     });
     // 현재 URL 저장
     const beforeUrl = page.url();
@@ -183,7 +117,7 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     await autoReportButton.click();
 
     // 탭 전환 후 UI 확인
-    await page.waitForTimeout(500); // 탭 전환 애니메이션 대기
+    await page.waitForTimeout(TIMEOUTS.ANIMATION); // 탭 전환 애니메이션 대기
 
     // auto-report 관련 콘텐츠 또는 data-testid 확인
     const reportContent = page
@@ -212,7 +146,7 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     });
     await monitoringButton.click();
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(TIMEOUTS.ANIMATION);
 
     // 브레드크럼 또는 제목에서 관련 표시 확인
     const breadcrumb = page
@@ -274,17 +208,19 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
       .first();
     await fullscreenButton.waitFor({
       state: 'visible',
-      timeout: 10000,
+      timeout: TIMEOUTS.MODAL_DISPLAY,
     });
     await fullscreenButton.click();
 
     // 페이지 이동 대기
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForLoadState('networkidle', {
+      timeout: TIMEOUTS.FORM_SUBMIT,
+    });
 
     // System Context 패널이 있는지 확인 - 없을 수도 있음 (선택적)
     const systemContext = page.locator('text=System Context').first();
     const hasSystemContext = await systemContext
-      .isVisible({ timeout: 5000 })
+      .isVisible({ timeout: TIMEOUTS.API_RESPONSE })
       .catch(() => false);
 
     if (!hasSystemContext) {

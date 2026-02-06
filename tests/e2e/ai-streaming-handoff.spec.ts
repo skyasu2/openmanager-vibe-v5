@@ -12,77 +12,12 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { guestLogin, openAiSidebar } from './helpers/guest';
+import { openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
-
-/**
- * Clarification 다이얼로그가 나타나면 건너뛰기
- * 모호한 질문에 대해 시스템이 명확화를 요청할 때 처리
- */
-async function handleClarificationIfPresent(
-  page: import('@playwright/test').Page
-): Promise<boolean> {
-  // Production에서는 data-testid가 strip됨 → aria-label 기반 감지
-  const dismissBtn = page.locator('button[aria-label="명확화 취소"]').first();
-  const hasClarification = await dismissBtn
-    .isVisible({ timeout: 5000 })
-    .catch(() => false);
-
-  if (!hasClarification) return false;
-
-  // X 버튼은 취소(dismiss)이므로, 옵션 버튼을 클릭해야 쿼리가 진행됨
-  const clarificationContainer = dismissBtn.locator('..').locator('..');
-  const optionButtons = clarificationContainer.locator(
-    'button:not([aria-label="명확화 취소"]):not(:has-text("직접 입력하기"))'
-  );
-  const optionCount = await optionButtons.count();
-
-  if (optionCount > 0) {
-    await optionButtons.first().click();
-    await page.waitForTimeout(500);
-    return true;
-  }
-
-  // 옵션 없으면 dismiss (쿼리 취소됨)
-  await dismissBtn.click();
-  await page.waitForTimeout(500);
-  return false;
-}
-
-/**
- * 대시보드로 안전하게 이동하는 헬퍼 함수
- */
-async function navigateToDashboard(
-  page: import('@playwright/test').Page
-): Promise<void> {
-  await guestLogin(page);
-
-  await page.waitForLoadState('networkidle');
-
-  const startButton = page
-    .locator(
-      'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
-    )
-    .first();
-
-  const hasStartButton = await startButton
-    .isVisible({ timeout: 5000 })
-    .catch(() => false);
-
-  if (hasStartButton) {
-    await startButton.click();
-    await page.waitForURL('**/dashboard', {
-      timeout: TIMEOUTS.NETWORK_REQUEST,
-    });
-  } else {
-    await page.goto('/dashboard', {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000,
-    });
-  }
-
-  await page.waitForLoadState('networkidle', { timeout: 15000 });
-}
+import {
+  handleClarificationIfPresent,
+  navigateToDashboard,
+} from './helpers/ui-flow';
 
 test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
   test.beforeEach(async ({ page }) => {

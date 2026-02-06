@@ -13,7 +13,7 @@
 import { render, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { describe, expect, it } from 'vitest';
-import ProgressLabel from '../../../src/components/dashboard/ProgressLabel';
+import ProgressLabel from './ProgressLabel';
 
 describe('📝 ProgressLabel 컴포넌트', () => {
   describe('기본 렌더링', () => {
