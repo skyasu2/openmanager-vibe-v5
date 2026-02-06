@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.1.4](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.3...v7.1.4) (2026-02-06)
+
+
+### Features
+
+* **data:** add server-services-map for automatic service inference ([3ce9458](https://github.com/skyasu2/openmanager-vibe-v5/commit/3ce94584a3b709d0becff2565798766b5a08614d))
+* **data:** add uPlot and Prometheus Format to tech stack ([#132](https://github.com/skyasu2/openmanager-vibe-v5/issues/132)) ([63dc093](https://github.com/skyasu2/openmanager-vibe-v5/commit/63dc0935ed27907b0ae89e4b461001278dc6e117))
+
 ### [7.1.3](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.2...v7.1.3) (2026-02-06)
 
 
