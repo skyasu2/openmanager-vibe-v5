@@ -280,6 +280,8 @@ export class UnifiedServerDataSource {
         disk: metric.disk,
         network: metric.network,
         uptime,
+        // responseTimeMs (MetricsProvider, 단위 명시) → responseTime (Server 타입, 하위호환)
+        // Fallback 공식: 기본 50ms + CPU 부하 반영 (CPU 50% → 150ms, CPU 100% → 250ms)
         responseTime: metric.responseTimeMs ?? 50 + metric.cpu * 2,
         lastUpdate: new Date(),
         location: metric.location,

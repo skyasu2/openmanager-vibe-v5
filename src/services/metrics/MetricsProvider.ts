@@ -122,13 +122,28 @@ export function getKSTMinuteOfDay(): number {
 }
 
 /**
- * 현재 KST 타임스탬프 생성
+ * 현재 KST 타임스탬프 생성 (ISO 8601 형식)
+ *
+ * @returns ISO 8601 문자열 (예: "2026-02-06T19:30:45.123+09:00")
+ *
+ * @note toISOString()은 항상 UTC 시간을 반환하므로 수동 포맷팅 필요
+ * @see getKSTDateTime() 유사한 로직 사용
  */
 export function getKSTTimestamp(): string {
   const now = new Date();
-  // KST 시간 계산
-  const kstTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return kstTime.toISOString().replace('Z', '+09:00');
+  const kstOffset = 9 * 60 * 60 * 1000; // 9시간 (ms)
+  const kstDate = new Date(now.getTime() + kstOffset);
+
+  // 수동 포맷팅 (toISOString()은 UTC 기준이므로 사용하지 않음)
+  const year = kstDate.getUTCFullYear();
+  const month = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(kstDate.getUTCDate()).padStart(2, '0');
+  const hours = String(kstDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(kstDate.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(kstDate.getUTCSeconds()).padStart(2, '0');
+  const ms = String(kstDate.getUTCMilliseconds()).padStart(3, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}+09:00`;
 }
 
 // ============================================================================

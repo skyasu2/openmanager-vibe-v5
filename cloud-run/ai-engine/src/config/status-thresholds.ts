@@ -89,6 +89,16 @@ export type ServerStatus = 'online' | 'warning' | 'critical';
  * Determine server status based on multi-metric thresholds
  * Logic matches Dashboard's RulesLoader.getServerStatus()
  *
+ * Priority Rules (equivalent to Frontend RulesLoader):
+ * - P1: CPU >= critical AND Memory >= critical → critical (subset of P2)
+ * - P2: ANY metric >= critical → critical
+ * - P3: 2+ metrics >= warning → warning (subset of P4)
+ * - P4: ANY metric >= warning → warning
+ * - P99: ALL metrics < warning → online
+ *
+ * Note: P1 is a special case of P2, P3 is a special case of P4.
+ * This simplified logic produces identical results to the full priority chain.
+ *
  * @param metrics - Server metrics object
  * @returns ServerStatus - 'online' | 'warning' | 'critical'
  */
