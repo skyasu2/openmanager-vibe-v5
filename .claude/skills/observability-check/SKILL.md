@@ -154,7 +154,6 @@ curl -s -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
 ## Related Skills
 
 - `cloud-run-deploy` - Deploy AI Engine fixes
-- `validation-analysis` - Post-commit code quality
 - `security-audit-workflow` - Security issue deep dive
 
 ## API Reference

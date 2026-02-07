@@ -1,32 +1,14 @@
 ---
 name: commit-commands
-description: Create a git commit with automatic AI code review (Claude Code default). Triggers on /commit.
-version: v2.0.0
+description: Create a git commit with conventional commit message. Triggers on /commit.
+version: v3.0.0
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Edit
 ---
 
-# Git Commit with AI Review
+# Git Commit
 
-커밋 생성 후 자동으로 AI 코드 리뷰를 실행합니다.
-
-## Review Mode (v10.0.0)
-
-환경변수 `REVIEW_MODE`로 리뷰 엔진을 선택할 수 있습니다:
-
-| Mode | 설명 |
-|------|------|
-| `claude` | Claude Code 리뷰 (기본값) |
-| `codex-gemini` | Codex ↔ Gemini 순환 (대체) |
-| `all` | Codex/Gemini + Claude 교차 검증 |
-
-```bash
-# 기본값: Claude Code 리뷰
-bash scripts/code-review/auto-ai-review.sh
-
-# Codex/Gemini 순환으로 변경
-REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
-```
+커밋을 생성합니다.
 
 ## Trigger Keywords
 

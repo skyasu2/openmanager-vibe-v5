@@ -345,8 +345,7 @@ export default React.memo(Dashboard);
 
 ## Related Skills
 
-- `tests/lint-smoke.md` - If performance tests fail
-- `documentation/ai-report-export.md` - To document findings
+- `lint-smoke` - If performance tests fail
 
 ## Edge Cases
 

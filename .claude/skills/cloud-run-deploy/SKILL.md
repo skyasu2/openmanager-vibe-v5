@@ -196,7 +196,6 @@ gcloud run services update-traffic ai-engine \
 ## Related Skills
 
 - `lint-smoke` - Pre-deployment code quality check
-- `validation-analysis` - Post-deployment validation
 
 ## Changelog
 

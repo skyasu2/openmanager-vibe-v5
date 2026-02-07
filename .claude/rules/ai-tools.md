@@ -14,15 +14,13 @@
 | `github` | 저장소/PR 관리 | 중간 |
 | `tavily` | 심층 리서치, 팩트체크 | 낮음 |
 
-## Skills (13개)
+## Skills (10개)
 
 ### 코드 품질
 | Skill | 설명 |
 |-------|------|
-| `review` | 검증 결과 요약 확인 |
-| `ai-code-review` | AI 코드 리뷰 (Claude 기본, Codex/Gemini 대체) |
+| `review` | 코드 품질 체크 (lint + type-check) |
 | `lint-smoke` | Lint + 테스트 스모크 |
-| `validation-analysis` | 검증 결과 상세 분석 |
 
 ### 분석/진단
 | Skill | 설명 |
@@ -39,34 +37,16 @@
 | `gcp-cost-check` | GCP 비용 조회, Free Tier 사용량 분석 |
 | `commit-commands` | Git 커밋 워크플로우 (commit, commit-push-pr, clean_gone) |
 
-### 문서/리포트
+### 문서
 | Skill | 설명 |
 |-------|------|
-| `ai-report-export` | 2-AI 검증 리포트 생성 |
 | `mermaid-diagram` | 다이어그램 생성 |
 
 ## CLI Tools (WSL)
 
 | CLI | 용도 | 비고 |
 |-----|------|------|
-| `claude` | 코드 생성/수정/리뷰 | 현재 세션, 기본 리뷰 엔진 |
-| `codex` | 코드 리뷰 | `REVIEW_MODE=codex-gemini`시 사용 |
-| `gemini` | 로직 검증 | `REVIEW_MODE=codex-gemini`시 사용 |
-
-> Note: Qwen 제거됨 (2026-01-07), Kiro 제거됨 (2026-02-04)
-
-### AI Review Mode (v10.0.0)
-
-```bash
-# 기본값: Claude Code 리뷰
-bash scripts/code-review/auto-ai-review.sh
-
-# Codex ↔ Gemini 순환 (대체)
-REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
-
-# 교차 검증 (Codex/Gemini + Claude)
-REVIEW_MODE=all bash scripts/code-review/auto-ai-review.sh
-```
+| `claude` | 코드 생성/수정/리뷰 | 현재 세션 |
 
 ## Built-in Subagents (5개)
 

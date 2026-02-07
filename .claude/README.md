@@ -32,15 +32,12 @@
 | `claude-code-guide` | Claude Code/Agent SDK/API 문서 안내 |
 | `statusline-setup` | Claude Code 상태라인 설정 |
 
-## 🛠️ 커스텀 스킬 (11개)
+## 🛠️ 커스텀 스킬 (8개)
 
 | 스킬 | 버전 | 용도 |
 |------|------|------|
-| `review` | v1.0.0 | 검증 결과 요약 확인 (`/review`) |
-| `ai-code-review` | v3.1.0 | Multi-AI 코드 리뷰 분석 + 개선 실행 |
-| `validation-analysis` | v1.3.0 | 검증 결과 분석 + 이슈 트래킹 |
+| `review` | v2.0.0 | 코드 품질 체크 (`/review`) |
 | `lint-smoke` | v1.1.0 | Lint + 테스트 스모크 체크 |
-| `ai-report-export` | v1.1.0 | 2-AI 검증 결과 문서화 |
 | `mermaid-diagram` | v1.0.0 | Mermaid 다이어그램 생성/검증 |
 | `next-router-bottleneck` | v1.1.0 | Next.js 라우터 성능 분석 |
 | `playwright-triage` | v1.2.0 | E2E 테스트 실패 분류 |
@@ -94,8 +91,6 @@
 ls .claude/skills/
 
 # 스킬 실행 (Skill 도구 사용)
-Skill ai-code-review
-Skill validation-analysis
 Skill lint-smoke
 
 # 슬래시 명령어
