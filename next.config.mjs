@@ -195,21 +195,6 @@ const nextConfig = {
     if (process.env.NODE_ENV === 'development') {
       return [];
     }
-    // Vercel 환경에서 nonce 생성 (Edge Runtime 호환)
-    const _generateNonce = () => {
-      // Edge Runtime에서 안전한 nonce 생성
-      const array = new Uint8Array(16);
-      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-        crypto.getRandomValues(array);
-      } else {
-        // Fallback for build time
-        for (let i = 0; i < array.length; i++) {
-          array[i] = Math.floor(Math.random() * 256);
-        }
-      }
-      return Buffer.from(array).toString('base64');
-    };
-
     const isDev = process.env.NODE_ENV === 'development';
     const isVercel = process.env.VERCEL === '1';
 

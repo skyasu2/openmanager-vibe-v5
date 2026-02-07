@@ -10,41 +10,13 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { env, features, isProduction, isVercelProduction } from '@/env';
+import type { AuthenticatedRequest } from '@/lib/api/auth-middleware';
+import { withAdminAuth } from '@/lib/api/auth-middleware';
 import { developmentOnly } from '@/lib/api/development-only';
-import { authManager } from '@/lib/auth/auth';
 import { logger } from '@/lib/logging';
 
-export const GET = developmentOnly(function GET(request: NextRequest) {
+async function handler(request: AuthenticatedRequest): Promise<Response> {
   try {
-    // SECURITY: Admin 인증 필수
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Authentication required',
-          message: '이 엔드포인트는 관리자 인증이 필요합니다.',
-        },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const session = authManager.validateBrowserToken(token);
-    if (
-      !session ||
-      !authManager.hasPermission(session.sessionId, 'system:admin')
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Insufficient permissions',
-          message: '관리자 권한이 필요합니다.',
-        },
-        { status: 403 }
-      );
-    }
-
     // SECURITY: 민감한 정보 완전 제거 - 존재 여부만 확인
     const sanitizedEnv = {
       NODE_ENV: env.NODE_ENV,
@@ -95,9 +67,9 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
 
       timestamp: new Date().toISOString(),
       auditInfo: {
-        accessedBy: session.userId,
-        sessionId: session.sessionId,
-        userRole: session.userRole,
+        accessedBy: request.authInfo?.userId,
+        sessionId: request.authInfo?.sessionId,
+        userRole: request.authInfo?.userRole,
       },
     };
 
@@ -124,7 +96,7 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error('❌ Environment diagnostics error:', error);
+    logger.error('Environment diagnostics error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -140,7 +112,13 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
       }
     );
   }
-});
+}
+
+const authedHandler = withAdminAuth(handler);
+
+export const GET = developmentOnly((request: NextRequest) =>
+  authedHandler(request)
+);
 
 /**
  * 보안상의 이유로 POST/PUT/DELETE 방법은 허용하지 않음

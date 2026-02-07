@@ -41,7 +41,7 @@ export function blockInProduction(): NextResponse | null {
 type RouteHandler = (
   request: NextRequest,
   context?: { params: Promise<Record<string, string>> }
-) => NextResponse | Promise<NextResponse>;
+) => Response | NextResponse | Promise<Response> | Promise<NextResponse>;
 
 /**
  * Wrapper for development-only route handlers

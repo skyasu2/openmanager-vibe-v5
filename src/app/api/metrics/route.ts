@@ -7,8 +7,16 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { withAuth } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logging';
 import { metricsProvider } from '@/services/metrics/MetricsProvider';
-import debug from '@/utils/debug';
+
+const PromQLRequestSchema = z.object({
+  query: z.string().min(1, 'query is required'),
+  time: z.number().optional(),
+  timeout: z.number().optional(),
+});
 
 interface PrometheusMetricResult {
   metric: {
@@ -24,9 +32,24 @@ interface PrometheusMetricResult {
 /**
  * 🔍 Prometheus 쿼리 API (PromQL 호환)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
-    const { query, time, timeout: _timeout } = await request.json();
+    const body = await request.json();
+    const parsed = PromQLRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          status: 'error',
+          error: 'Invalid request body',
+          errorType: 'bad_data',
+          details: parsed.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { query, time } = parsed.data;
 
     // PromQL 쿼리 파싱 및 실행 시뮬레이션
     const result = await executePromQLQuery(query, time);
@@ -39,7 +62,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    debug.error('❌ PromQL 쿼리 실행 실패:', error);
+    logger.error('PromQL 쿼리 실행 실패:', error);
     return NextResponse.json(
       {
         status: 'error',
@@ -49,7 +72,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-}
+});
 
 /**
  * 📊 PromQL 쿼리 시뮬레이션 실행

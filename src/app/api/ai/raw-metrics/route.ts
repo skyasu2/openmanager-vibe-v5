@@ -1,6 +1,6 @@
 export const maxDuration = 10; // Vercel Free Tier
 
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
@@ -89,7 +89,7 @@ interface ServerDataStructure {
 /**
  * 🔄 24시간 순수 메트릭 로드 (시나리오 힌트 완전 제거)
  */
-function loadPureRawMetrics(): Promise<RawServerMetric[]> {
+async function loadPureRawMetrics(): Promise<RawServerMetric[]> {
   try {
     const now = new Date();
     const currentHour = now.getHours();
@@ -110,29 +110,30 @@ function loadPureRawMetrics(): Promise<RawServerMetric[]> {
 
     let hourlyData: HourlyDataStructure;
 
-    if (!fs.existsSync(filePath)) {
+    try {
+      await fs.access(filePath);
+      const content = await fs.readFile(filePath, 'utf8');
+      hourlyData = JSON.parse(content);
+    } catch {
       const fallbackPath = path.join(
         process.cwd(),
         'public',
         'hourly-data',
         'hour-17.json'
       );
-      hourlyData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
-    } else {
-      hourlyData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      const fallbackContent = await fs.readFile(fallbackPath, 'utf8');
+      hourlyData = JSON.parse(fallbackContent);
     }
 
-    return Promise.resolve(
-      convertToPureMetrics(
-        hourlyData,
-        currentHour,
-        rotationMinute,
-        segmentInHour
-      )
+    return convertToPureMetrics(
+      hourlyData,
+      currentHour,
+      rotationMinute,
+      segmentInHour
     );
   } catch (error) {
     logger.error('Raw metrics 로드 실패:', error);
-    return Promise.resolve(generateFallbackMetrics());
+    return generateFallbackMetrics();
   }
 }
 
