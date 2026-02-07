@@ -77,12 +77,18 @@ function isReadOnlyMode(): boolean {
 
 // ============================================================================
 // Database Status Functions
+//
+// [DEMO MODE] 실제 DB 연결 없이 현실적인 상태값을 반환합니다.
+// 프로덕션에서는 Supabase/Redis 클라이언트의 실제 상태를 조회하도록
+// 교체해야 합니다. 현재 값은 일반적인 Supabase + Upstash Redis 환경의
+// 정상 운영 상태를 시뮬레이션합니다.
 // ============================================================================
 
 function getDatabaseStatus() {
   const now = Date.now();
   const uptime = now - (now % (24 * 60 * 60 * 1000));
 
+  // [DEMO] 실제 구현: supabaseAdmin.rpc('pg_stat_activity') 등으로 조회
   return {
     primary: {
       status: 'online' as const,
@@ -94,6 +100,7 @@ function getDatabaseStatus() {
       replication: { lag: 0, status: 'in_sync' },
       uptime: Math.floor((Date.now() - uptime) / 1000),
     },
+    // [DEMO] 실제 구현: redis.info('memory') 등으로 조회
     redis: {
       status: 'online' as const,
       host: process.env.UPSTASH_REDIS_HOST || 'redis-host',
@@ -105,6 +112,7 @@ function getDatabaseStatus() {
         bgSaveInProgress: false,
       },
     },
+    // [DEMO] 실제 구현: SELECT count(*) FROM pg_embedding 등으로 조회
     vector: {
       status: 'online' as const,
       engine: 'pgvector',
@@ -123,6 +131,7 @@ function getDatabaseStatus() {
 }
 
 function getPoolStatus() {
+  // [DEMO] 실제 구현: pg Pool의 totalCount/idleCount/waitingCount 조회
   return {
     current: { total: 20, active: 8, idle: 12, waiting: 0 },
     statistics: {
@@ -173,6 +182,7 @@ function getReadonlyStatus() {
 // Action Functions
 // ============================================================================
 
+// [DEMO] 실제 구현: pool.end() → pool.connect() 재생성
 async function resetConnectionPool(config?: {
   maxConnections?: number;
   minConnections?: number;

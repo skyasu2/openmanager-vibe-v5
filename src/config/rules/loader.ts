@@ -32,8 +32,57 @@ import type {
   IRulesLoader,
   AlertRule,
 } from './types';
+import { z } from 'zod';
 import { logger } from '@/lib/logging';
 import systemRulesJson from './system-rules.json';
+
+// ============================================================================
+// Zod Schema: JSON → SystemRules 변환 시 런타임 검증
+// ============================================================================
+
+const MetricThresholdSchema = z.object({
+  warning: z.number(),
+  critical: z.number(),
+  description: z.string().optional(),
+});
+
+const ServerStatusRuleSchema = z.object({
+  name: z.string(),
+  condition: z.string(),
+  resultStatus: z.enum(['online', 'warning', 'critical', 'offline']),
+  priority: z.number(),
+  for: z.string().optional(),
+});
+
+const AlertRuleSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  metricType: z.enum(['cpu', 'memory', 'disk', 'network', 'response_time']),
+  operator: z.enum(['>', '>=', '<', '<=', '==', '!=']),
+  threshold: z.number(),
+  severity: z.enum(['info', 'warning', 'critical']),
+  enabled: z.boolean(),
+  description: z.string().optional(),
+});
+
+const SystemRulesSchema = z.object({
+  version: z.string(),
+  lastUpdated: z.string(),
+  thresholds: z.object({
+    cpu: MetricThresholdSchema,
+    memory: MetricThresholdSchema,
+    disk: MetricThresholdSchema,
+    network: MetricThresholdSchema,
+    responseTime: MetricThresholdSchema,
+  }),
+  statusRules: z.array(ServerStatusRuleSchema),
+  alertRules: z.array(AlertRuleSchema),
+  metadata: z.object({
+    description: z.string(),
+    maintainer: z.string(),
+    aiInstructions: z.string(),
+  }),
+});
 
 /** Supabase system_rules 테이블 레코드 타입 */
 interface SystemRuleRecord {
@@ -71,15 +120,26 @@ class RulesLoader implements IRulesLoader {
   /** 테스트 격리용: 싱글톤 인스턴스 리셋 */
   static resetForTesting(): void {
     if (process.env.NODE_ENV !== 'test') return;
-    RulesLoader.instance = undefined as unknown as RulesLoader;
+    // @ts-expect-error -- 테스트 격리를 위한 의도적 리셋
+    RulesLoader.instance = undefined;
   }
 
   /**
-   * JSON 파일에서 규칙 로드 (폴백)
+   * JSON 파일에서 규칙 로드 (Zod schema validation)
    */
   private loadFromJson(): SystemRules {
     this.dataSource = 'json';
-    return systemRulesJson as unknown as SystemRules;
+    const parsed = SystemRulesSchema.safeParse(systemRulesJson);
+    if (!parsed.success) {
+      logger.error(
+        '❌ system-rules.json 스키마 검증 실패:',
+        parsed.error.message
+      );
+      throw new Error(
+        `system-rules.json schema validation failed: ${parsed.error.message}`
+      );
+    }
+    return parsed.data;
   }
 
   /**
@@ -112,7 +172,14 @@ class RulesLoader implements IRulesLoader {
       }
 
       // Supabase 데이터를 SystemRules 형식으로 변환
-      const rules = this.transformSupabaseData(data as SystemRuleRecord[]);
+      const records = data.map((row) => ({
+        category: String(row.category),
+        key: String(row.key),
+        value: row.value as MetricThreshold | AlertRule | string,
+        description: row.description ? String(row.description) : undefined,
+        enabled: row.enabled != null ? Boolean(row.enabled) : undefined,
+      })) satisfies SystemRuleRecord[];
+      const rules = this.transformSupabaseData(records);
       this.dataSource = 'supabase';
       logger.info(`✅ Supabase에서 ${data.length}개 규칙 로드됨`);
       return rules;
@@ -133,12 +200,22 @@ class RulesLoader implements IRulesLoader {
       if (record.category === 'thresholds') {
         const key = record.key as keyof SystemRules['thresholds'];
         if (key in rules.thresholds) {
-          rules.thresholds[key] = record.value as MetricThreshold;
+          const validated = MetricThresholdSchema.safeParse(record.value);
+          if (validated.success) {
+            rules.thresholds[key] = validated.data;
+          } else {
+            logger.warn(
+              `⚠️ Supabase threshold '${key}' 스키마 불일치, JSON 폴백 유지`
+            );
+          }
         }
       } else if (record.category === 'alerts' && record.enabled !== false) {
         // Alert rules - 향후 구현
-      } else if (record.category === 'ai_instructions') {
-        rules.metadata.aiInstructions = record.value as string;
+      } else if (
+        record.category === 'ai_instructions' &&
+        typeof record.value === 'string'
+      ) {
+        rules.metadata.aiInstructions = record.value;
       }
     }
 
