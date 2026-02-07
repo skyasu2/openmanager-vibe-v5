@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/lib/api/cors';
+import { logger } from '@/lib/logging';
 
 // Sentry DSN 파싱 - 환경변수 필수
 const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -14,7 +15,7 @@ const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 // DSN에서 Sentry ingest URL 추출
 function getSentryIngestUrl(): string | null {
   if (!SENTRY_DSN) {
-    console.warn('[Sentry Tunnel] SENTRY_DSN 환경변수 미설정');
+    logger.warn('[Sentry Tunnel] SENTRY_DSN 환경변수 미설정');
     return null;
   }
 
@@ -23,7 +24,7 @@ function getSentryIngestUrl(): string | null {
     const projectId = url.pathname.replace('/', '');
     return `https://${url.host}/api/${projectId}/envelope/`;
   } catch {
-    console.error('[Sentry Tunnel] Invalid SENTRY_DSN format');
+    logger.error('[Sentry Tunnel] Invalid SENTRY_DSN format');
     return null;
   }
 }
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error('[Sentry Tunnel] Error:', error);
+    logger.error('[Sentry Tunnel] Error:', error);
     return NextResponse.json({ error: 'Tunnel error' }, { status: 500 });
   }
 }

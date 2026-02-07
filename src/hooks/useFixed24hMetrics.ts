@@ -320,9 +320,6 @@ export function useMultipleFixed24hMetrics(
     }
   }, [serverIds]);
 
-  // serverIds.join(',')을 별도 변수로 추출하여 의존성 배열의 복잡도를 줄임
-  const _serverIdsKey = serverIds.join(',');
-
   useEffect(() => {
     isMountedRef.current = true;
 

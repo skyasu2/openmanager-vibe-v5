@@ -414,7 +414,8 @@ export class MetricsProvider {
   /** 테스트 격리용: 싱글톤 인스턴스 및 캐시 리셋 */
   static resetForTesting(): void {
     if (process.env.NODE_ENV !== 'test') return;
-    MetricsProvider.instance = undefined as unknown as MetricsProvider;
+    // @ts-expect-error -- 테스트 격리를 위한 의도적 리셋
+    MetricsProvider.instance = undefined;
     cachedHourlyData = null;
   }
 
