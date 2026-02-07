@@ -26,7 +26,10 @@ import type {
   TabId,
   TabInfo,
 } from './EnhancedServerModal.types';
-import { getStatusTheme } from './EnhancedServerModal.utils';
+import {
+  getStatusTheme,
+  normalizeServerData,
+} from './EnhancedServerModal.utils';
 import { ServerModalHeader } from './ServerModalHeader';
 import { ServerModalTabNav } from './ServerModalTabNav';
 
@@ -123,90 +126,10 @@ export default function EnhancedServerModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, getFocusableElements]);
 
-  // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
+  // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정 (검증 로직은 utils에 분리)
   const safeServer = useMemo(
     (): ServerData | null =>
-      server
-        ? {
-            id: server.id || 'unknown',
-            // hostname: 서버 이름에서 추출하거나 기본값
-            hostname:
-              server.hostname ||
-              server.name?.toLowerCase().replace(/\s+/g, '-') ||
-              '미확인 호스트',
-            name: server.name || '서버',
-            type: server.type || 'unknown',
-            environment: server.environment || 'production',
-            location: server.location || '위치 미지정',
-            // provider: 환경에 따라 추정
-            provider:
-              server.provider ||
-              (server.environment === 'production'
-                ? 'Cloud Provider'
-                : 'Local'),
-            // Status는 Fixed Metrics에 따라 실시간 업데이트
-            status: currentMetrics
-              ? currentMetrics.cpu > 80
-                ? 'critical'
-                : currentMetrics.cpu > 60
-                  ? 'warning'
-                  : 'online'
-              : server.status || 'unknown',
-            // 현재 메트릭 우선 사용, 없으면 초기값
-            cpu:
-              currentMetrics?.cpu ??
-              (typeof server.cpu === 'number' ? server.cpu : 0),
-            memory:
-              currentMetrics?.memory ??
-              (typeof server.memory === 'number' ? server.memory : 0),
-            disk:
-              currentMetrics?.disk ??
-              (typeof server.disk === 'number' ? server.disk : 0),
-            network:
-              currentMetrics?.network ??
-              (typeof server.network === 'number' ? server.network : 0),
-            uptime:
-              typeof server.uptime === 'number'
-                ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
-                : server.uptime || '0h 0m',
-            lastUpdate: server.lastUpdate || new Date(),
-            alerts:
-              typeof server.alerts === 'number'
-                ? server.alerts
-                : Array.isArray(server.alerts)
-                  ? server.alerts.length
-                  : 0,
-            services: Array.isArray(server.services)
-              ? server.services.map((s) => ({
-                  name: s?.name || 'unknown',
-                  status: s?.status || 'unknown',
-                  port: s?.port || 80,
-                }))
-              : [],
-            specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
-            os: server.os || 'Unknown OS',
-            ip: server.ip || '0.0.0.0',
-            // NetworkStatus: ServerStatus + 리소스 부하 기반 추정
-            networkStatus: (() => {
-              if (server.status === 'offline') return 'offline';
-              if (server.status === 'critical') return 'poor';
-              // 리소스 부하 기반 품질 추정
-              const avgLoad =
-                ((currentMetrics?.cpu ?? server.cpu ?? 0) +
-                  (currentMetrics?.memory ?? server.memory ?? 0)) /
-                2;
-              if (server.status === 'online' && avgLoad < 70)
-                return 'excellent';
-              return 'good';
-            })(),
-            health: server.health || { score: 0, trend: [] },
-            alertsSummary: server.alertsSummary || {
-              total: 0,
-              critical: 0,
-              warning: 0,
-            },
-          }
-        : null,
+      server ? normalizeServerData(server, currentMetrics) : null,
     [server, currentMetrics]
   );
 

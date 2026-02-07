@@ -8,9 +8,11 @@
  */
 
 import { getThreshold } from '@/config/rules';
+import type { Server } from '@/types/server';
 import type { ServerStatus } from '@/types/server-enums';
 import type {
   MetricColorResult,
+  ServerData,
   StatusTheme,
 } from './EnhancedServerModal.types';
 
@@ -186,3 +188,89 @@ export const formatUptime = (uptimeString: string): string => {
     return uptimeString; // 파싱 실패 시 원본 반환
   }
 };
+
+/**
+ * 서버 원본 데이터를 모달용 안전한 ServerData로 변환
+ *
+ * 방어적 타입 검증 + 기본값 설정을 서비스 레이어에서 처리하여
+ * 컴포넌트는 이미 검증된 데이터만 수신하도록 분리
+ */
+export function normalizeServerData(
+  server: Server,
+  currentMetrics?: {
+    cpu?: number;
+    memory?: number;
+    disk?: number;
+    network?: number;
+  } | null
+): ServerData {
+  const cpu =
+    currentMetrics?.cpu ?? (typeof server.cpu === 'number' ? server.cpu : 0);
+  const memory =
+    currentMetrics?.memory ??
+    (typeof server.memory === 'number' ? server.memory : 0);
+
+  return {
+    id: server.id || 'unknown',
+    hostname:
+      server.hostname ||
+      server.name?.toLowerCase().replace(/\s+/g, '-') ||
+      '미확인 호스트',
+    name: server.name || '서버',
+    type: server.type || 'unknown',
+    environment: server.environment || 'production',
+    location: server.location || '위치 미지정',
+    provider:
+      server.provider ||
+      (server.environment === 'production' ? 'Cloud Provider' : 'Local'),
+    status: currentMetrics
+      ? currentMetrics.cpu != null && currentMetrics.cpu > 80
+        ? 'critical'
+        : currentMetrics.cpu != null && currentMetrics.cpu > 60
+          ? 'warning'
+          : 'online'
+      : server.status || 'unknown',
+    cpu,
+    memory,
+    disk:
+      currentMetrics?.disk ??
+      (typeof server.disk === 'number' ? server.disk : 0),
+    network:
+      currentMetrics?.network ??
+      (typeof server.network === 'number' ? server.network : 0),
+    uptime:
+      typeof server.uptime === 'number'
+        ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+        : server.uptime || '0h 0m',
+    lastUpdate: server.lastUpdate || new Date(),
+    alerts:
+      typeof server.alerts === 'number'
+        ? server.alerts
+        : Array.isArray(server.alerts)
+          ? server.alerts.length
+          : 0,
+    services: Array.isArray(server.services)
+      ? server.services.map((s) => ({
+          name: s?.name || 'unknown',
+          status: s?.status || 'unknown',
+          port: s?.port || 80,
+        }))
+      : [],
+    specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+    os: server.os || 'Unknown OS',
+    ip: server.ip || '0.0.0.0',
+    networkStatus: (() => {
+      if (server.status === 'offline') return 'offline';
+      if (server.status === 'critical') return 'poor';
+      const avgLoad = (cpu + memory) / 2;
+      if (server.status === 'online' && avgLoad < 70) return 'excellent';
+      return 'good';
+    })(),
+    health: server.health || { score: 0, trend: [] },
+    alertsSummary: server.alertsSummary || {
+      total: 0,
+      critical: 0,
+      warning: 0,
+    },
+  };
+}

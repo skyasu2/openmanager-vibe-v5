@@ -14,6 +14,7 @@ export class PerformanceService {
   private static instance: PerformanceService;
   private metrics: PerformanceMetric[] = [];
   private alerts: Alert[] = [];
+  private metricsInterval: ReturnType<typeof setInterval> | null = null;
 
   private constructor() {
     this.initializeMetricsCollection();
@@ -31,9 +32,19 @@ export class PerformanceService {
    */
   private initializeMetricsCollection(): void {
     // Start collecting system metrics every 5 seconds
-    setInterval(() => {
+    this.metricsInterval = setInterval(() => {
       void this.collectMetrics();
     }, 5000);
+  }
+
+  /**
+   * Stop metrics collection and clean up interval
+   */
+  public destroy(): void {
+    if (this.metricsInterval) {
+      clearInterval(this.metricsInterval);
+      this.metricsInterval = null;
+    }
   }
 
   /**

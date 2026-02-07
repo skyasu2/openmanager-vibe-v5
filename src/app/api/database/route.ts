@@ -29,11 +29,16 @@ export const runtime = 'nodejs';
 
 // ============================================================================
 // Shared State (for readonly mode)
+// ⚠️ Serverless 환경 주의: 인메모리 상태는 인스턴스 간 공유되지 않음.
+// 현재는 데모/포트폴리오용 시뮬레이션 데이터이므로 인메모리로 충분.
+// 프로덕션 전환 시 KV store(Upstash/Redis) 또는 Supabase로 마이그레이션 필요.
 // ============================================================================
 
-let readOnlyMode = false;
-let readOnlyReason = '';
-let readOnlyStartTime: string | null = null;
+let readOnlyMode = process.env.DB_READONLY_MODE === 'true';
+let readOnlyReason = process.env.DB_READONLY_REASON || '';
+let readOnlyStartTime: string | null = readOnlyMode
+  ? new Date().toISOString()
+  : null;
 
 // ============================================================================
 // Database Status Functions

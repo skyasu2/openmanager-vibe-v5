@@ -15,6 +15,8 @@ import {
   circuitBreakerEvents,
   getAIStatusSummary,
 } from '@/lib/ai/circuit-breaker';
+import { parseJsonBody } from '@/lib/api/parse-json-body';
+import { withAdminAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 
 // Node.js 런타임 사용 (인메모리 상태 유지)
@@ -24,7 +26,7 @@ export const runtime = 'nodejs';
  * GET /api/ai/status
  * AI 서비스 상태 조회
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdminAuth(async (request: NextRequest) => {
   try {
     // 쿼리 파라미터
     const { searchParams } = new URL(request.url);
@@ -65,16 +67,19 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST /api/ai/status
  * Circuit Breaker 수동 리셋 (관리자 전용)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request: NextRequest) => {
   try {
-    const body = await request.json();
-    const { action, service } = body as { action: string; service?: string };
+    const result = await parseJsonBody<{ action: string; service?: string }>(
+      request
+    );
+    if (!result.success) return result.response;
+    const { action, service } = result.data;
 
     switch (action) {
       case 'reset': {
@@ -125,4 +130,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

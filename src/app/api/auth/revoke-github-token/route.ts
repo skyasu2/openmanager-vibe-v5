@@ -62,28 +62,30 @@ export async function POST(request: NextRequest) {
         error: errorText,
       });
 
-      // GitHub API 오류라도 클라이언트는 정상 처리로 간주
+      // GitHub API 호출 실패 - 502 반환하되 로그아웃 자체는 완료 상태로 표시
       return NextResponse.json(
         {
           success: false,
+          logoutCompleted: true,
           message: 'GitHub 토큰 무효화에 실패했으나 로그아웃은 완료되었습니다',
           error: errorText,
         },
-        { status: 200 }
-      ); // 200으로 반환하여 클라이언트에서 오류로 처리하지 않음
+        { status: 502 }
+      );
     }
   } catch (error) {
     logger.error('❌ GitHub OAuth 토큰 무효화 오류:', error);
 
-    // 서버 오류라도 클라이언트 로그아웃에는 영향 없음
+    // 서버 내부 오류 - 500 반환하되 로그아웃 자체는 완료 상태로 표시
     return NextResponse.json(
       {
         success: false,
+        logoutCompleted: true,
         message:
           '서버 오류로 GitHub 토큰 무효화에 실패했으나 로그아웃은 완료되었습니다',
         error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 200 }
+      { status: 500 }
     );
   }
 }

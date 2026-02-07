@@ -57,10 +57,10 @@ export interface AIResponseCacheResult {
  * 엔드포인트별 TTL 설정 (초)
  */
 export const AI_CACHE_TTL = {
-  /** 일반 supervisor 응답: 15분 (대화 맥락 민감) */
-  supervisor: 900,
-  /** 상태 조회 응답: 5분 (빈번한 변경) */
-  'supervisor-status': 300,
+  /** 일반 supervisor 응답: 5분 (대화 맥락 민감) */
+  supervisor: 300,
+  /** 상태 조회 응답: 1분 (서버 상태는 빈번히 변경) */
+  'supervisor-status': 60,
   /** 지능형 모니터링: 30분 (예측 안정적) */
   'intelligent-monitoring': 1800,
   /** 인시던트 보고서: 1시간 (보고서 고정) */
