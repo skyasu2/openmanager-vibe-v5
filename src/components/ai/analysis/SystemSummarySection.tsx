@@ -85,7 +85,7 @@ export function SystemSummarySection({ summary }: SystemSummarySectionProps) {
                 </span>
                 <span className="font-medium text-orange-600">
                   +{pred.changePercent.toFixed(1)}% →{' '}
-                  {Math.round(pred.predictedValue)}%
+                  {Math.min(100, Math.max(0, Math.round(pred.predictedValue)))}%
                 </span>
               </div>
             ))}
