@@ -45,18 +45,56 @@ const IncidentReportRequestSchema = z
   })
   .passthrough(); // Cloud Run으로 전달하는 추가 필드 허용
 
-// Types (Minimal for response typing)
+// Types: AI Engine이 생성하는 장애 보고서 구조
+interface AffectedServer {
+  serverId: string;
+  hostname?: string;
+  status: string;
+  metrics?: { cpu?: number; memory?: number; disk?: number };
+}
+
+interface Anomaly {
+  metric: string;
+  serverId?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  value: number;
+  threshold: number;
+  description?: string;
+}
+
+interface RootCauseAnalysis {
+  summary: string;
+  confidence: number;
+  causes: Array<{ description: string; probability: number }>;
+  evidence?: string[];
+}
+
+interface Recommendation {
+  action: string;
+  priority: 'immediate' | 'short-term' | 'long-term';
+  description?: string;
+  estimatedImpact?: string;
+}
+
+interface TimelineEvent {
+  timestamp: string;
+  event: string;
+  severity?: string;
+  serverId?: string;
+}
+
 interface IncidentReport {
   id: string;
   title: string;
   severity: string;
   created_at: string;
-  affected_servers?: unknown[];
-  anomalies?: unknown[];
-  root_cause_analysis?: unknown;
-  recommendations?: unknown[];
-  timeline?: unknown[];
+  affected_servers?: AffectedServer[];
+  anomalies?: Anomaly[];
+  root_cause_analysis?: RootCauseAnalysis;
+  recommendations?: Recommendation[];
+  timeline?: TimelineEvent[];
   pattern?: string;
+  system_summary?: string | null;
   [key: string]: unknown;
 }
 

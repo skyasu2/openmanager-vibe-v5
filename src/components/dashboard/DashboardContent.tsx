@@ -2,6 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ARCHITECTURE_DIAGRAMS,
+  type ArchitectureDiagram,
+} from '@/data/architecture-diagrams.data';
 // framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
 import type { Server } from '../../types/server';
@@ -57,7 +61,17 @@ interface DashboardContentProps {
   onStatusFilterChange?: (filter: string | null) => void;
 }
 
+// Infrastructure Topology 다이어그램 데이터 (컴포넌트 외부 상수)
+const TOPOLOGY_DIAGRAM = ARCHITECTURE_DIAGRAMS[
+  'infrastructure-topology'
+] as ArchitectureDiagram;
+
 // 동적 임포트로 성능 최적화
+const ReactFlowDiagramDynamic = dynamic(
+  () => import('@/components/shared/react-flow-diagram'),
+  { ssr: false }
+);
+
 const ServerDashboardDynamic = dynamic(() => import('./ServerDashboard'), {
   loading: () => (
     <div className="flex items-center justify-center p-8">
@@ -96,6 +110,7 @@ export default function DashboardContent({
 
   // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
   const [statsLoading, _setStatsLoading] = useState(false);
+  const [showTopology, setShowTopology] = useState(false);
 
   // 🛡️ currentTime 제거: 미사용 상태에서 불필요한 interval 실행 (v5.83.13)
 
@@ -334,6 +349,39 @@ export default function DashboardContent({
                 activeFilter={statusFilter}
                 onFilterChange={onStatusFilterChange}
               />
+
+              {/* Infrastructure Topology (Collapsible) */}
+              <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={() => setShowTopology((prev) => !prev)}
+                  className="flex w-full items-center justify-between px-5 py-3 text-left text-sm font-medium text-gray-300 transition-colors hover:text-white"
+                >
+                  <span>Infrastructure Topology (15 Servers)</span>
+                  <span
+                    className={`transition-transform duration-200 ${showTopology ? 'rotate-180' : ''}`}
+                  >
+                    &#9660;
+                  </span>
+                </button>
+                {showTopology && (
+                  <div className="border-t border-white/10 px-2 pb-4">
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center py-12">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+                        </div>
+                      }
+                    >
+                      <ReactFlowDiagramDynamic
+                        diagram={TOPOLOGY_DIAGRAM}
+                        compact
+                        showControls
+                      />
+                    </Suspense>
+                  </div>
+                )}
+              </div>
 
               {/* 서버 카드 목록 */}
               <Suspense

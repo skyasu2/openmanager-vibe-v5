@@ -549,6 +549,184 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'claude-code', to: 'stitch-mcp', label: 'MCP' },
     ],
   },
+
+  /**
+   * 5. Infrastructure Topology - 15 Server Monitoring Architecture
+   * 실제 모니터링 대상 인프라의 서비스 의존성 그래프
+   * @sync src/data/hourly-data/*.json (15 servers, Prometheus format)
+   * @sync src/config/server-services-map.ts (hostname → service mapping)
+   */
+  'infrastructure-topology': {
+    id: 'infrastructure-topology',
+    title: 'Infrastructure Service Topology',
+    description:
+      '15대 서버의 서비스 의존성 그래프. LB \u2192 Web \u2192 API \u2192 DB/Cache \u2192 Storage 티어 구조. Prometheus node_exporter 기반 메트릭 수집.',
+    layers: [
+      {
+        title: 'Load Balancer',
+        color: 'from-red-500 to-orange-500',
+        nodes: [
+          {
+            id: 'lb-icn',
+            label: 'HAProxy ICN',
+            sublabel: 'lb-haproxy-icn-01 :443',
+            type: 'highlight',
+            icon: '\uD83D\uDD00',
+          },
+          {
+            id: 'lb-pus',
+            label: 'HAProxy PUS',
+            sublabel: 'lb-haproxy-pus-01 :443',
+            type: 'highlight',
+            icon: '\uD83D\uDD00',
+          },
+        ],
+      },
+      {
+        title: 'Web Tier (Nginx)',
+        color: 'from-blue-500 to-cyan-500',
+        nodes: [
+          {
+            id: 'web-icn-01',
+            label: 'Nginx ICN-01',
+            sublabel: 'web-nginx-icn-01 :80',
+            type: 'primary',
+            icon: '\uD83C\uDF10',
+          },
+          {
+            id: 'web-icn-02',
+            label: 'Nginx ICN-02',
+            sublabel: 'web-nginx-icn-02 :80',
+            type: 'primary',
+            icon: '\uD83C\uDF10',
+          },
+          {
+            id: 'web-pus-01',
+            label: 'Nginx PUS-01',
+            sublabel: 'web-nginx-pus-01 :80',
+            type: 'secondary',
+            icon: '\uD83C\uDF10',
+          },
+        ],
+      },
+      {
+        title: 'API Tier (WAS)',
+        color: 'from-green-500 to-emerald-500',
+        nodes: [
+          {
+            id: 'api-icn-01',
+            label: 'WAS ICN-01',
+            sublabel: 'api-was-icn-01 :8080',
+            type: 'primary',
+            icon: '\u2699\uFE0F',
+          },
+          {
+            id: 'api-icn-02',
+            label: 'WAS ICN-02',
+            sublabel: 'api-was-icn-02 :8080',
+            type: 'primary',
+            icon: '\u2699\uFE0F',
+          },
+          {
+            id: 'api-pus-01',
+            label: 'WAS PUS-01',
+            sublabel: 'api-was-pus-01 :8080',
+            type: 'secondary',
+            icon: '\u2699\uFE0F',
+          },
+        ],
+      },
+      {
+        title: 'Data Tier',
+        color: 'from-purple-500 to-indigo-500',
+        nodes: [
+          {
+            id: 'db-primary',
+            label: 'MySQL Primary',
+            sublabel: 'db-mysql-icn-primary :3306',
+            type: 'highlight',
+            icon: '\uD83D\uDDC4\uFE0F',
+          },
+          {
+            id: 'db-replica',
+            label: 'MySQL Replica',
+            sublabel: 'db-mysql-icn-replica :3306',
+            type: 'secondary',
+            icon: '\uD83D\uDDC4\uFE0F',
+          },
+          {
+            id: 'db-dr',
+            label: 'MySQL DR',
+            sublabel: 'db-mysql-pus-dr :3306',
+            type: 'tertiary',
+            icon: '\uD83D\uDDC4\uFE0F',
+          },
+          {
+            id: 'cache-01',
+            label: 'Redis ICN-01',
+            sublabel: 'cache-redis-icn-01 :6379',
+            type: 'primary',
+            icon: '\u26A1',
+          },
+          {
+            id: 'cache-02',
+            label: 'Redis ICN-02',
+            sublabel: 'cache-redis-icn-02 :6379',
+            type: 'secondary',
+            icon: '\u26A1',
+          },
+        ],
+      },
+      {
+        title: 'Storage Tier',
+        color: 'from-amber-500 to-yellow-500',
+        nodes: [
+          {
+            id: 'nfs',
+            label: 'NFS Server',
+            sublabel: 'storage-nfs-icn-01 :2049',
+            type: 'secondary',
+            icon: '\uD83D\uDCBE',
+          },
+          {
+            id: 's3gw',
+            label: 'S3 Gateway',
+            sublabel: 'storage-s3gw-pus-01 :9000',
+            type: 'secondary',
+            icon: '\uD83D\uDCE6',
+          },
+        ],
+      },
+    ],
+    connections: [
+      // LB -> Web
+      { from: 'lb-icn', to: 'web-icn-01', label: 'L7 Route' },
+      { from: 'lb-icn', to: 'web-icn-02' },
+      { from: 'lb-pus', to: 'web-pus-01', label: 'L7 Route' },
+      // Web -> API
+      { from: 'web-icn-01', to: 'api-icn-01', label: 'Reverse Proxy' },
+      { from: 'web-icn-02', to: 'api-icn-02' },
+      { from: 'web-pus-01', to: 'api-pus-01' },
+      // API -> DB
+      { from: 'api-icn-01', to: 'db-primary', label: 'R/W' },
+      { from: 'api-icn-02', to: 'db-replica', label: 'Read' },
+      { from: 'api-pus-01', to: 'db-dr', label: 'Read', type: 'dashed' },
+      // API -> Cache
+      { from: 'api-icn-01', to: 'cache-01', label: 'Session/Cache' },
+      { from: 'api-icn-02', to: 'cache-02' },
+      // DB Replication
+      {
+        from: 'db-primary',
+        to: 'db-replica',
+        label: 'Replication',
+        type: 'dashed',
+      },
+      { from: 'db-primary', to: 'db-dr', label: 'DR Sync', type: 'dashed' },
+      // API -> Storage
+      { from: 'api-icn-01', to: 'nfs', label: 'File I/O', type: 'dashed' },
+      { from: 'api-pus-01', to: 's3gw', label: 'Object Store', type: 'dashed' },
+    ],
+  },
 };
 
 /**
