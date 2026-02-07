@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { getCorsHeaders } from '@/lib/api/cors';
 import { logger } from '@/lib/logging';
 
 // Edge Runtime 사용 (빠른 응답, 낮은 비용)
@@ -105,13 +106,12 @@ export function GET() {
 }
 
 // OPTIONS 메서드 지원 (CORS preflight)
-export function OPTIONS() {
+export function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      ...getCorsHeaders(origin),
       'Cache-Control': 'public, max-age=86400',
     },
   });

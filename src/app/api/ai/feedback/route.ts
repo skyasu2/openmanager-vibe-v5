@@ -2,6 +2,7 @@ export const maxDuration = 10; // Vercel Free Tier
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { aiLogger } from '@/lib/logger';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 
@@ -13,15 +14,16 @@ import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
  * 사용자 피드백 (👍/👎)을 수집하여 AI 품질 개선에 활용
  *
  * @version 1.1.0 - Rate Limiting 추가 (2026-01-03)
+ * @version 1.2.0 - Zod 스키마 검증 추가
  */
 
-interface FeedbackRequest {
-  messageId: string;
-  type: 'positive' | 'negative';
-  timestamp?: string;
-  sessionId?: string;
-  traceId?: string;
-}
+const FeedbackRequestSchema = z.object({
+  messageId: z.string().min(1),
+  type: z.enum(['positive', 'negative']),
+  timestamp: z.string().optional(),
+  sessionId: z.string().optional(),
+  traceId: z.string().optional(),
+});
 
 interface FeedbackLog {
   messageId: string;
@@ -35,23 +37,20 @@ const feedbackStore: FeedbackLog[] = [];
 
 async function handlePOST(request: NextRequest) {
   try {
-    const body: FeedbackRequest = await request.json();
+    const rawBody = await request.json();
+    const parsed = FeedbackRequestSchema.safeParse(rawBody);
 
-    // 필수 필드 검증
-    if (!body.messageId || !body.type) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: messageId, type' },
+        {
+          error: 'Validation failed',
+          details: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
 
-    // 타입 검증
-    if (body.type !== 'positive' && body.type !== 'negative') {
-      return NextResponse.json(
-        { error: 'Invalid feedback type. Must be "positive" or "negative"' },
-        { status: 400 }
-      );
-    }
+    const body = parsed.data;
 
     const feedbackLog: FeedbackLog = {
       messageId: body.messageId,

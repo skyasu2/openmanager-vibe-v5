@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
+import { getCorsHeaders } from '@/lib/api/cors';
 import { logger } from '@/lib/logging';
 import {
   validateQueryParams,
@@ -202,6 +203,7 @@ export class ApiRouteBuilder<
         }
 
         // 성공 응답 (CORS 헤더 포함)
+        const origin = request.headers.get('origin');
         const response = NextResponse.json(
           {
             success: true,
@@ -209,11 +211,7 @@ export class ApiRouteBuilder<
             timestamp: new Date().toISOString(),
           },
           {
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            },
+            headers: getCorsHeaders(origin),
           }
         );
 
@@ -363,17 +361,16 @@ export async function rateLimitMiddleware(
  * CORS 미들웨어
  */
 export async function corsMiddleware(
-  origin = '*',
   methods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 ) {
   return async (request: NextRequest): Promise<NextRequest | NextResponse> => {
     if (request.method === 'OPTIONS') {
+      const requestOrigin = request.headers.get('origin');
       return new NextResponse(null, {
         status: 200,
         headers: {
-          'Access-Control-Allow-Origin': origin,
+          ...getCorsHeaders(requestOrigin),
           'Access-Control-Allow-Methods': methods.join(', '),
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       });
     }

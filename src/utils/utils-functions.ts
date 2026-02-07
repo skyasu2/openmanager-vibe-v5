@@ -486,43 +486,6 @@ export function sortBy<T>(
 }
 
 /**
- * Get status color based on status type
- * @param status - Status type
- * @returns Tailwind color class
- */
-export function getStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    healthy: 'text-green-600',
-    warning: 'text-yellow-600',
-    critical: 'text-red-600',
-    offline: 'text-gray-600',
-    maintenance: 'text-blue-600',
-    active: 'text-green-600',
-    resolved: 'text-gray-600',
-    acknowledged: 'text-yellow-600',
-  };
-  return colors[status.toLowerCase()] || 'text-gray-600';
-}
-
-/**
- * Get severity icon based on severity level
- * @param severity - Severity level
- * @returns Icon emoji
- */
-export function getSeverityIcon(severity: string): string {
-  const icons: Record<string, string> = {
-    low: '🟢',
-    medium: '🟡',
-    high: '🟠',
-    critical: '🔴',
-    info: 'info',
-    warning: 'alert-triangle',
-    error: 'x-circle',
-  };
-  return icons[severity.toLowerCase()] || '⚪';
-}
-
-/**
  * Format number with commas
  * @param num - Number to format
  * @returns Formatted number string

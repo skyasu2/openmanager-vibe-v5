@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getCorsHeaders } from '@/lib/api/cors';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   type PaginatedServer,
@@ -261,13 +262,10 @@ export async function POST(request: NextRequest) {
 /**
  * OPTIONS - CORS 지원
  */
-export function OPTIONS(_request: NextRequest) {
+export function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
+    headers: getCorsHeaders(origin),
   });
 }

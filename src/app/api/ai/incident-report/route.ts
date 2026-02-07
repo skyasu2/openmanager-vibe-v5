@@ -10,6 +10,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getDefaultTimeout } from '@/config/ai-proxy.config';
 import {
   type CacheableAIResponse,
@@ -35,6 +36,15 @@ export const runtime = 'nodejs';
 // ============================================================================
 export const maxDuration = 10; // 🔧 현재: Free tier
 
+const IncidentReportRequestSchema = z
+  .object({
+    action: z.string().min(1),
+    serverId: z.string().optional(),
+    sessionId: z.string().optional(),
+    severity: z.string().optional(),
+  })
+  .passthrough(); // Cloud Run으로 전달하는 추가 필드 허용
+
 // Types (Minimal for response typing)
 interface IncidentReport {
   id: string;
@@ -58,7 +68,21 @@ interface IncidentReport {
  */
 async function postHandler(request: NextRequest) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = IncidentReportRequestSchema.safeParse(rawBody);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation failed',
+          details: parsed.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const body = parsed.data;
     const { action, serverId } = body;
     const sessionId = body.sessionId ?? `incident_${serverId ?? 'system'}`;
     const cacheQuery = `${action}:${serverId ?? 'all'}:${body.severity ?? 'any'}`;

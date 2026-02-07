@@ -142,24 +142,6 @@ export function shouldSendWebNotification(
 }
 
 /**
- * 🎨 상태별 UI 색상 반환
- */
-export function getStatusColor(
-  status: 'online' | 'warning' | 'critical'
-): string {
-  switch (status) {
-    case 'online':
-      return 'text-green-600';
-    case 'warning':
-      return 'text-yellow-600';
-    case 'critical':
-      return 'text-red-600';
-    default:
-      return 'text-gray-600';
-  }
-}
-
-/**
  * 🎨 상태별 배경 색상 반환
  */
 export function getStatusBgColor(

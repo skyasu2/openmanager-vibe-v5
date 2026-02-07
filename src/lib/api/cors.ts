@@ -3,43 +3,62 @@
  * API 라우트에서 사용하는 공통 CORS 헤더
  */
 
-// 개발/프로덕션 환경별 도메인 설정
-const getAllowedOrigin = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000';
-  }
-  // Vercel 프로덕션 도메인
-  return (
-    process.env.NEXT_PUBLIC_APP_URL || 'https://openmanager-vibe-v5.vercel.app'
-  );
-};
-
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': getAllowedOrigin(),
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Allow-Credentials': 'true',
-};
+const ALLOWED_ORIGINS = [
+  'https://openmanager-vibe-v5.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
 
 /**
- * 더 엄격한 CORS 설정이 필요한 경우 사용
+ * 요청 origin이 허용된 origin인지 확인
  */
-export const strictCorsHeaders = {
-  'Access-Control-Allow-Origin':
-    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Allow-Credentials': 'true',
-};
+function resolveOrigin(requestOrigin?: string | null): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    ALLOWED_ORIGINS.push(appUrl);
+  }
+
+  // Vercel Preview URL 패턴 허용
+  if (requestOrigin?.endsWith('.vercel.app')) {
+    return requestOrigin;
+  }
+
+  if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+
+  return appUrl || 'https://openmanager-vibe-v5.vercel.app';
+}
+
+/**
+ * 동적 CORS 헤더 생성
+ * @param requestOrigin - Request의 Origin 헤더 값
+ */
+export function getCorsHeaders(
+  requestOrigin?: string | null
+): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': resolveOrigin(requestOrigin),
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+}
+
+/**
+ * 정적 CORS 헤더 (하위 호환용)
+ * 새 코드에서는 getCorsHeaders()를 사용하세요
+ */
+export const corsHeaders = getCorsHeaders();
 
 /**
  * OPTIONS 요청을 처리하는 헬퍼 함수
  */
-export function handleOptionsRequest() {
+export function handleOptionsRequest(request?: Request) {
+  const origin = request?.headers.get('origin');
   return new Response(null, {
     status: 200,
-    headers: corsHeaders,
+    headers: getCorsHeaders(origin),
   });
 }

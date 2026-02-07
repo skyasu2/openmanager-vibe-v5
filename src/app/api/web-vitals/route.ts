@@ -12,6 +12,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { getCorsHeaders } from '@/lib/api/cors';
 import { logger } from '@/lib/logging';
 
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
@@ -192,15 +193,14 @@ export async function POST(request: NextRequest) {
     };
 
     // 🚀 Edge Runtime 최적화 헤더
+    const origin = request.headers.get('origin');
     const headers = new Headers({
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store', // 실시간 데이터
       'X-Edge-Runtime': 'vercel',
       'X-Processing-Time': processingTime.toString(),
       'X-Device-Type': deviceType,
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      ...getCorsHeaders(origin),
     });
 
     return NextResponse.json(response, { headers });
@@ -259,13 +259,12 @@ export function GET() {
  * 🔧 OPTIONS /api/web-vitals
  * CORS 및 프리플라이트 요청 처리
  */
-export function OPTIONS() {
+export function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      ...getCorsHeaders(origin),
       'X-Runtime': 'edge',
     },
   });

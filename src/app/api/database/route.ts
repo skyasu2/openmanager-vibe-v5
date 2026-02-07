@@ -22,8 +22,35 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
+
+const DatabaseViewSchema = z.enum(['pool', 'readonly']).optional();
+
+const DatabaseActionSchema = z.object({
+  action: z.enum([
+    'health_check',
+    'refresh_connections',
+    'clear_cache',
+    'reset_pool',
+    'set_readonly',
+    'emergency_readonly',
+    'restore_readwrite',
+  ]),
+  force: z.boolean().optional(),
+  config: z
+    .object({
+      maxConnections: z.number().optional(),
+      minConnections: z.number().optional(),
+      acquireTimeout: z.number().optional(),
+      idleTimeout: z.number().optional(),
+    })
+    .optional(),
+  enabled: z.boolean().optional(),
+  reason: z.string().optional(),
+  duration: z.number().positive().optional(),
+});
 
 export const runtime = 'nodejs';
 
@@ -202,7 +229,18 @@ async function setReadOnlyMode(enabled: boolean, reason?: string) {
 async function getHandler(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
-    const view = searchParams.get('view');
+    const rawView = searchParams.get('view') || undefined;
+    const viewParsed = DatabaseViewSchema.safeParse(rawView);
+    if (!viewParsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid view parameter. Must be "pool" or "readonly"',
+        },
+        { status: 400 }
+      );
+    }
+    const view = viewParsed.data;
     const detailed = searchParams.get('detailed') === 'true';
 
     debug.log('🔍 Database GET requested:', { view, detailed });
@@ -281,7 +319,21 @@ async function getHandler(request: NextRequest): Promise<NextResponse> {
 
 async function postHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = DatabaseActionSchema.safeParse(rawBody);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation failed',
+          details: parsed.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const body = parsed.data;
     const { action } = body;
 
     debug.log('🔧 Database POST action:', action);

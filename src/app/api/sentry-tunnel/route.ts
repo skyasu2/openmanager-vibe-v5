@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { getCorsHeaders } from '@/lib/api/cors';
 
 // Sentry DSN 파싱
 const SENTRY_DSN =
@@ -60,13 +61,10 @@ export async function POST(request: Request) {
 }
 
 // OPTIONS for CORS preflight
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
+  const origin = request.headers.get('origin');
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    headers: getCorsHeaders(origin),
   });
 }
