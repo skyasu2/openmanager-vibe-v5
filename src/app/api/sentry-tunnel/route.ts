@@ -39,10 +39,7 @@ export async function POST(request: Request) {
 
     const sentryUrl = getSentryIngestUrl();
     if (!sentryUrl) {
-      return NextResponse.json(
-        { error: 'Sentry DSN not configured' },
-        { status: 503 }
-      );
+      return new NextResponse(null, { status: 204 });
     }
 
     // Sentry로 이벤트 전달

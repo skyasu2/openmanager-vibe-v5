@@ -16,7 +16,11 @@
  * @updated 2026-01-24 - Implemented Upstash-compatible resumable stream
  */
 
-import { generateId } from 'ai';
+import {
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateId,
+} from 'ai';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -59,6 +63,25 @@ const UI_MESSAGE_STREAM_HEADERS = {
   Connection: 'keep-alive',
   'x-vercel-ai-ui-message-stream': 'v1',
 };
+
+/** Cloud Run 연결 실패 시 UIMessageStream 형식으로 에러 반환 */
+function createStreamErrorResponse(errorMessage: string): Response {
+  const stream = createUIMessageStream({
+    execute: async ({ writer }) => {
+      const errorId = `error-${generateId()}`;
+      writer.write({ type: 'text-start', id: errorId });
+      writer.write({
+        type: 'text-delta',
+        id: errorId,
+        delta: `⚠️ 오류: ${errorMessage}`,
+      });
+      writer.write({ type: 'text-end', id: errorId });
+      writer.write({ type: 'error', errorText: errorMessage });
+    },
+  });
+
+  return createUIMessageStreamResponse({ stream });
+}
 
 // ============================================================================
 // 🔁 GET - Resume Stream (Upstash-compatible polling)
@@ -340,12 +363,8 @@ export const POST = withRateLimit(
             `❌ [SupervisorStreamV2] Cloud Run error: ${cloudRunResponse.status} - ${errorText}`
           );
 
-          return NextResponse.json(
-            {
-              success: false,
-              error: `Stream error: ${cloudRunResponse.status}`,
-            },
-            { status: cloudRunResponse.status }
+          return createStreamErrorResponse(
+            `AI 엔진 오류 (${cloudRunResponse.status}). 잠시 후 다시 시도해주세요.`
           );
         }
 
@@ -390,9 +409,8 @@ export const POST = withRateLimit(
 
         if (error instanceof Error && error.name === 'AbortError') {
           logger.error('❌ [SupervisorStreamV2] Request timeout');
-          return NextResponse.json(
-            { success: false, error: 'Stream timeout', sessionId },
-            { status: 504 }
+          return createStreamErrorResponse(
+            'AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.'
           );
         }
 
@@ -402,13 +420,8 @@ export const POST = withRateLimit(
       }
     } catch (error) {
       logger.error('❌ [SupervisorStreamV2] Error:', error);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Stream processing failed',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-        { status: 500 }
+      return createStreamErrorResponse(
+        'AI 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   })
