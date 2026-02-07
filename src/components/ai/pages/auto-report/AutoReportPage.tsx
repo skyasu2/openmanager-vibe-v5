@@ -21,6 +21,7 @@
 
 import { AlertCircle, FileText, History, RefreshCw, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { rulesLoader } from '@/config/rules/loader';
 import { useServerQuery } from '@/hooks/useServerQuery';
 import { logger } from '@/lib/logging';
 
@@ -107,21 +108,23 @@ export default function AutoReportPage() {
               warningServers: apiSystemSummary.warning_servers ?? 0,
               criticalServers: apiSystemSummary.critical_servers ?? 0,
             }
-          : {
-              totalServers: metrics.length,
-              healthyServers: metrics.filter(
-                (m) => m.cpu < 70 && m.memory < 70 && m.disk < 80
-              ).length,
-              warningServers: metrics.filter(
-                (m) =>
-                  (m.cpu >= 70 && m.cpu < 85) ||
-                  (m.memory >= 70 && m.memory < 85) ||
-                  (m.disk >= 80 && m.disk < 90)
-              ).length,
-              criticalServers: metrics.filter(
-                (m) => m.cpu >= 85 || m.memory >= 85 || m.disk >= 90
-              ).length,
-            };
+          : (() => {
+              const statusCounts = { online: 0, warning: 0, critical: 0 };
+              for (const m of metrics) {
+                const status = rulesLoader.getServerStatus({
+                  cpu: m.cpu,
+                  memory: m.memory,
+                  disk: m.disk,
+                });
+                statusCounts[status]++;
+              }
+              return {
+                totalServers: metrics.length,
+                healthyServers: statusCounts.online,
+                warningServers: statusCounts.warning,
+                criticalServers: statusCounts.critical,
+              };
+            })();
 
         // 이상 항목: API 데이터 우선, 없으면 로컬 계산
         const apiAnomalies = data.report.anomalies;
@@ -129,32 +132,55 @@ export default function AutoReportPage() {
           Array.isArray(apiAnomalies) && apiAnomalies.length > 0
             ? apiAnomalies
             : metrics
-                .filter((m) => m.cpu >= 70 || m.memory >= 70 || m.disk >= 80)
+                .filter(
+                  (m) =>
+                    rulesLoader.isWarning('cpu', m.cpu) ||
+                    rulesLoader.isCritical('cpu', m.cpu) ||
+                    rulesLoader.isWarning('memory', m.memory) ||
+                    rulesLoader.isCritical('memory', m.memory) ||
+                    rulesLoader.isWarning('disk', m.disk) ||
+                    rulesLoader.isCritical('disk', m.disk)
+                )
                 .flatMap((m) => {
                   const items = [];
-                  if (m.cpu >= 70)
+                  if (
+                    rulesLoader.isWarning('cpu', m.cpu) ||
+                    rulesLoader.isCritical('cpu', m.cpu)
+                  )
                     items.push({
                       server_id: m.server_id,
                       server_name: m.server_name,
                       metric: 'CPU',
                       value: m.cpu,
-                      severity: m.cpu >= 85 ? 'critical' : 'warning',
+                      severity: rulesLoader.isCritical('cpu', m.cpu)
+                        ? 'critical'
+                        : 'warning',
                     });
-                  if (m.memory >= 70)
+                  if (
+                    rulesLoader.isWarning('memory', m.memory) ||
+                    rulesLoader.isCritical('memory', m.memory)
+                  )
                     items.push({
                       server_id: m.server_id,
                       server_name: m.server_name,
                       metric: 'Memory',
                       value: m.memory,
-                      severity: m.memory >= 85 ? 'critical' : 'warning',
+                      severity: rulesLoader.isCritical('memory', m.memory)
+                        ? 'critical'
+                        : 'warning',
                     });
-                  if (m.disk >= 80)
+                  if (
+                    rulesLoader.isWarning('disk', m.disk) ||
+                    rulesLoader.isCritical('disk', m.disk)
+                  )
                     items.push({
                       server_id: m.server_id,
                       server_name: m.server_name,
                       metric: 'Disk',
                       value: m.disk,
-                      severity: m.disk >= 90 ? 'critical' : 'warning',
+                      severity: rulesLoader.isCritical('disk', m.disk)
+                        ? 'critical'
+                        : 'warning',
                     });
                   return items;
                 });

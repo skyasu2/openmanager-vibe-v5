@@ -130,6 +130,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       () => historyData?.map((h) => h.memory),
       [historyData]
     );
+    const diskHistory = useMemo(
+      () => historyData?.map((h) => h.disk),
+      [historyData]
+    );
 
     // UI Variants - 높이 증가 (그래프 영역 확대)
     const variantStyles = useMemo(() => {
@@ -333,8 +337,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             <AIInsightBadge {...realtimeMetrics} historyData={historyData} />
           </div>
 
-          {/* 🎨 Core Metrics - 개선된 그리드 */}
-          <div className="grid grid-cols-2 gap-3 px-0.5">
+          {/* 🎨 Core Metrics - 개선된 그리드 (CPU/Memory/Disk) */}
+          <div className="grid grid-cols-3 gap-2 px-0.5">
             <MetricItem
               type="cpu"
               value={realtimeMetrics.cpu}
@@ -347,6 +351,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               value={realtimeMetrics.memory}
               status={safeServer.status}
               history={memoryHistory}
+              color={statusTheme.graphColor}
+            />
+            <MetricItem
+              type="disk"
+              value={realtimeMetrics.disk}
+              status={safeServer.status}
+              history={diskHistory}
               color={statusTheme.graphColor}
             />
           </div>
