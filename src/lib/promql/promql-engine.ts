@@ -55,6 +55,21 @@ const QUERY_MAX_LENGTH = 512;
 const QUERY_MAX_MATCHERS = 10;
 const LABEL_VALUE_MAX_LENGTH = 128;
 
+const regexCache = new Map<string, RegExp>();
+
+function getCachedRegex(pattern: string): RegExp | null {
+  const cached = regexCache.get(pattern);
+  if (cached) return cached;
+  try {
+    const re = new RegExp(pattern);
+    if (regexCache.size > 100) regexCache.clear();
+    regexCache.set(pattern, re);
+    return re;
+  } catch {
+    return null;
+  }
+}
+
 // ============================================================================
 // Metric Name → Prometheus Target Field Mapping
 // ============================================================================
@@ -197,19 +212,13 @@ function matchLabels(
         if (labelValue === m.value) return false;
         break;
       case '=~': {
-        try {
-          if (!new RegExp(m.value).test(labelValue)) return false;
-        } catch {
-          return false;
-        }
+        const reMatch = getCachedRegex(m.value);
+        if (!reMatch || !reMatch.test(labelValue)) return false;
         break;
       }
       case '!~': {
-        try {
-          if (new RegExp(m.value).test(labelValue)) return false;
-        } catch {
-          return false;
-        }
+        const reNeg = getCachedRegex(m.value);
+        if (!reNeg || reNeg.test(labelValue)) return false;
         break;
       }
     }
