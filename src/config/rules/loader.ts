@@ -86,9 +86,10 @@ class RulesLoader implements IRulesLoader {
    * Supabase에서 규칙 로드 (서버 사이드 전용)
    */
   private async loadFromSupabase(): Promise<SystemRules | null> {
-    // 클라이언트 사이드에서는 API 사용
+    // 클라이언트 사이드에서는 JSON 폴백만 사용
     if (typeof window !== 'undefined') {
-      return this.loadFromAPI();
+      logger.info('ℹ️ 클라이언트에서 JSON 규칙 사용');
+      return null;
     }
 
     try {
@@ -119,16 +120,6 @@ class RulesLoader implements IRulesLoader {
       logger.warn('⚠️ Supabase 연결 실패, JSON 폴백 사용:', err);
       return null;
     }
-  }
-
-  /**
-   * 클라이언트 사이드: JSON 폴백 사용
-   * v3.0: /api/rules 제거됨 (Dead Code 정리)
-   */
-  private async loadFromAPI(): Promise<SystemRules | null> {
-    // 클라이언트에서는 JSON 폴백만 사용
-    logger.info('ℹ️ 클라이언트에서 JSON 규칙 사용');
-    return null;
   }
 
   /**

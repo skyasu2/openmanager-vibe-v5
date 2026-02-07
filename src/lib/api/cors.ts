@@ -9,17 +9,21 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3001',
 ];
 
+/** Vercel Preview URL 패턴: openmanager-vibe-v5-*.vercel.app */
+const VERCEL_PREVIEW_PATTERN =
+  /^https:\/\/openmanager-vibe-v5-[a-z0-9-]+\.vercel\.app$/;
+
 /**
  * 요청 origin이 허용된 origin인지 확인
  */
 function resolveOrigin(requestOrigin?: string | null): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (appUrl) {
+  if (appUrl && !ALLOWED_ORIGINS.includes(appUrl)) {
     ALLOWED_ORIGINS.push(appUrl);
   }
 
-  // Vercel Preview URL 패턴 허용
-  if (requestOrigin?.endsWith('.vercel.app')) {
+  // Vercel Preview URL: 프로젝트 소유 프리뷰만 허용
+  if (requestOrigin && VERCEL_PREVIEW_PATTERN.test(requestOrigin)) {
     return requestOrigin;
   }
 

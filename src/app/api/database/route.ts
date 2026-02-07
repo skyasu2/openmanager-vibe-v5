@@ -408,7 +408,11 @@ async function postHandler(request: NextRequest): Promise<NextResponse> {
         // Auto-disable after duration
         if (enabled && duration && duration > 0) {
           setTimeout(() => {
-            void setReadOnlyMode(false, 'Auto-disable after duration');
+            setReadOnlyMode(false, 'Auto-disable after duration').catch(
+              (err) => {
+                debug.error('❌ Failed to auto-disable readonly mode:', err);
+              }
+            );
           }, duration);
         }
 

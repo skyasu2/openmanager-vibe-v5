@@ -130,7 +130,7 @@ class UniversalVitalsAnalyzer {
 
   // 📊 카테고리별 메트릭 분석
   private analyzeCategoryMetrics(
-    _category: VitalCategory,
+    _category: VitalCategory, // 향후 카테고리별 가중치 적용 예정
     metrics: UniversalVital[]
   ) {
     const good = metrics.filter((m) => m.rating === 'good').length;
