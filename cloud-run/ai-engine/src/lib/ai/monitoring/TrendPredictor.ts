@@ -298,6 +298,20 @@ export class TrendPredictor {
     const currentValue = basePrediction.details.currentValue;
     const slope = basePrediction.details.slope;
 
+    // 1.5. 백분율 메트릭(cpu/memory/disk/network)은 0-100 범위로 클램핑
+    const percentMetrics = new Set(['cpu', 'memory', 'disk', 'network']);
+    if (percentMetrics.has(metricName)) {
+      const clamped = Math.max(0, Math.min(100, basePrediction.prediction));
+      if (clamped !== basePrediction.prediction) {
+        basePrediction.prediction = clamped;
+        basePrediction.details.predictedChange = clamped - currentValue;
+        basePrediction.details.predictedChangePercent =
+          currentValue !== 0
+            ? ((clamped - currentValue) / currentValue) * 100
+            : 0;
+      }
+    }
+
     // 2. 임계값 가져오기
     const thresholds = this.thresholds[metricName] || DEFAULT_THRESHOLDS.cpu;
 

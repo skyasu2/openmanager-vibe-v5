@@ -413,10 +413,16 @@ export const predictTrends = tool({
             // 🆕 Use enhanced prediction
             const prediction = predictor.predictEnhanced(trendHistory, metric);
 
+            // 백분율 메트릭은 0-100 범위로 클램핑 (이중 안전장치)
+            const clampedPrediction = Math.max(
+              0,
+              Math.min(100, prediction.prediction)
+            );
+
             results[metric] = {
               trend: prediction.trend,
               currentValue,
-              predictedValue: Math.round(prediction.prediction * 100) / 100,
+              predictedValue: Math.round(clampedPrediction * 100) / 100,
               changePercent:
                 Math.round(prediction.details.predictedChangePercent * 100) / 100,
               confidence: Math.round(prediction.confidence * 100) / 100,

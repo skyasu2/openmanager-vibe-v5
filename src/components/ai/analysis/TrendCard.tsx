@@ -44,7 +44,7 @@ export function TrendCard({ metric, data }: TrendCardProps) {
         </span>
         <ArrowRight className="h-3 w-3 text-gray-400" />
         <span className={`text-2xl font-bold ${textColor}`}>
-          {Math.round(data.predictedValue)}%
+          {Math.min(100, Math.max(0, Math.round(data.predictedValue)))}%
         </span>
       </div>
 
