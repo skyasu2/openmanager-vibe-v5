@@ -77,7 +77,9 @@ export const MessageActions = memo(function MessageActions({
   const isAssistant = role === 'assistant';
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div
+      className={`flex items-center gap-1.5 rounded-lg bg-gray-50 px-1.5 py-0.5 ${className}`}
+    >
       {/* 복사 버튼 */}
       <button
         type="button"

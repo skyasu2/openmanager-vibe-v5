@@ -86,14 +86,25 @@ export function SystemStartSection({
 
       {/* AI 어시스턴트 안내 */}
       <div className="flex justify-center text-sm">
-        <div className="max-w-md rounded-lg bg-white/5 p-2 sm:p-3">
-          <div className="mb-1 flex items-center justify-center gap-2">
+        <div className="max-w-md rounded-lg bg-gradient-to-br from-purple-600/10 to-blue-600/10 border border-white/10 p-3 sm:p-4">
+          <div className="mb-2 flex items-center justify-center gap-2">
             {isMounted && <Bot className="h-4 w-4 text-purple-400" />}
             <span className="font-semibold">AI 어시스턴트</span>
           </div>
           <p className="text-center text-white/90">
             시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
           </p>
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <span className="rounded-full bg-purple-500/15 px-2 py-0.5 text-xs text-purple-300">
+              장애 분석
+            </span>
+            <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300">
+              성능 예측
+            </span>
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
+              보고서 생성
+            </span>
+          </div>
         </div>
       </div>
     </div>

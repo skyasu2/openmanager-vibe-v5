@@ -1,7 +1,7 @@
 'use client';
 
 // Icons
-import { Bot, User } from 'lucide-react';
+import { Bot, Cpu, User } from 'lucide-react';
 import {
   type FC,
   memo,
@@ -161,11 +161,25 @@ const MessageComponent = memo<{
               )}
           </div>
 
-          {/* 📎 웹 출처 카드 + 📊 분석 근거 뱃지 (assistant 메시지 + 스트리밍 완료 시) */}
+          {/* 인라인 메타데이터 + 분석 근거 (assistant 메시지 + 스트리밍 완료 + analysisBasis 있을 때만) */}
           {message.role === 'assistant' &&
             !message.isStreaming &&
             message.metadata?.analysisBasis && (
               <>
+                {/* 인라인 소스 메타 */}
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
+                  <Cpu className="h-3 w-3 text-slate-400" />
+                  <span>Cloud AI</span>
+                  <span className="text-slate-300">&middot;</span>
+                  <span>실시간 메트릭</span>
+                  {message.metadata.analysisBasis.ragSources &&
+                    message.metadata.analysisBasis.ragSources.length > 0 && (
+                      <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-600">
+                        RAG
+                      </span>
+                    )}
+                </div>
+                {/* 웹 출처 카드 + 분석 근거 뱃지 */}
                 <WebSourceCards
                   sources={(
                     message.metadata.analysisBasis.ragSources ?? []

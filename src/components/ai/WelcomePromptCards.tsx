@@ -20,37 +20,43 @@ export interface StarterPrompt {
   icon: LucideIcon;
   title: string;
   prompt: string;
-  gradient: string;
+  iconBg: string;
+  iconColor: string;
 }
 
 /**
  * 기본 제안 프롬프트 목록
  * - 서버 모니터링 도메인에 최적화
+ * - slate/blue 단색 아이콘 (무지개 그라데이션 제거)
  */
 export const STARTER_PROMPTS: StarterPrompt[] = [
   {
     icon: Server,
     title: '서버 상태 확인',
     prompt: '현재 모든 서버의 상태를 요약해줘',
-    gradient: 'from-blue-500 to-cyan-500',
+    iconBg: 'bg-slate-100',
+    iconColor: 'text-slate-600',
   },
   {
     icon: AlertTriangle,
     title: '장애 분석',
     prompt: 'CPU 사용률이 높은 서버를 찾아줘',
-    gradient: 'from-amber-500 to-orange-500',
+    iconBg: 'bg-slate-100',
+    iconColor: 'text-slate-600',
   },
   {
     icon: TrendingUp,
     title: '성능 예측',
     prompt: '다음 24시간 트래픽 패턴을 예측해줘',
-    gradient: 'from-emerald-500 to-teal-500',
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
   },
   {
     icon: FileText,
     title: '보고서 생성',
     prompt: '오늘의 시스템 요약 보고서를 만들어줘',
-    gradient: 'from-purple-500 to-pink-500',
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
   },
 ];
 
@@ -74,13 +80,13 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
     <div className="flex h-full flex-col items-center justify-center py-12">
       {/* 로고 및 인사말 */}
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-purple-500 to-blue-600 shadow-lg">
-          <Bot className="h-8 w-8 text-white" aria-hidden="true" />
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-800">
+          <Bot className="h-6 w-6 text-white" aria-hidden="true" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-gray-900">
           무엇을 도와드릴까요?
         </h2>
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 text-sm text-gray-500">
           서버 모니터링, 장애 분석, 성능 예측을 도와드립니다
         </p>
       </div>
@@ -94,15 +100,16 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
               type="button"
               key={card.title}
               onClick={() => onPromptClick(card.prompt)}
-              className="group rounded-xl border border-gray-200 bg-white p-4 text-left
-                         shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50/50
-                         hover:shadow-md"
+              className="group rounded-lg border border-gray-200 bg-white p-4 text-left
+                         transition-all hover:border-blue-200 hover:shadow-sm"
             >
               <div
-                className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg
-                            bg-linear-to-br ${card.gradient} shadow-sm`}
+                className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${card.iconBg}`}
               >
-                <Icon className="h-4 w-4 text-white" aria-hidden="true" />
+                <Icon
+                  className={`h-4 w-4 ${card.iconColor}`}
+                  aria-hidden="true"
+                />
               </div>
               <h4 className="font-medium text-gray-900 group-hover:text-blue-700">
                 {card.title}
