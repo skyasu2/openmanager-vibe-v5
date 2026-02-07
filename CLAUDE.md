@@ -20,7 +20,7 @@ npm run release:patch       # 버전 릴리스
 상세 규칙은 `.claude/rules/`에서 자동으로 로드됩니다:
 - `code-style.md` - 코드 스타일, TypeScript 규칙
 - `architecture.md` - 하이브리드 아키텍처
-- `ai-tools.md` - MCP, Skills, CLI 도구
+- `ai-tools.md` - MCP, Skills, CLI 도구, **Agent Teams**
 - `testing.md` - 테스트 전략
 - `deployment.md` - 배포 워크플로우
 - `env-sync.md` - 환경변수 동기화

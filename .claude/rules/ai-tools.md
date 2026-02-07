@@ -58,6 +58,61 @@
 | `claude-code-guide` | Claude Code 공식 문서 |
 | `statusline-setup` | 상태라인 설정 |
 
+## Agent Teams (3팀 구성)
+
+> 활성화: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (settings.json)
+
+### Team 1: Dashboard & Metrics
+| Teammate | 담당 | 파일 경계 |
+|----------|------|----------|
+| ui | 컴포넌트 UI | `components/dashboard/`, `components/charts/`, `components/ui/` |
+| data | 데이터 레이어 | `services/metrics/`, `hooks/api/`, `stores/`, `data/` |
+
+프롬프트 예시:
+```
+Create an agent team for dashboard work:
+- "ui": owns src/components/dashboard/ and src/components/charts/
+- "data": owns src/services/metrics/, src/hooks/api/, src/stores/
+No shared file edits between teammates.
+```
+
+### Team 2: AI & Chat
+| Teammate | 담당 | 파일 경계 |
+|----------|------|----------|
+| frontend-ai | AI UI/훅 | `components/ai/`, `components/ai-sidebar/`, `hooks/ai/` |
+| backend-ai | API/로직 | `app/api/ai/`, `lib/ai/`, `services/rag/` |
+| engine | Cloud Run | `cloud-run/ai-engine/` |
+
+프롬프트 예시:
+```
+Create an agent team for AI feature work:
+- "frontend-ai": owns src/components/ai/, src/hooks/ai/
+- "backend-ai": owns src/app/api/ai/, src/lib/ai/
+- "engine": owns cloud-run/ai-engine/
+Each teammate must not edit files outside their domain.
+```
+
+### Team 3: Quality & Review (읽기 전용)
+| Teammate | 관점 | 초점 |
+|----------|------|------|
+| security | 보안 리뷰 | OWASP Top 10, 입력 검증, 인증 |
+| performance | 성능 리뷰 | 번들, 렌더링, API 응답시간 |
+| test | 테스트 리뷰 | 커버리지 갭, 엣지 케이스 |
+
+프롬프트 예시:
+```
+Create an agent team to review recent changes:
+- "security": review for OWASP top 10 vulnerabilities
+- "performance": review for bundle size, render cycles, API latency
+- "test": review for coverage gaps and edge cases
+Have them challenge each other's findings.
+```
+
+### 사용 주의사항
+- WSL 환경: split-pane 미지원, in-process 모드만 사용
+- 토큰 비용: teammate 수에 비례 증가, 필요시만 spawn
+- 파일 충돌 방지: teammate별 파일 경계 반드시 명시
+
 ## Permission Pattern (Best Practice)
 
 ```json
