@@ -263,6 +263,16 @@ export const circuitBreakerEvents = new CircuitBreakerEventEmitter();
 // Circuit Breaker 구현
 // ============================================================================
 
+/**
+ * AI 서비스 Circuit Breaker
+ *
+ * ⚠️ 서버리스 한계: 이 클래스는 인스턴스별 로컬 상태를 사용합니다.
+ * Vercel 멀티 인스턴스 환경에서는 인스턴스 간 상태가 공유되지 않으므로,
+ * 인스턴스 A가 OPEN이어도 인스턴스 B는 CLOSED일 수 있습니다.
+ * executeWithCircuitBreakerAndFallback()가 Redis 분산 저장소 초기화를
+ * 시도하지만, 개별 breaker의 failures/state는 여전히 로컬입니다.
+ * Redis가 없는 Free Tier에서는 이 동작이 허용 가능합니다.
+ */
 export class AIServiceCircuitBreaker {
   private failures = 0;
   private readonly threshold: number;

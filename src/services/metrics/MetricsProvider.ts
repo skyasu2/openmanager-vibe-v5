@@ -411,6 +411,13 @@ export class MetricsProvider {
     return MetricsProvider.instance;
   }
 
+  /** 테스트 격리용: 싱글톤 인스턴스 및 캐시 리셋 */
+  static resetForTesting(): void {
+    if (process.env.NODE_ENV !== 'test') return;
+    MetricsProvider.instance = undefined as unknown as MetricsProvider;
+    cachedHourlyData = null;
+  }
+
   /**
    * 현재 시간 기준 단일 서버 메트릭 조회
    * Prometheus 포맷 JSON에서 변환

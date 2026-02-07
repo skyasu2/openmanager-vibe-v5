@@ -61,6 +61,13 @@ export class UnifiedServerDataSource {
     return UnifiedServerDataSource.instance;
   }
 
+  /** 테스트 격리용: 싱글톤 인스턴스 리셋 */
+  static resetForTesting(): void {
+    if (process.env.NODE_ENV !== 'test') return;
+    UnifiedServerDataSource.instance =
+      undefined as unknown as UnifiedServerDataSource;
+  }
+
   /**
    * 📋 데이터 소스 설정 로드
    */

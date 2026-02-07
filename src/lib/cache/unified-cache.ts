@@ -133,6 +133,7 @@ export class UnifiedCacheService {
     deletes: 0,
     namespaces: {} as Record<string, number>,
   };
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   // Singleton 인스턴스
   private static instance: UnifiedCacheService;
@@ -151,7 +152,7 @@ export class UnifiedCacheService {
         process.env.NODE_ENV !== 'test'
       ) {
         // Node.js Runtime: 5분마다 자동 정리
-        setInterval(() => this.cleanup(), 5 * 60 * 1000);
+        this.cleanupInterval = setInterval(() => this.cleanup(), 5 * 60 * 1000);
       } else {
         // Edge Runtime: 요청별 정리 (cleanup은 수동으로 호출됨)
         // 빌드 시에는 아무것도 하지 않음
@@ -164,11 +165,31 @@ export class UnifiedCacheService {
     }
   }
 
+  /**
+   * 타이머 정리 및 캐시 해제
+   * 프로세스 종료 시 고아 타이머 방지
+   */
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.cache.clear();
+    this.patterns.clear();
+  }
+
   static getInstance(): UnifiedCacheService {
     if (!UnifiedCacheService.instance) {
       UnifiedCacheService.instance = new UnifiedCacheService();
     }
     return UnifiedCacheService.instance;
+  }
+
+  /** 테스트 격리용: 싱글톤 인스턴스 리셋 */
+  static resetForTesting(): void {
+    if (process.env.NODE_ENV !== 'test') return;
+    UnifiedCacheService.instance?.destroy();
+    UnifiedCacheService.instance = undefined as unknown as UnifiedCacheService;
   }
 
   /**

@@ -29,16 +29,24 @@ export const runtime = 'nodejs';
 
 // ============================================================================
 // Shared State (for readonly mode)
-// ⚠️ Serverless 환경 주의: 인메모리 상태는 인스턴스 간 공유되지 않음.
-// 현재는 데모/포트폴리오용 시뮬레이션 데이터이므로 인메모리로 충분.
-// 프로덕션 전환 시 KV store(Upstash/Redis) 또는 Supabase로 마이그레이션 필요.
+// 환경변수 기반으로 초기 상태 결정.
+// 런타임 변경은 인스턴스 로컬 상태에만 적용됨 (데모/포트폴리오용).
 // ============================================================================
 
-let readOnlyMode = process.env.DB_READONLY_MODE === 'true';
+/**
+ * readOnly 상태를 환경변수에서 읽습니다.
+ * Vercel 서버리스에서 인스턴스 간 일관성을 위해 환경변수를 SSOT로 사용.
+ * 런타임 오버라이드는 해당 인스턴스 수명 동안만 유효합니다.
+ */
+let readOnlyOverride: boolean | null = null;
 let readOnlyReason = process.env.DB_READONLY_REASON || '';
-let readOnlyStartTime: string | null = readOnlyMode
-  ? new Date().toISOString()
-  : null;
+let readOnlyStartTime: string | null =
+  process.env.DB_READONLY_MODE === 'true' ? new Date().toISOString() : null;
+
+function isReadOnlyMode(): boolean {
+  if (readOnlyOverride !== null) return readOnlyOverride;
+  return process.env.DB_READONLY_MODE === 'true';
+}
 
 // ============================================================================
 // Database Status Functions
@@ -113,9 +121,10 @@ function getPoolStatus() {
 }
 
 function getReadonlyStatus() {
+  const enabled = isReadOnlyMode();
   return {
-    mode: readOnlyMode ? 'readonly' : 'readwrite',
-    enabled: readOnlyMode,
+    mode: enabled ? 'readonly' : 'readwrite',
+    enabled,
     reason: readOnlyReason,
     startTime: readOnlyStartTime,
     duration: readOnlyStartTime
@@ -168,7 +177,7 @@ async function setReadOnlyMode(enabled: boolean, reason?: string) {
   );
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  readOnlyMode = enabled;
+  readOnlyOverride = enabled;
   if (enabled) {
     readOnlyReason = reason || 'Manual activation';
     readOnlyStartTime = new Date().toISOString();
@@ -228,7 +237,7 @@ async function getHandler(request: NextRequest): Promise<NextResponse> {
             redis: status.redis.status,
             vector: status.vector.status,
             overall: status.overall.status,
-            readonly: readOnlyMode,
+            readonly: isReadOnlyMode(),
           },
           timestamp: new Date().toISOString(),
         },

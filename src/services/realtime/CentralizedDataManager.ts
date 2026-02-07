@@ -51,6 +51,14 @@ class CentralizedDataManager {
     return CentralizedDataManager.instance;
   }
 
+  /** 테스트 격리용: 싱글톤 인스턴스 리셋 */
+  static resetForTesting(): void {
+    if (process.env.NODE_ENV !== 'test') return;
+    CentralizedDataManager.instance?.cleanup();
+    CentralizedDataManager.instance =
+      undefined as unknown as CentralizedDataManager;
+  }
+
   /**
    * 구독 등록
    */
@@ -309,13 +317,18 @@ class CentralizedDataManager {
   }
 
   /**
-   * 정리
+   * 정리 (폴링 중지, 구독자/캐시 해제)
    */
   cleanup(): void {
     this.stopPolling();
     this.subscribers.clear();
     this.cache.clear();
     logger.info('🧹 중앙 데이터 관리자 정리 완료');
+  }
+
+  /** cleanup의 alias (일관된 lifecycle API) */
+  destroy(): void {
+    this.cleanup();
   }
 }
 

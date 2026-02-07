@@ -27,6 +27,13 @@ export class PerformanceService {
     return PerformanceService.instance;
   }
 
+  /** 테스트 격리용: 싱글톤 인스턴스 리셋 */
+  static resetForTesting(): void {
+    if (process.env.NODE_ENV !== 'test') return;
+    PerformanceService.instance?.destroy();
+    PerformanceService.instance = undefined as unknown as PerformanceService;
+  }
+
   /**
    * Initialize performance metrics collection
    */

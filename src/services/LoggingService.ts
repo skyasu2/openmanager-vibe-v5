@@ -9,8 +9,27 @@
  */
 
 import { getLoggingConfig } from '@/config';
-import type { ILogger, LogEntry } from '@/lib/interfaces/services';
 import { logger } from '@/lib/logging';
+
+export interface LogEntry {
+  level: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  timestamp: string;
+  module: string;
+  data?: Record<string, unknown>;
+  error?: Error;
+}
+
+interface ILogger {
+  debug(message: string, data?: Record<string, unknown>): void;
+  info(message: string, data?: Record<string, unknown>): void;
+  warn(message: string, data?: Record<string, unknown>): void;
+  error(message: string, error?: Error, data?: Record<string, unknown>): void;
+  setLevel(level: 'debug' | 'info' | 'warn' | 'error'): void;
+  getLevel(): string;
+  getLogs(limit?: number): LogEntry[];
+  clearLogs(): void;
+}
 
 export class LoggingService implements ILogger {
   private logs: LogEntry[] = [];
