@@ -117,6 +117,8 @@ export default function SystemBootClient() {
   // 🚀 순수 타이머 기반 로딩 로직 (시간 벌기 용도)
   useEffect(() => {
     if (!isClient) return;
+    // 시스템 이미 가동 중이면 부팅 로직 스킵 (채팅 기록 보호)
+    if (isSystemStarted) return;
 
     debug.log('🚀 OpenManager 시스템 로딩 시작');
 
@@ -164,7 +166,7 @@ export default function SystemBootClient() {
         clearTimeout(t);
       }
     };
-  }, [isClient, handleBootComplete]);
+  }, [isClient, isSystemStarted, handleBootComplete]);
 
   const currentStageData = BOOT_STAGES.find((s) => s.name === currentStage) ||
     BOOT_STAGES[0] || {
@@ -174,6 +176,11 @@ export default function SystemBootClient() {
       description: '시스템을 초기화하고 있습니다...',
     };
   const CurrentIconComponent = currentIcon as FC<{ className?: string }>;
+
+  // 시스템 이미 가동 중이면 렌더링 스킵 (UI 플래시 방지)
+  if (isSystemStarted) {
+    return null;
+  }
 
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {

@@ -307,8 +307,8 @@ function DashboardPageContent({
     onShutdown: () => {
       debug.log('🛑 시스템 자동 종료 완료');
       setShowSystemWarning(false);
-
-      // 종료 알림은 콘솔 로그로만 표시 (info 레벨은 NotificationToast에서 필터링됨)
+      // 세션 만료 → 홈으로 리다이렉트
+      window.location.href = '/';
     },
   });
 
