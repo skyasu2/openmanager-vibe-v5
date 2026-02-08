@@ -340,7 +340,7 @@ export default function DashboardContent({
     }
     return (
       <div className="animate-fade-in h-full w-full">
-        <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
+        <div className="mx-auto h-full max-w-none space-y-4 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
           {/* 🎯 메인 컨텐츠 영역 */}
           {servers && servers.length > 0 ? (
             <>
@@ -384,6 +384,9 @@ export default function DashboardContent({
                 )}
               </div>
 
+              {/* ======== System Overview: 리소스 평균 + 주요 경고 통합 ======== */}
+              <SystemOverviewSection servers={servers} />
+
               {/* 서버 카드 목록 */}
               <Suspense
                 fallback={
@@ -410,9 +413,6 @@ export default function DashboardContent({
                   onStatsUpdate={onStatsUpdate}
                 />
               </Suspense>
-
-              {/* ======== System Overview: 리소스 평균 + 주요 경고 통합 ======== */}
-              <SystemOverviewSection servers={servers} />
             </>
           ) : (
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
@@ -498,11 +498,8 @@ function SystemOverviewSection({ servers }: { servers: Server[] }) {
   ];
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-slate-400">
-        System Overview
-      </h3>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 좌: 시스템 리소스 평균 게이지 */}
         <div>
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-400">

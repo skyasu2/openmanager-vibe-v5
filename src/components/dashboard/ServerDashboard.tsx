@@ -231,7 +231,7 @@ export default function ServerDashboard({
         stats={serverStats}
       /> */}
 
-      <div className="mt-6">
+      <div>
         {activeTab === 'servers' && (
           <div className="space-y-4">
             {/* 📊 페이지네이션 정보 헤더 (간소화 - 선택기는 하단에만) */}

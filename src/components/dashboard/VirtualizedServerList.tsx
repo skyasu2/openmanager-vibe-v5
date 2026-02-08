@@ -76,36 +76,6 @@ export default function VirtualizedServerList({
 
   return (
     <div className="w-full">
-      {/* 정보 배너 - 화이트 모드 */}
-      <div className="mb-3 rounded-lg border border-gray-200 bg-white/80 backdrop-blur-sm p-2.5 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="text-gray-600">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 10h16M4 14h16M4 18h16"
-              />
-            </svg>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-900">
-              반응형 그리드 ({servers.length}개 서버)
-            </p>
-            <p className="text-2xs text-gray-600">
-              현재 {cardsPerRow}개/줄 배치
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* 반응형 그리드 - 카드 너비 고정 (min 200px, max 240px) */}
       <div
         className="grid gap-3 justify-center"
