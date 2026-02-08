@@ -1065,11 +1065,14 @@ a {
     transform: none;
   }
 
-  /* 기본 전환 효과만 유지 (0.2초 이내) */
-  * {
-    animation-duration: 0.2s;
-    animation-iteration-count: 1;
-    transition-duration: 0.2s;
+  /* 모든 애니메이션/전환 효과 비활성화 */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 
   /* 핑거 포인터 애니메이션 제거 */

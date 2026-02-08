@@ -26,8 +26,8 @@ function getBrowserLogLevel(): LogLevel {
   const override = (window as { __LOG_LEVEL__?: LogLevel }).__LOG_LEVEL__;
   if (override) return override;
 
-  // Production: warn and error only
-  if (process.env.NODE_ENV === 'production') return 'warn';
+  // Production: error only (DevTools Console 노출 최소화)
+  if (process.env.NODE_ENV === 'production') return 'error';
 
   // Development: all logs
   return 'debug';

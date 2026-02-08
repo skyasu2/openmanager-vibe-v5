@@ -20,6 +20,7 @@ import {
 } from 'react';
 import { clearChatHistory } from '@/hooks/ai/utils/chat-history-storage';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import { triggerAIWarmup } from '@/utils/ai-warmup';
 import debug from '@/utils/debug';
@@ -74,6 +75,7 @@ const BOOT_STAGES = [
 
 export default function SystemBootClient() {
   const router = useRouter();
+  const { isSystemStarted } = useUnifiedAdminStore();
   const [bootState, setBootState] = useState<'running' | 'completed'>(
     'running'
   );
@@ -87,6 +89,13 @@ export default function SystemBootClient() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // 3-A: 시스템 이미 가동 중이면 즉시 대시보드로 이동
+  useEffect(() => {
+    if (isSystemStarted) {
+      router.replace('/dashboard');
+    }
+  }, [isSystemStarted, router]);
 
   // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
   const handleBootComplete = useCallback(() => {

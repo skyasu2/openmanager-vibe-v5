@@ -40,6 +40,12 @@ export const SessionCountdown = memo(function SessionCountdown() {
     const timer = setInterval(() => {
       const time = getSystemRemainingTime();
       setRemainingTime(time);
+
+      if (time <= 0) {
+        clearInterval(timer);
+        useUnifiedAdminStore.getState().stopSystem();
+        window.location.href = '/';
+      }
     }, 1000);
 
     return () => clearInterval(timer);

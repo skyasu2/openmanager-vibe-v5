@@ -71,7 +71,8 @@ export function handleSupervisorError(
         {
           success: false,
           error: 'AI service circuit open',
-          message: error.message,
+          message:
+            'AI 서비스가 일시적으로 중단되었습니다. 잠시 후 다시 시도해주세요.',
           retryAfter: parseInt(retryAfter, 10),
           traceId,
         },
@@ -100,12 +101,19 @@ export function handleSupervisorError(
     }
   }
 
+  // 프로덕션에서는 내부 에러 메시지를 노출하지 않음
+  const safeMessage =
+    process.env.NODE_ENV === 'production'
+      ? 'AI 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      : error instanceof Error
+        ? error.message
+        : 'Unknown error occurred';
+
   return NextResponse.json(
     {
       success: false,
       error: 'AI processing failed',
-      message:
-        error instanceof Error ? error.message : 'Unknown error occurred',
+      message: safeMessage,
       traceId,
     },
     { status: 500, headers: baseHeaders }
