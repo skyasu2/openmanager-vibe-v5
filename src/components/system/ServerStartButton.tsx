@@ -177,7 +177,7 @@ export default function ServerStartButton() {
                 void handleStartServer();
               }}
               disabled={isLoading}
-              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors duration-200 hover:bg-blue-700 disabled:bg-blue-300"
+              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-blue-700 active:scale-[0.97] disabled:bg-blue-300 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -199,7 +199,7 @@ export default function ServerStartButton() {
               onClick={() => {
                 void handleStopWarmup();
               }}
-              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 font-medium text-white transition-colors duration-200 hover:bg-red-700"
+              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-red-700 active:scale-[0.97]"
             >
               <span>🛑</span>
               <span>웜업 중지</span>
@@ -216,7 +216,7 @@ export default function ServerStartButton() {
               <button
                 type="button"
                 onClick={() => setProgress(null)}
-                className="mt-3 text-sm text-gray-500 hover:text-gray-700"
+                className="mt-3 text-sm text-gray-500 transition-colors hover:text-gray-700 active:text-gray-900"
               >
                 상태 초기화
               </button>

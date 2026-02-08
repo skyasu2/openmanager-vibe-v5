@@ -265,7 +265,7 @@ export function CloudRunStatusIndicator({
           }
         }}
         disabled={!enabled || isWarmingUp || status === 'checking'}
-        className={`group relative flex h-8 w-8 items-center justify-center rounded-lg border transition-all ${config.bgColor} ${config.borderColor} hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50`}
+        className={`group relative flex h-8 w-8 items-center justify-center rounded-lg border transition-all ${config.bgColor} ${config.borderColor} hover:opacity-80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50`}
         title={`AI Engine: ${config.label} (${config.description})`}
         aria-label={`AI 엔진 상태: ${config.label}`}
       >
@@ -313,7 +313,7 @@ export function CloudRunStatusIndicator({
           type="button"
           onClick={() => void triggerWarmup()}
           disabled={isWarmingUp}
-          className="flex items-center gap-1 rounded bg-yellow-500 px-2 py-0.5 text-xs font-medium text-white transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-1 rounded bg-yellow-500 px-2 py-0.5 text-xs font-medium text-white transition-all hover:bg-yellow-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           title="AI 엔진 웜업 시작"
         >
           {isWarmingUp ? (

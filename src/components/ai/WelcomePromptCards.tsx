@@ -101,7 +101,8 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
               key={card.title}
               onClick={() => onPromptClick(card.prompt)}
               className="group rounded-lg border border-gray-200 bg-white p-4 text-left
-                         transition-all hover:border-blue-200 hover:shadow-sm"
+                         transition-all hover:border-blue-200 hover:shadow-sm
+                         active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:outline-hidden"
             >
               <div
                 className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${card.iconBg}`}

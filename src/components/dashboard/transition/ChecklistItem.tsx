@@ -49,7 +49,7 @@ export function ChecklistItem({ component, status }: ChecklistItemProps) {
   return (
     <button
       type="button"
-      className={`w-full text-left flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${getBackgroundClass()} transition-all duration-300 ${isDiagnosticAvailable ? 'cursor-pointer hover:bg-red-500/20' : ''}`}
+      className={`w-full text-left flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${getBackgroundClass()} transition-all duration-300 ${isDiagnosticAvailable ? 'cursor-pointer hover:bg-red-500/20 active:scale-[0.98]' : 'opacity-60 cursor-default'}`}
       disabled={!isDiagnosticAvailable}
       onClick={handleCardActivate}
       onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {

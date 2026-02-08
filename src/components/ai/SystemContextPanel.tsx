@@ -100,7 +100,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
           type="button"
           onClick={() => void check()}
           disabled={isChecking}
-          className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50"
+          className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-hidden"
           title="새로고침"
         >
           <RefreshCw

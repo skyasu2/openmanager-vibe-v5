@@ -64,7 +64,7 @@ const FeatureCardItem = memo(
         type="button"
         key={card.id}
         aria-label={`${card.title} 상세 정보 보기`}
-        className="w-full text-left group relative cursor-pointer"
+        className="w-full text-left group relative cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-2xl"
         onClick={() => onCardClick(card.id)}
         onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -74,7 +74,7 @@ const FeatureCardItem = memo(
         }}
       >
         <div
-          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 transition-all duration-200 ease-out hover:bg-white/15 group-hover:scale-[1.01] ${
+          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 transition-all duration-200 ease-out hover:bg-white/15 group-hover:scale-[1.01] group-active:scale-[0.99] ${
             card.isSpecial
               ? 'border-amber-500/30 bg-linear-to-br from-amber-500/10 to-orange-500/10'
               : ''
