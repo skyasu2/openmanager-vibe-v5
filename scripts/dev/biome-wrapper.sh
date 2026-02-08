@@ -54,7 +54,7 @@ install_biome_globally() {
     npm config set prefix "$HOME/.npm-global" 2>/dev/null || true
 
     # 설치
-    if npm install -g @biomejs/biome@2.3.8 2>&1; then
+    if npm install -g @biomejs/biome@2.3.13 2>&1; then
         echo "✅ Biome installed successfully"
         return 0
     else
