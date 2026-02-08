@@ -51,7 +51,7 @@ export const AIAssistantButton = memo(function AIAssistantButton({
         type="button"
         onClick={onClick}
         data-testid="ai-assistant"
-        className={`group relative transform cursor-pointer overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
+        className={`group relative transform cursor-pointer overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:outline-hidden ${
           isMounted && (isOpen || isEnabled)
             ? 'scale-105 text-white shadow-lg shadow-purple-500/50'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'

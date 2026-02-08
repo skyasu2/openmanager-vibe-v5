@@ -15,7 +15,10 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, style, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('border bg-white text-gray-900', className)}
+      className={cn(
+        'border bg-white text-gray-900 transition-shadow duration-200 hover:shadow-md',
+        className
+      )}
       style={{
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-sm)',

@@ -142,7 +142,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
                   handleFilterKeyDown(e, 'online'),
               }
             : {})}
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.online.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.online.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'online' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''}`}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.online.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.online.glow} ${onFilterChange ? 'cursor-pointer active:scale-[0.98]' : ''} ${activeFilter === 'online' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.online.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
@@ -168,7 +168,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
                   handleFilterKeyDown(e, 'warning'),
               }
             : {})}
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.warning.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.warning.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'warning' ? 'ring-2 ring-amber-500 ring-offset-1' : ''}`}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.warning.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.warning.glow} ${onFilterChange ? 'cursor-pointer active:scale-[0.98]' : ''} ${activeFilter === 'warning' ? 'ring-2 ring-amber-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.warning.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
@@ -200,7 +200,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
                   handleFilterKeyDown(e, 'critical'),
               }
             : {})}
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.critical.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.critical.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'critical' ? 'ring-2 ring-rose-500 ring-offset-1' : ''}`}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.critical.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.critical.glow} ${onFilterChange ? 'cursor-pointer active:scale-[0.98]' : ''} ${activeFilter === 'critical' ? 'ring-2 ring-rose-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.critical.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
@@ -235,7 +235,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
                   handleFilterKeyDown(e, 'offline'),
               }
             : {})}
-          className={`group relative overflow-hidden rounded-2xl ${statusGradients.offline.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.offline.glow} ${onFilterChange ? 'cursor-pointer' : ''} ${activeFilter === 'offline' ? 'ring-2 ring-slate-500 ring-offset-1' : ''}`}
+          className={`group relative overflow-hidden rounded-2xl ${statusGradients.offline.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.offline.glow} ${onFilterChange ? 'cursor-pointer active:scale-[0.98]' : ''} ${activeFilter === 'offline' ? 'ring-2 ring-slate-500 ring-offset-1' : ''}`}
         >
           <div
             className={`absolute inset-0 bg-linear-to-br ${statusGradients.offline.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}

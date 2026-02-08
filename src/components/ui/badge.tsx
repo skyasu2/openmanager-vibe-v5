@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
  * - Typography: text-caption (12px)
  */
 const badgeVariants = cva(
-  'inline-flex items-center border px-2.5 py-0.5 text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-offset-2',
+  'inline-flex items-center border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-offset-2',
   {
     variants: {
       variant: {
