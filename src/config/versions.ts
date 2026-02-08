@@ -246,8 +246,11 @@ export class VersionManager {
   }
 }
 
-// 🚀 시스템 시작 시 버전 정보 출력
-if (typeof window === 'undefined') {
+// 🚀 시스템 시작 시 버전 정보 출력 (빌드 중에는 스킵)
+if (
+  typeof window === 'undefined' &&
+  process.env.NEXT_PHASE !== 'phase-production-build'
+) {
   VersionManager.printVersionInfo();
 }
 

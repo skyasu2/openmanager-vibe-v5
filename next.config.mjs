@@ -56,7 +56,6 @@ const nextConfig = {
     ],
     // Vercel 무료 티어 최적화
     serverMinification: true,
-    serverSourceMaps: false,
     optimizeCss: false, // critters 의존성 문제로 비활성화
     // Next.js 15에서 runtime, swcMinify 제거됨 - 기본 제공
   },
@@ -117,7 +116,15 @@ const nextConfig = {
 
   // 🚀 Turbopack 설정 (Next.js 16 기본 빌드러)
   turbopack: {
-    // webpack config와 공존 허용 (마이그레이션 중)
+    resolveAlias: {
+      // @/ alias는 tsconfig.json paths로 자동 처리됨
+      // 클라이언트 사이드: 서버 전용 모듈 폴백 비활성화
+      fs: { browser: './src/lib/empty-module.js' },
+      net: { browser: './src/lib/empty-module.js' },
+      tls: { browser: './src/lib/empty-module.js' },
+      crypto: { browser: './src/lib/empty-module.js' },
+    },
+    // .node 네이티브 모듈은 serverExternalPackages로 외부화되어 별도 처리 불필요
   },
 
   // 서버 외부 패키지 설정 (번들 크기 감소)

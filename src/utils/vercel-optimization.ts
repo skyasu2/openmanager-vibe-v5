@@ -307,5 +307,7 @@ export function getDeploymentChecklist(): {
   ];
 }
 
-// 초기화 로그
-logger.info('🚀 Vercel 최적화 유틸리티 초기화됨:', getVercelEnvironment());
+// 초기화 로그 (빌드 중에는 스킵)
+if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  logger.info('🚀 Vercel 최적화 유틸리티 초기화됨:', getVercelEnvironment());
+}

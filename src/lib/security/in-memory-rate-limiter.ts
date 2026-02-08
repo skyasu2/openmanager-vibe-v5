@@ -78,7 +78,7 @@ export class InMemoryRateLimiter {
     this.entries = new Map();
     this.config = config;
 
-    logger.info(
+    logger.debug(
       `[In-Memory Rate Limiter] 초기화 완료 (maxEntries: ${config.maxEntries}, failClosedThreshold: ${config.failClosedThreshold})`
     );
   }

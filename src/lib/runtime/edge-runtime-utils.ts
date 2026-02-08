@@ -372,7 +372,7 @@ export class EdgeRuntimeService {
   public http = EdgeHTTPClient;
 
   constructor() {
-    this.logger.info('Edge Runtime Service 초기화됨');
+    this.logger.debug('Edge Runtime Service 초기화됨');
   }
 
   // 호환성 체크
