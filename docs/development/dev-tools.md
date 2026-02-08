@@ -8,10 +8,10 @@
 
 ```bash
 # 버전 확인
-node -v  # v22.21.1
+node -v  # v24.x
 
 # .nvmrc 파일로 자동 전환
-echo "22.21.1" > .nvmrc
+echo "24" > .nvmrc
 nvm use
 ```
 

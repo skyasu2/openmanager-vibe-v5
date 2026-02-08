@@ -18,7 +18,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 
 ### 2. Google Cloud Run (AI Engine)
 **Role**: The "Heavy Lifter"
-- **Hosting**: Docker Container (Node.js 22 + Vercel AI SDK)
+- **Hosting**: Docker Container (Node.js 24 + Vercel AI SDK)
 - **Responsibilities**:
   - **AI SDK Multi-Agent**: Orchestrates agents (NLQ, Analyst, Reporter, Advisor, Verifier).
   - **Agent Execution**: Runs the prompt engineering and tool calls using `@ai-sdk-tools/agents`.
@@ -105,7 +105,7 @@ The system follows a **Stateless Cloud Run** design where all persistent data li
 
  ┌────────┐      ┌──────────────────────┐      ┌──────────────────────┐
  │  User  │ ───► │   Vercel Frontend    │ ───► │   Cloud Run AI       │
- │        │      │   (Next.js 16)       │      │   (Node.js 22)       │
+ │        │      │   (Next.js 16)       │      │   (Node.js 24)       │
  └────────┘      └──────────────────────┘      └──────────────────────┘
      │                    │                             │
      │  1. "서버 분석"    │  2. POST /api/ai/supervisor │
@@ -145,7 +145,7 @@ The system follows a **Stateless Cloud Run** design where all persistent data li
 
  ┌────────┐      ┌──────────────────────┐      ┌──────────────────────┐
  │  User  │ ───► │   Vercel Frontend    │ ───► │   Cloud Run AI       │
- │        │      │   (Next.js 16)       │      │   (Node.js 22)       │
+ │        │      │   (Next.js 16)       │      │   (Node.js 24)       │
  └────────┘      └──────────────────────┘      └──────────────────────┘
      │                    │                             │
      │  1. POST /stream/v2│  2. Proxy + Redis Save      │

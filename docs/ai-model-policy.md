@@ -3,7 +3,7 @@
 이 문서는 OpenManager Vibe의 AI 아키텍처를 정리합니다.
 현재 AI 처리는 **Cloud Run 기반 LLM 멀티 에이전트 시스템 (Vercel AI SDK v6 Native)** 으로 구성되어 있습니다.
 
-> **최종 업데이트**: 2026-01-27 (Vision Agent 추가, Quad-provider 아키텍처)
+> **최종 업데이트**: 2026-02-08 (v7.1.4 버전 동기화)
 
 ---
 
@@ -96,7 +96,7 @@ Vercel AI SDK 6 (@ai-sdk)
 
 ## 🛠️ 기술 스택
 
-### Vercel AI SDK (`ai` v6.0.3)
+### Vercel AI SDK (`ai` v6.0.66, Cloud Run: `^6.0.50`)
 
 ```typescript
 // Provider 패키지
@@ -183,7 +183,7 @@ Reporter Agent는 **Tavily API**를 통해 실시간 웹 검색 기능을 제공
 ### 설정
 | 항목 | 값 | 설명 |
 |------|-----|------|
-| **timeout** | 10초 | 검색 타임아웃 |
+| **timeout** | 15초 | 검색 타임아웃 |
 | **maxRetries** | 2 | 재시도 횟수 |
 | **cacheSize** | 30 | LRU 캐시 항목 수 |
 | **cacheTTL** | 5분 | 캐시 TTL |
@@ -260,22 +260,23 @@ Gemini 장애 시:
 
 | Provider | 무료 할당량 | 용도 | 모델 |
 |----------|-------------|------|------|
-| **Cerebras** | 24M tokens/day | Primary (Supervisor, NLQ) | llama-3.3-70b |
+| **Cerebras** | 24M tokens/day | Primary (Orchestrator, NLQ) | llama-3.3-70b |
 | **Groq** | 100K tokens/day | Analyst, Reporter | llama-3.3-70b-versatile |
 | **Mistral** | 1M tokens/mo | Verifier, Advisor | mistral-small-2506 |
 | **Gemini** | 1K RPD, 250K TPM | Vision Agent | gemini-2.5-flash-lite |
 
 ### Fallback 체인
 
-```
-Cerebras (Primary)
-    ↓ quota 80% 초과 시
-Mistral (Fallback 1)
-    ↓ 실패 시
-Groq (Fallback 2)
-```
+Agent별로 Fallback 순서가 다릅니다:
 
-> **참고**: Groq은 NLQ Agent 전용으로 예약되어 Supervisor fallback 체인에서 제외됩니다.
+| Agent | Primary | Fallback 1 | Fallback 2 |
+|-------|---------|-----------|-----------|
+| **NLQ** | Cerebras | Groq | Mistral |
+| **Analyst** | Groq | Cerebras | Mistral |
+| **Advisor** | Mistral | Groq | Cerebras |
+| **Supervisor** | Cerebras | Mistral | Groq |
+
+> **참고**: 위 표의 Supervisor 체인은 Orchestrator/Verifier 기준입니다. 각 Agent는 Primary provider 장애 또는 quota 80% 초과 시 자동 전환됩니다.
 
 ---
 
@@ -309,4 +310,4 @@ GEMINI_API_KEY=xxx   # Vision Agent 전용
 - **Vector DB**: Supabase pgvector
 - **Vercel**: Proxy + Cache only
 
-_Last Updated: 2026-01-27_
+_Last Updated: 2026-02-08_

@@ -180,13 +180,13 @@ source ~/.bashrc
 # nvm 확인
 nvm --version
 
-# Node.js 22 설치 (프로젝트 버전)
-nvm install 22.21.1
-nvm use 22.21.1
-nvm alias default 22.21.1
+# Node.js 24 설치 (프로젝트 버전)
+nvm install 24
+nvm use 24
+nvm alias default 24
 
 # 확인
-node -v   # v22.21.1
+node -v   # v24.x
 npm -v    # 10.9.2+
 ```
 
@@ -441,7 +441,7 @@ cd openmanager-vibe-v5
 nvm use
 
 # 버전 확인
-node -v  # v22.21.1
+node -v  # v24.x
 ```
 
 ### 6.4 의존성 설치
@@ -534,7 +534,7 @@ git reset --hard HEAD~1
 ```
 [✓] Windows 11 WSL 2 설정
 [✓] Ubuntu 24.04 (또는 22.04) 설치 및 설정
-[✓] Node.js 22.21.1 (nvm)
+[✓] Node.js 24.x (nvm)
 [✓] Git + SSH 키 설정
 [✓] Claude Code 설치 + 로그인
 [✓] Codex 설치 + 로그인
@@ -611,10 +611,10 @@ git reset --hard HEAD~1
 | Windows | 11 |
 | WSL | 2 |
 | Ubuntu | 24.04 (또는 22.04) |
-| Node.js | 22.21.1 |
+| Node.js | 24.x |
 | npm | 11.6.2+ |
 | Python | 3.10+ |
-| Next.js | 16.1.1 |
+| Next.js | 16.1.3 |
 | React | 19 |
 | TypeScript | 5.9.3 |
 

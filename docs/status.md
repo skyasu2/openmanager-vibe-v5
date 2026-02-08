@@ -150,10 +150,10 @@
 ## 🏗️ Technical Stack (v7.1.4)
 
 **Core Frameworks** (2025 Standard)
-- **Next.js**: `v16.1.1` (App Router, Server Components)
-- **React**: `v19.2.3` (RSC, Actions, useOptimistic)
+- **Next.js**: `v16.1.3` (App Router, Server Components)
+- **React**: `v19.2.4` (RSC, Actions, useOptimistic)
 - **TypeScript**: `v5.9.3` (Strict Mode)
-- **Node.js**: `v22.x` (LTS Fixed, engines: >=22.0.0 <23.0.0)
+- **Node.js**: `v24.x` (Current, engines: >=24.0.0 <25.0.0)
 
 **UI & Styling**
 - **Tailwind CSS**: `v4.1.17` (PostCSS optimized)
@@ -187,20 +187,20 @@
 - 레거시 문서 → `reports/history/` 이동
 - CHANGELOG 통합 (중복 제거)
 - 버전 표기 통일 (v5.87.0)
-- **State Mgmt**: Zustand `v5.0.9`
-- **Data Fetching**: TanStack Query `v5.90.11`
-- **Backend/DB**: Supabase JS `v2.87.1` (SSR `v0.8.0`)
+- **State Mgmt**: Zustand `v5.0.10`
+- **Data Fetching**: TanStack Query `v5.90.18`
+- **Backend/DB**: Supabase JS `v2.93.2` (SSR `v0.8.0`)
 - **Utility**: tailwind-merge `v3.4.0`
 
-**AI Ecosystem**
-- **SDK**: Vercel AI SDK `v6.0.3` (`@ai-sdk/*` 패키지 포함)
+**AI Ecosystem** (상세: [AI Model Policy](./ai-model-policy.md))
+- **SDK**: Vercel AI SDK `v6.0.66` (`@ai-sdk/*` 패키지 포함, Cloud Run: `^6.0.50`)
 - **Native Patterns** (v6.1.0):
   - `finalAnswer` 도구: `stopWhen: [hasToolCall('finalAnswer'), stepCountIs(5)]`
   - `UIMessageStream`: 네이티브 스트리밍 프로토콜
   - `Resumable Stream v2`: Upstash Redis 기반 자동 재연결
   - `prepareStep`: 에이전트 라우팅 순서 최적화
 - **Models**: Quad-provider 전략 (Rate limit 최적화, 2026-01-27)
-  - Cerebras llama-3.3-70b: Orchestrator, NLQ (1M tokens/day, 60K TPM)
+  - Cerebras llama-3.3-70b: Orchestrator, NLQ (24M tokens/day, 60K TPM)
   - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
   - Mistral Small 2506 (24B): Advisor, Verifier (Limited free tier)
   - **Gemini 2.5 Flash-Lite**: Vision Agent (1000 RPD, 15 RPM, 1M context)
@@ -208,7 +208,7 @@
 - **Tools**: 26개 도구 Registry (Metrics 5, RCA 3, Analyst 4, Reporter 4, Evaluation 6, Control 1, Vision 4)
 - **Reporter Pipeline**: Evaluator-Optimizer 패턴 (0.75 품질 임계값, 최대 2회 반복)
 - **MCP**: 9/9 Server Connected (Serena, Context7, Stitch, Supabase, Vercel, Playwright, GitHub, Tavily, Sequential-Thinking)
-- **Web Search**: Tavily API (10s timeout, 2 retries, 30 cache entries)
+- **Web Search**: Tavily API (15s timeout, 2 retries, 30 cache entries)
 - **Resilience**:
   - Circuit Breaker: CLOSED → OPEN (5 failures) → HALF_OPEN (30s)
   - Quota Tracker: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
@@ -220,8 +220,8 @@
 - **Gemini CLI**: `v0.24.0` (Code Review - 2-AI Rotation)
 
 **Quality Control**
-- **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`
-- **Lint/Format**: Biome `v2.3.8`
+- **Test**: Vitest `v4.0.18`, Playwright `v1.58.1`
+- **Lint/Format**: Biome `v2.3.13`
 
 ---
 
@@ -285,7 +285,7 @@
 
 **Tavily Best Practices + P0 단위 테스트 (2026-01-04)**
 - **Web Search 베스트 프랙티스 적용**:
-  - Timeout: 10초 (무한 대기 방지)
+  - Timeout: 10초 (무한 대기 방지, 이후 15초로 변경)
   - Retry: 최대 2회 (transient errors 대응)
   - Cache: 5분 TTL (반복 쿼리 비용 절감)
   - Failover: Primary → Backup Key 자동 전환
@@ -393,8 +393,8 @@
 
 | Metric | Status | Detail |
 |:---:|:---:|---|
-| **Build** | ✅ Passing | `npm run build` (Next.js 16.1.1) 성공 |
-| **Test** | ✅ 100% | 1434/1434 Tests Passing (71 test files) |
+| **Build** | ✅ Passing | `npm run build` (Next.js 16.1.3) 성공 |
+| **Test** | ✅ 100% | 1536/1536 Tests Passing (75 test files) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
 | **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |

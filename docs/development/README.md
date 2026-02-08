@@ -19,9 +19,9 @@
 ## 기술 스택
 
 ```
-Runtime:      Node.js 22.21.1 (LTS)
+Runtime:      Node.js 24.x (Current)
 Package:      npm 11.6.2
-Framework:    Next.js 16.1.1 (App Router)
+Framework:    Next.js 16.1.3 (App Router)
 Language:     TypeScript 5.9.3 (strict mode)
 UI:           React 19, Tailwind CSS 4
 Database:     Supabase (PostgreSQL + pgVector)
