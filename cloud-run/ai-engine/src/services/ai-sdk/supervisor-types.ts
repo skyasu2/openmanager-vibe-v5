@@ -69,6 +69,10 @@ export interface SupervisorResponse {
     traceId?: string;
     handoffs?: Array<{ from: string; to: string; reason?: string }>;
     finalAgent?: string;
+    /** Provider 불가 시 fallback 응답 여부 */
+    fallback?: boolean;
+    /** Fallback 사유 (e.g. 'no_provider', 'circuit_open') */
+    fallbackReason?: string;
   };
 }
 

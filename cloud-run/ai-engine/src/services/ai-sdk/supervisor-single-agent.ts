@@ -205,13 +205,50 @@ async function executeSupervisorAttempt(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('❌ [Supervisor] No available providers:', errorMessage);
-    return { success: false, error: errorMessage, code: 'NO_PROVIDER' };
+
+    // Graceful fallback: 사용자 친화적 응답 반환 (에러 대신)
+    const durationMs = Date.now() - startTime;
+    finalizeTrace(trace, 'Provider unavailable - fallback response', false, {
+      durationMs,
+      fallback: true,
+      reason: 'no_provider',
+      excludedProviders: excludeProviders,
+    });
+
+    return {
+      success: true,
+      response: '현재 AI 엔진 모델이 일시적으로 사용 불가능합니다. 잠시 후 다시 시도해주세요.',
+      toolsCalled: [],
+      toolResults: [],
+      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+      metadata: {
+        provider: 'none' as ProviderName,
+        modelId: 'none',
+        stepsExecuted: 0,
+        durationMs,
+        fallback: true,
+        fallbackReason: 'no_provider',
+      },
+    };
   }
 
   const circuitBreaker = getCircuitBreaker(`supervisor-${provider}`);
 
   if (!circuitBreaker.isAllowed()) {
+    const cbStats = circuitBreaker.getStats();
     logger.warn(`[Supervisor] Circuit OPEN for ${provider}, will try next provider on retry`);
+
+    // Langfuse에 circuit breaker 상태 기록
+    trace.event({
+      name: 'circuit-breaker-open',
+      metadata: {
+        provider,
+        failures: cbStats.failures,
+        totalFailures: cbStats.totalFailures,
+        lastFailure: cbStats.lastFailure?.toISOString(),
+      },
+    });
+
     return {
       success: false,
       error: `Provider ${provider} circuit breaker is OPEN`,
@@ -445,9 +482,25 @@ async function* streamSingleAgent(
       modelId = modelResult.modelId;
     }
   } catch (error) {
+    // Graceful fallback: 스트리밍에서도 사용자 친화적 응답
+    const fallbackMessage = '현재 AI 엔진 모델이 일시적으로 사용 불가능합니다. 잠시 후 다시 시도해주세요.';
+    yield { type: 'text_delta', data: fallbackMessage };
     yield {
-      type: 'error',
-      data: { code: 'NO_PROVIDER', message: error instanceof Error ? error.message : String(error) },
+      type: 'done',
+      data: {
+        success: true,
+        toolsCalled: [],
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        metadata: {
+          provider: 'none',
+          modelId: 'none',
+          stepsExecuted: 0,
+          durationMs: Date.now() - startTime,
+          mode: 'single',
+          fallback: true,
+          fallbackReason: 'no_provider',
+        },
+      },
     };
     return;
   }
@@ -455,9 +508,23 @@ async function* streamSingleAgent(
   const circuitBreaker = getCircuitBreaker(`stream-${provider}`);
 
   if (!circuitBreaker.isAllowed()) {
+    const cbStats = circuitBreaker.getStats();
+    logger.warn(`[SupervisorStream] Circuit OPEN for ${provider}`, {
+      failures: cbStats.failures,
+      totalFailures: cbStats.totalFailures,
+      lastFailure: cbStats.lastFailure?.toISOString(),
+    });
     yield {
       type: 'error',
-      data: { code: 'CIRCUIT_OPEN', message: `Provider ${provider} circuit breaker is OPEN` },
+      data: {
+        code: 'CIRCUIT_OPEN',
+        message: `Provider ${provider} circuit breaker is OPEN`,
+        metadata: {
+          provider,
+          failures: cbStats.totalFailures,
+          lastFailure: cbStats.lastFailure?.toISOString(),
+        },
+      },
     };
     return;
   }

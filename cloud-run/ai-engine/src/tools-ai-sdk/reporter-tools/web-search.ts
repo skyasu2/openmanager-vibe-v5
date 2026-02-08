@@ -32,7 +32,7 @@ interface WebSearchResult {
 // ============================================================================
 const TAVILY_TIMEOUT_MS = TIMEOUT_CONFIG.external.tavily; // 15초 (timeout-config.ts SSOT)
 const TAVILY_MAX_RETRIES = 2; // 최대 재시도 횟수 (베스트 프랙티스: 2회)
-const TAVILY_RETRY_DELAY_MS = 1000; // 재시도 간 대기 시간
+const TAVILY_RETRY_DELAY_MS = 500; // 재시도 간 대기 시간 (1000ms → 500ms: 레이턴시 개선)
 /**
  * Web Search Cache Configuration
  * Cloud Run Free Tier: 256MB RAM 제한 고려
@@ -40,7 +40,7 @@ const TAVILY_RETRY_DELAY_MS = 1000; // 재시도 간 대기 시간
 const SEARCH_CACHE_CONFIG = {
   maxSize: 30,              // 무료 티어 메모리 제한 고려 (100 -> 30)
   evictCount: 10,           // 한 번에 10개 삭제 (LRU)
-  ttlMs: 10 * 60 * 1000,    // 10분 TTL (5분 -> 10분으로 증가, 캐시 효율)
+  ttlMs: 30 * 60 * 1000,    // 30분 TTL (10분 → 30분: 반복 쿼리 캐시 히트율 향상)
 } as const;
 
 // ============================================================================
@@ -215,8 +215,8 @@ export const searchWeb = tool({
     query: z.string().describe('검색 쿼리'),
     maxResults: z
       .number()
-      .default(3)
-      .describe('반환할 결과 수 (기본: 3, 최대: 5)'),
+      .default(2)
+      .describe('반환할 결과 수 (기본: 2, 최대: 5)'),
     searchDepth: z
       .enum(['basic', 'advanced'])
       .default('basic')
@@ -232,7 +232,7 @@ export const searchWeb = tool({
   }),
   execute: async ({
     query,
-    maxResults = 3,
+    maxResults = 2,
     searchDepth = 'basic',
     includeDomains,
     excludeDomains,
@@ -294,81 +294,52 @@ export const searchWeb = tool({
       excludeDomains: excludeDomains || [],
     };
 
-    // Try primary key first
-    if (primaryKey) {
+    // 병렬 Failover: 두 키가 모두 있으면 Promise.any()로 동시 시도 (레이턴시 -2~3s)
+    if (primaryKey && backupKey) {
       try {
-        const { results, answer } = await executeTavilySearch(primaryKey, query, searchOptions);
-        console.log(`📊 [Reporter Tools] Web search (primary): ${results.length} results`);
+        const { results, answer } = await Promise.any([
+          executeTavilySearch(primaryKey, query, searchOptions),
+          executeTavilySearch(backupKey, query, searchOptions),
+        ]);
 
-        // Cache successful results (Best Practice)
+        const resultCount = results.length;
+        console.log(`📊 [Reporter Tools] Web search (parallel failover): ${resultCount} results`);
+
         setCacheResult(query, results, answer, searchDepth, includeDomains);
-
-        // Tavily quota 기록 (1 request = 1 token 단위로 추적)
         recordProviderUsage('tavily', 1).catch(() => {});
 
         return {
           success: true,
           query,
           results,
-          totalFound: results.length,
+          totalFound: resultCount,
           _source: 'Tavily Web Search',
           answer,
         };
-      } catch (primaryError) {
-        const errorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
-        logger.warn(`⚠️ [Reporter Tools] Primary key failed: ${errorMsg}`);
-
-        // Failover to backup key
-        if (backupKey) {
-          console.log('🔄 [Reporter Tools] Attempting failover to backup key...');
-          try {
-            const { results, answer } = await executeTavilySearch(backupKey, query, searchOptions);
-            console.log(`📊 [Reporter Tools] Web search (backup): ${results.length} results`);
-
-            // Cache successful results (Best Practice)
-            setCacheResult(query, results, answer, searchDepth, includeDomains);
-
-            // Tavily quota 기록
-            recordProviderUsage('tavily', 1).catch(() => {});
-
-            return {
-              success: true,
-              query,
-              results,
-              totalFound: results.length,
-              _source: 'Tavily Web Search (Failover)',
-              answer,
-            };
-          } catch (backupError) {
-            logger.error('❌ [Reporter Tools] Backup key also failed:', backupError);
-            return {
-              success: false,
-              error: `Primary: ${errorMsg}, Backup: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
-              results: [],
-              _source: 'Tavily (All Keys Failed)',
-            };
-          }
-        }
-
-        // No backup key available
+      } catch (aggregateError) {
+        // 모든 키 실패
+        const errors = aggregateError instanceof AggregateError
+          ? aggregateError.errors.map((e: unknown) => e instanceof Error ? e.message : String(e))
+          : [String(aggregateError)];
+        logger.error('❌ [Reporter Tools] All keys failed (parallel):', errors);
         return {
           success: false,
-          error: errorMsg,
+          error: errors.join('; '),
           results: [],
-          _source: 'Tavily (Primary Failed, No Backup)',
+          _source: 'Tavily (All Keys Failed)',
         };
       }
     }
 
-    // Only backup key available
+    // 단일 키만 사용 가능한 경우
+    const singleKey = primaryKey || backupKey!;
+    const keyLabel = primaryKey ? 'primary' : 'backup';
+
     try {
-      const { results, answer } = await executeTavilySearch(backupKey!, query, searchOptions);
-      console.log(`📊 [Reporter Tools] Web search (backup only): ${results.length} results`);
+      const { results, answer } = await executeTavilySearch(singleKey, query, searchOptions);
+      console.log(`📊 [Reporter Tools] Web search (${keyLabel}): ${results.length} results`);
 
-      // Cache successful results (Best Practice)
       setCacheResult(query, results, answer, searchDepth, includeDomains);
-
-      // Tavily quota 기록
       recordProviderUsage('tavily', 1).catch(() => {});
 
       return {
@@ -376,16 +347,16 @@ export const searchWeb = tool({
         query,
         results,
         totalFound: results.length,
-        _source: 'Tavily Web Search (Backup)',
+        _source: `Tavily Web Search (${keyLabel})`,
         answer,
       };
     } catch (error) {
-      logger.error('❌ [Reporter Tools] Backup key error:', error);
+      logger.error(`❌ [Reporter Tools] ${keyLabel} key error:`, error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         results: [],
-        _source: 'Tavily (Error)',
+        _source: `Tavily (${keyLabel} Failed)`,
       };
     }
   },
