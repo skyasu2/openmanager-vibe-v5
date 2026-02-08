@@ -154,7 +154,13 @@ export function createUpstashResumableContext() {
         return null;
       }
 
-      const metadata: StreamMetadata = JSON.parse(metaStr);
+      let metadata: StreamMetadata;
+      try {
+        metadata = JSON.parse(metaStr);
+      } catch {
+        logger.warn(`[UpstashResumable] Invalid metadata JSON: ${streamId}`);
+        return null;
+      }
 
       // 🎯 CODEX Review Fix: error 상태만 거부, completed는 남은 chunk 재전송 허용
       if (metadata.status === 'error') {
@@ -214,8 +220,14 @@ export function createUpstashResumableContext() {
           // Check if stream is still active
           const latestMeta = await redis.get<string>(metaKey);
           if (latestMeta) {
-            const latest: StreamMetadata = JSON.parse(latestMeta);
-            if (latest.status === 'completed' || latest.status === 'error') {
+            try {
+              const latest: StreamMetadata = JSON.parse(latestMeta);
+              if (latest.status === 'completed' || latest.status === 'error') {
+                controller.close();
+                return;
+              }
+            } catch {
+              // metadata 파싱 실패 시 stream 종료
               controller.close();
               return;
             }
@@ -243,8 +255,12 @@ export function createUpstashResumableContext() {
 
       if (!metaStr) return null;
 
-      const metadata: StreamMetadata = JSON.parse(metaStr);
-      return metadata.status === 'completed' ? 'completed' : 'active';
+      try {
+        const metadata: StreamMetadata = JSON.parse(metaStr);
+        return metadata.status === 'completed' ? 'completed' : 'active';
+      } catch {
+        return null;
+      }
     },
 
     /**

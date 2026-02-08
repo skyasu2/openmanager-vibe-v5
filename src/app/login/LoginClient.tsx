@@ -17,7 +17,6 @@ import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
 // Supabase Auth 관련 임포트
 import { signInWithGitHub, signInWithGoogle } from '@/lib/auth/supabase-auth';
-import { logger } from '@/lib/logging';
 import debug from '@/utils/debug';
 
 interface GuestSessionData {
@@ -151,11 +150,15 @@ export default function LoginClient() {
         '인증 코드 처리에 실패했습니다. GitHub 로그인을 다시 시도하거나 게스트 모드를 이용해주세요.'
       );
       // OAuth 상태 정리
-      const keysToRemove = Object.keys(localStorage).filter(
-        (key) => key.startsWith('sb-') || key.includes('supabase')
-      );
-      for (const key of keysToRemove) {
-        localStorage.removeItem(key);
+      try {
+        const keysToRemove = Object.keys(localStorage).filter(
+          (key) => key.startsWith('sb-') || key.includes('supabase')
+        );
+        for (const key of keysToRemove) {
+          localStorage.removeItem(key);
+        }
+      } catch {
+        // Safari Private Browsing 등 localStorage 접근 불가 시 무시
       }
     } else if (error === 'session_timeout') {
       setErrorMessage('세션 생성에 실패했습니다. 다시 로그인해주세요.');
@@ -169,10 +172,14 @@ export default function LoginClient() {
   // guestSession 상태가 변경되면 localStorage와 쿠키에 저장하고 페이지 이동
   useEffect(() => {
     if (guestSession) {
-      // localStorage 저장 (기존 로직)
-      localStorage.setItem('auth_session_id', guestSession.sessionId);
-      localStorage.setItem('auth_type', 'guest');
-      localStorage.setItem('auth_user', JSON.stringify(guestSession.user));
+      // localStorage 저장 (Safari Private Browsing 대응)
+      try {
+        localStorage.setItem('auth_session_id', guestSession.sessionId);
+        localStorage.setItem('auth_type', 'guest');
+        localStorage.setItem('auth_user', JSON.stringify(guestSession.user));
+      } catch {
+        // Safari Private Browsing 등 localStorage 쓰기 불가 시 쿠키만 사용
+      }
 
       // 🍪 쿠키 저장 (middleware 인식용, HTTPS 환경 대응)
       const isProduction = window.location.protocol === 'https:';
@@ -306,7 +313,6 @@ export default function LoginClient() {
 
   // 게스트 로그인
   const handleGuestLogin = async () => {
-    logger.info('🔍 [DEBUG Step 0] handleGuestLogin function CALLED');
     try {
       _setShowPulse('guest');
       setTimeout(() => _setShowPulse(null), PULSE_ANIMATION_DURATION_MS);
@@ -331,29 +337,16 @@ export default function LoginClient() {
 
       // AuthStateManager를 통한 게스트 인증 설정
       await authStateManager.setGuestAuth(guestUser);
-      logger.info('🔍 [DEBUG Step 1] setGuestAuth completed successfully');
 
       // 세션 ID 생성 (localStorage에서 가져옴)
-      const sessionId =
-        localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
-      logger.info('🔍 [DEBUG Step 2] Retrieved sessionId from localStorage:', {
-        sessionId,
-        fromLocalStorage: !!localStorage.getItem('auth_session_id'),
-        allAuthKeys: Object.keys(localStorage).filter((k) =>
-          k.startsWith('auth_')
-        ),
-      });
-
-      // 상태 업데이트 직전
-      logger.info('🔍 [DEBUG Step 3] About to call setGuestSession with:', {
-        sessionId,
-        userId: guestUser.id,
-        userName: guestUser.name,
-      });
+      let sessionId = `guest_${Date.now()}`;
+      try {
+        sessionId = localStorage.getItem('auth_session_id') || sessionId;
+      } catch {
+        // Safari Private Browsing 등 localStorage 접근 불가 시 fallback
+      }
 
       setGuestSession({ sessionId, user: guestUser });
-
-      logger.info('🔍 [DEBUG Step 4] setGuestSession called successfully');
     } catch (error) {
       debug.error('게스트 로그인 실패:', error);
       alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');
