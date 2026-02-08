@@ -1,10 +1,26 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-02-03
+**마지막 업데이트**: 2026-02-08
 
 ---
 
-## 🔄 Recent Changes (v7.1.2)
+## 🔄 Recent Changes (v7.1.4)
+
+- **v7.1.4** (2026-02-08)
+  - feat(data): server-services-map 추가 (자동 서비스 추론)
+  - docs(data): Prometheus best practice 비교 및 PromQL 참조 매핑
+  - feat(data): uPlot 및 Prometheus Format tech stack 추가
+  - fix(ai-engine): provider fallback 개선, CB 로깅 강화, web search 병렬 failover
+  - chore: 루트 스크린샷 PNG 정리
+
+- **v7.1.3** (2026-02-06)
+  - fix(types): @types/react 19.2.10 InputEvent 호환성
+  - fix(metrics): KST 타임스탬프 ISO 포맷 수정
+  - refactor(metrics): fixed-24h-metrics dead code 제거
+  - feat(prometheus): 임계값 통합 및 AI 컨텍스트 확장
+  - security(promql): DoS 방지 쿼리 길이/복잡도 제한
+  - refactor(api): getMockSystem → MetricsProvider 전환
+  - fix(test): WSL worker timeout fork pool 수정
 
 - **v7.1.2** (2026-02-03)
   - **AI 베스트 프랙티스 95% 달성 - P1 이슈 완료**
@@ -131,7 +147,7 @@
 
 ---
 
-## 🏗️ Technical Stack (v7.1.0)
+## 🏗️ Technical Stack (v7.1.4)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
@@ -154,7 +170,7 @@
 
 ## 📚 Documentation Status
 
-**총 문서 수**: 46개 (~10,000 lines)
+**총 문서 수**: 55개 (~13,000 lines)
 - **development/**: 5개 (WSL 통합 완료)
 - **vibe-coding/**: 7개 (AI 도구, MCP, Skills)
 - **reference/**: 15개 (아키텍처, AI, API)

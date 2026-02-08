@@ -1,6 +1,6 @@
 # AI Engine Architecture
 
-> **v7.1.0** | Updated 2026-01-27
+> **v7.1.4** | Updated 2026-02-08
 
 ## Overview
 

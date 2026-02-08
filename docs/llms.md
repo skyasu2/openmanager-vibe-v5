@@ -1,6 +1,6 @@
 # OpenManager VIBE v5 - LLM Context
 
-> **v7.0.1** | Updated 2026-01-26
+> **v7.1.4** | Updated 2026-02-08
 >
 > AI 어시스턴트가 프로젝트를 이해하는 데 필요한 핵심 정보
 
@@ -23,9 +23,9 @@ OpenManager VIBE is an AI-native server monitoring platform built with:
 
 ### AI Engine Components
 - Supervisor: Dual-mode (Single/Multi Agent)
-- Agents: NLQ, Analyst, Reporter, Advisor
-- Providers: Cerebras → Mistral → Groq (fallback chain)
-- Tools: 12 specialized tools (metrics, RAG, web search)
+- Agents: NLQ, Analyst, Reporter, Advisor, Vision
+- Providers: Cerebras → Groq → Mistral (fallback chain) + Gemini (Vision)
+- Tools: 26 specialized tools (Metrics 5, RCA 3, Analyst 4, Reporter 4, Evaluation 6, Control 1, Vision 4)
 
 ## Key Files
 
@@ -62,17 +62,17 @@ git push --follow-tags # Deploy to Vercel
 
 ### AI Engine
 ```bash
-curl https://ai-engine-xxx.run.app/health  # Health check
+curl https://ai-engine-490817238363.asia-northeast1.run.app/health  # Health check
 ```
 
 ## Important Constraints
 
 1. TypeScript strict mode - no `any` types
 2. AI Engine timeout: unlimited (Cloud Run)
-3. Vercel timeout: 10s (use async jobs for long tasks)
-4. Free tier optimization: Cerebras/Mistral/Groq rotation
+3. Vercel timeout: 60s (Pro tier, route-specific maxDuration)
+4. Free tier optimization: Cerebras/Mistral/Groq rotation + Gemini (Vision)
 
 ## Contact
 
 - Repository: github.com/skyasu2/openmanager-vibe-v5
-- Version: 5.88.0
+- Version: 7.1.4

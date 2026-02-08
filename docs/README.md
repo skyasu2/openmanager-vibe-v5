@@ -1,6 +1,6 @@
 # OpenManager VIBE Documentation
 
-> **프로젝트 버전**: v7.1.1 | **Updated**: 2026-02-03
+> **프로젝트 버전**: v7.1.4 | **Updated**: 2026-02-08
 
 ---
 

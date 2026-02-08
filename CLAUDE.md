@@ -1,4 +1,4 @@
-# CLAUDE.md - OpenManager VIBE v7.1.0
+# CLAUDE.md - OpenManager VIBE v7.1.4
 
 **한국어로 우선 대화, 기술용어는 영어 사용 허용**
 
@@ -27,8 +27,8 @@ npm run release:patch       # 버전 릴리스
 
 ## 📂 참조
 - **상태**: `docs/status.md`
-- **문서**: `docs/` (46개 파일)
+- **문서**: `docs/` (55개 파일)
 - **AI 설정**: `config/ai/registry-core.yaml`
 - **TODO**: `reports/planning/TODO.md`
 
-_Last Updated: 2026-01-27_
+_Last Updated: 2026-02-08_

@@ -1,6 +1,6 @@
 # AI Engine Internals
 
-> **v7.1.0** | Updated 2026-01-27
+> **v7.1.4** | Updated 2026-02-08
 >
 > API, 데이터 계층, 환경변수, 파일 구조 상세
 
