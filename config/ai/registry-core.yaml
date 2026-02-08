@@ -92,7 +92,7 @@ mcp-servers:
     - supabase            # @supabase/mcp-server-supabase, DB 관리 (무제한)
     - serena              # 코드 검색/메모리 (심볼, 구조 분석) (무제한)
     - context7            # @upstash/context7-mcp, 라이브러리 문서 (무제한)
-    - stitch              # @anthropic-ai/stitch-mcp, Google Stitch AI UI 디자인 (무제한)
+    - stitch              # @_davideast/stitch-mcp, Google Stitch AI UI 디자인 (350/월)
     - playwright          # @playwright/mcp, E2E 테스트 자동화 (무제한)
     - github              # @modelcontextprotocol/server-github, 저장소 관리 (무제한)
     - tavily              # tavily-mcp, 웹 검색 - 심층 리서치 (1,000/월)

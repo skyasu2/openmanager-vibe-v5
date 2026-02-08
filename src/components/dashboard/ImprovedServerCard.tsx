@@ -208,7 +208,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         onKeyDown={handleCardKeyDown}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:shadow-xl backdrop-blur-md text-left bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
       >
         {/* 🎨 그라데이션 애니메이션 배경 (랜딩 카드 스타일) */}
         <div

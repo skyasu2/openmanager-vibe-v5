@@ -147,7 +147,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
       <div className="animate-fade-in">
         {/* 헤더 섹션 */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+          <h3 className="text-lg font-semibold text-gray-800">
             실시간 메트릭 모니터링
           </h3>
 

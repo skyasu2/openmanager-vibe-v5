@@ -39,11 +39,11 @@ export function TrendCard({ metric, data }: TrendCardProps) {
 
       {/* 현재값 → 예측값 시각화 */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm tabular-nums text-gray-500">
           {Math.round(data.currentValue)}%
         </span>
         <ArrowRight className="h-3 w-3 text-gray-400" />
-        <span className={`text-2xl font-bold ${textColor}`}>
+        <span className={`text-2xl font-bold tabular-nums ${textColor}`}>
           {Math.min(100, Math.max(0, Math.round(data.predictedValue)))}%
         </span>
       </div>
@@ -68,7 +68,7 @@ export function TrendCard({ metric, data }: TrendCardProps) {
             <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-gray-400" />
           </div>
           <span
-            className={`min-w-[3rem] text-right text-xs font-medium ${
+            className={`min-w-[3rem] text-right text-xs font-medium tabular-nums ${
               data.changePercent > 0
                 ? 'text-red-500'
                 : data.changePercent < 0

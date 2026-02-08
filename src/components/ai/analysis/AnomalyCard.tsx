@@ -33,7 +33,10 @@ export function AnomalyCard({ metric, data }: AnomalyCardProps) {
           <span className="font-medium">{label}</span>
         </div>
         {data.isAnomaly ? (
-          <AlertTriangle className="h-4 w-4" />
+          <span className="inline-flex items-center gap-1 text-xs font-medium">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {data.severity}
+          </span>
         ) : (
           <CheckCircle className="h-4 w-4" />
         )}
