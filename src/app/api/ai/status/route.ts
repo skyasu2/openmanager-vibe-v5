@@ -7,7 +7,7 @@
  * - POST: Circuit Breaker 수동 리셋 (관리자 전용)
  */
 
-export const maxDuration = 10; // Vercel Free Tier
+export const maxDuration = 10; // Vercel Pro Tier (경량 엔드포인트)
 
 import { type NextRequest, NextResponse } from 'next/server';
 import {

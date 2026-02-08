@@ -26,7 +26,7 @@ import { logger } from '@/lib/logging';
 /**
  * Vercel 티어 스키마
  */
-const VercelTierSchema = z.enum(['free', 'pro']).default('free');
+const VercelTierSchema = z.enum(['free', 'pro']).default('pro');
 
 /**
  * 타임아웃 설정 스키마

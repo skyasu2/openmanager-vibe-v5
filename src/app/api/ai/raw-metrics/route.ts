@@ -1,4 +1,4 @@
-export const maxDuration = 10; // Vercel Free Tier
+export const maxDuration = 10; // Vercel Pro Tier (경량 엔드포인트)
 
 import fs from 'node:fs/promises';
 import path from 'node:path';

@@ -47,10 +47,10 @@ import { createUpstashResumableContext } from './upstash-resumable';
 // ============================================================================
 // Next.js가 정적 분석하므로 리터럴 값 필수. 티어 변경 시 아래 값 수동 변경:
 // - Free tier:  export const maxDuration = 10;
-// - Pro tier:   export const maxDuration = 60;
+// - Pro tier:   export const maxDuration = 60;  ← 현재
 // @see src/config/ai-proxy.config.ts (런타임 타임아웃 설정)
 // ============================================================================
-export const maxDuration = 10; // 🔧 현재: Free tier
+export const maxDuration = 60; // 🔧 현재: Pro tier
 
 // UI Message Stream headers (AI SDK v6 standard)
 // 🎯 CRITICAL: x-vercel-ai-ui-message-stream header is REQUIRED for AI SDK v6

@@ -21,18 +21,19 @@ git push --follow-tags      # 태그 푸시 → 배포 트리거
 | Trigger | `git push` 자동 배포 |
 | Branch | `main` → Production |
 | URL | `openmanager-vibe-v5.vercel.app` |
-| Plan | Hobby (Free Tier) |
+| Plan | Pro ($20/mo, 비용 최소화) |
 
-#### Free Tier 제한사항 (v7.1.0)
+#### Pro 플랜 설정 (v7.1.0)
 
-| 항목 | 제한 | 비고 |
+| 항목 | 설정 | 비고 |
 |------|------|------|
-| `maxDuration` | 10초 | Pro 플랜은 60초 |
-| `memory` | 1024MB | 512MB 권장 |
+| `maxDuration` | 10~60초 (엔드포인트별) | AI 라우트는 30~60초 |
+| `memory` | 256~1024MB (엔드포인트별) | supervisor 1024MB |
+| Build Machine | **Standard** ($0.014/min) | Turbo 사용 금지 |
 | Cron Jobs | 비활성화 | `DISABLE_CRON_JOBS=true` |
-| Background Jobs | 비활성화 | `DISABLE_BACKGROUND_JOBS=true` |
+| Fluid Compute | 활성화 | Cold start 제거 |
 
-> **참고**: `vercel.json`의 모든 `maxDuration`은 10초로 설정됨
+> **비용 주의**: Build Machine은 반드시 **Standard** 사용. Turbo($0.126/min)는 ~$50/월 추가 비용
 
 ### AI Engine (Cloud Run)
 

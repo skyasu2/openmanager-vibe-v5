@@ -16,7 +16,7 @@
  * @version 1.0.0
  */
 
-export const maxDuration = 10; // Vercel Free Tier
+export const maxDuration = 60; // Vercel Pro Tier
 
 import type { NextRequest } from 'next/server';
 import { logger } from '@/lib/logging';

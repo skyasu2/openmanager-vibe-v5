@@ -40,8 +40,8 @@
           "value": "public, max-age=300, s-maxage=300"
         },
         {
-          "key": "X-Free-Tier-Mode",
-          "value": "enabled"
+          "key": "X-Vercel-Plan",
+          "value": "pro"
         }
       ]
     },
@@ -222,10 +222,12 @@
     "DISABLE_EXCESSIVE_HEALTH_CHECKS": "true",
     "DISABLE_CRON_JOBS": "true",
     "AI_STREAM_TIMEOUT_PREVENTION": "true",
-    "NEXT_PUBLIC_FREE_TIER_MODE": "true",
-    "VERCEL_HOBBY_PLAN": "true",
-    "SERVERLESS_FUNCTION_TIMEOUT": "5",
-    "MEMORY_LIMIT_MB": "64",
+    "NEXT_PUBLIC_FREE_TIER_MODE": "false",
+    "VERCEL_HOBBY_PLAN": "false",
+    "VERCEL_PRO_PLAN": "true",
+    "VERCEL_TIER": "pro",
+    "SERVERLESS_FUNCTION_TIMEOUT": "60",
+    "MEMORY_LIMIT_MB": "512",
     "STATIC_JSON_OPTIMIZATION": "true",
     "DISABLE_BACKGROUND_JOBS": "true",
     "ENABLE_QUOTA_PROTECTION": "true",
@@ -262,10 +264,17 @@
     }
   },
   "functions": {
-    "src/app/api/ai/supervisor/route.ts": { "memory": 512 },
-    "src/app/api/ai/jobs/[id]/stream/route.ts": { "memory": 256 },
-    "src/app/api/ai/jobs/route.ts": { "memory": 256 },
-    "src/app/api/ai/*/route.ts": { "memory": 256 },
-    "src/app/api/*/route.ts": { "memory": 128 }
+    "src/app/api/ai/supervisor/route.ts": { "memory": 1024, "maxDuration": 60 },
+    "src/app/api/ai/supervisor/stream/v2/route.ts": {
+      "memory": 512,
+      "maxDuration": 60
+    },
+    "src/app/api/ai/jobs/[id]/stream/route.ts": {
+      "memory": 512,
+      "maxDuration": 60
+    },
+    "src/app/api/ai/jobs/route.ts": { "memory": 512, "maxDuration": 30 },
+    "src/app/api/ai/*/route.ts": { "memory": 256, "maxDuration": 30 },
+    "src/app/api/*/route.ts": { "memory": 256 }
   }
 }
