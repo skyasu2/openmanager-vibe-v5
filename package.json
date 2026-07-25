@@ -1,6 +1,6 @@
 {
   "name": "openmanager-ai",
-  "version": "8.14.30",
+  "version": "8.15.2",
   "private": true,
   "license": "GPL-3.0-only",
   "author": "skyasu2 (https://github.com/skyasu2)",
@@ -95,7 +95,6 @@
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "husky": "^9.1.7",
-    "jest-axe": "^10.0.0",
     "jsdom": "^28.1.0",
     "knip": "^6.0.5",
     "markdown-link-check": "^3.14.2",

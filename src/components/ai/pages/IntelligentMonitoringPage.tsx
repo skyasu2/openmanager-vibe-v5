@@ -253,7 +253,7 @@ export default function IntelligentMonitoringPage({
     setResult(adaptMonitoringBatchResponse(artifact.analysis));
   }, [artifactWorkspaceId]);
 
-  // 🔧 P3: useCallback으로 핸들러 메모이제이션
+  // useCallback으로 핸들러 메모이제이션
   const handleServerChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedServer(e.target.value);

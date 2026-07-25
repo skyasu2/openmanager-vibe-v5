@@ -92,7 +92,7 @@ export default function ServerDashboard({
   const [serverGridElement, setServerGridElement] =
     useState<HTMLDivElement | null>(null);
 
-  // 🔧 Phase 4: useServerDashboard() 제거 - props로 데이터 받음
+  // useServerDashboard() 제거 - props로 데이터 받음
 
   const handleServerSelect = useCallback(
     (server: Server) => {
@@ -186,7 +186,7 @@ export default function ServerDashboard({
   );
 
   // 🚀 서버 정렬 최적화: 외부 상수와 최적화된 함수 사용
-  // 🔧 Phase 4: paginatedServers → servers (props로 전달받음)
+  // paginatedServers → servers (props로 전달받음)
   const sortedServers = useMemo(() => {
     return [...filteredServers].sort((a, b) => {
       if (serverSortKey === 'cpu') {
@@ -260,7 +260,7 @@ export default function ServerDashboard({
   }, [serverGridElement]);
 
   // 페이지네이션 정보 계산 (메모이제이션으로 최적화)
-  // 🔧 Phase 4: totalServers props 사용 (전체 서버 수)
+  // totalServers props 사용 (전체 서버 수)
   const paginationInfo = useMemo(() => {
     // 🛡️ Codex 권장: 안전한 수치 계산
     const safeServersLength = Math.max(0, totalServers || 0);

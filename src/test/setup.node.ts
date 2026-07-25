@@ -2,7 +2,7 @@
  * Vitest setup for the Node-only suite.
  *
  * Keep this lighter than src/test/setup.ts:
- * - no jest-dom / jest-axe / React globals
+ * - no jest-dom / React globals
  * - only mocks that backend/node tests commonly rely on
  */
 

@@ -74,7 +74,7 @@ const getTooltipPosition = (index: number, total: number) => {
   }
 };
 
-// 🔧 P3: 메모이제이션된 아이콘 버튼 컴포넌트 (map 내 인라인 핸들러 최적화)
+// 메모이제이션된 아이콘 버튼 컴포넌트 (map 내 인라인 핸들러 최적화)
 interface IconButtonProps {
   item: AIAssistantIcon;
   isSelected: boolean;
@@ -92,7 +92,7 @@ const IconButton = memo(function IconButton({
 }: IconButtonProps) {
   const Icon = item.icon;
 
-  // 🔧 useCallback으로 핸들러 메모이제이션
+  // useCallback으로 핸들러 메모이제이션
   const handleClick = useCallback(() => {
     onSelect(item.id);
   }, [onSelect, item.id]);
@@ -172,7 +172,7 @@ export default function AIAssistantIconPanel({
 }: AIAssistantIconPanelProps) {
   const router = useRouter();
 
-  // 🔧 P3: useCallback으로 네비게이션 핸들러 메모이제이션
+  // useCallback으로 네비게이션 핸들러 메모이제이션
   const handleFullscreen = useCallback(() => {
     onOpenFullscreen?.();
     if (!onOpenFullscreen) {
@@ -223,7 +223,7 @@ export default function AIAssistantIconPanel({
         </p>
       </div>
 
-      {/* 아이콘 버튼들 - 🔧 P3: 메모이제이션된 IconButton 사용 */}
+      {/* 아이콘 버튼들 - 메모이제이션된 IconButton 사용 */}
       <div className="space-y-1">
         {AI_ASSISTANT_ICONS.map((item, index) => (
           <IconButton

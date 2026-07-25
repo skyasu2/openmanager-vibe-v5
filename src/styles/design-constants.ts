@@ -5,9 +5,9 @@
  * Material Design 3 색상 체계 유지하면서 번들 크기 최소화
  */
 
-import type { ServerStatus } from '../types/server-enums'; // 🔧 수정: 상대 경로로 변경 (모듈 해결)
+import type { ServerStatus } from '../types/server-enums';
 
-export type { ServerStatus }; // 🔧 re-export (타입 통합)
+export type { ServerStatus };
 
 // ===== 메트릭 심각도 색상 SSOT =====
 // normal/warning/critical → 색. 서버 카드 스파크라인과 개요 게이지가
@@ -21,7 +21,6 @@ export const METRIC_SEVERITY_COLORS = {
 // ===== 서버 상태별 색상 시스템 =====
 export const SERVER_STATUS_COLORS = {
   online: {
-    // 🔧 수정: 'healthy' → 'online' (타입 통합)
     // 정상 상태 - 녹색 계열 (Premium: 더 깊이감 있는 그라데이션)
     background:
       'bg-linear-to-br from-white/90 via-emerald-50/50 to-emerald-100/50 backdrop-blur-md',
@@ -64,7 +63,6 @@ export const SERVER_STATUS_COLORS = {
     },
   },
   offline: {
-    // 🔧 추가: offline 상태 (타입 통합)
     // 오프라인 상태 - 회색 계열 (Premium)
     background:
       'bg-linear-to-br from-white/90 via-gray-100/50 to-gray-200/50 backdrop-blur-md',
@@ -79,7 +77,6 @@ export const SERVER_STATUS_COLORS = {
     },
   },
   maintenance: {
-    // 🔧 추가: maintenance 상태 (타입 통합)
     // 점검 상태 - 파란색 계열 (Premium)
     background:
       'bg-linear-to-br from-white/90 via-blue-50/50 to-blue-100/50 backdrop-blur-md',
@@ -301,12 +298,9 @@ export const TYPOGRAPHY = {
 } as const;
 
 // ===== 유틸리티 함수 =====
-// 🔧 수정: ServerStatus 타입은 server-enums에서 import (타입 통합)
 
-// 🎨 AI 관련 디자인 상수 (2025 업데이트: 파란색 강화)
-// 이전: purple-500 → pink-500 → blue-500 (파란색 약함)
-// 개선: blue-500 → purple-500 → pink-500 (파란색 시작으로 강조)
-// ⚠️ Tailwind v4 호환: gradient 클래스와 animation 분리 필요
+// AI 브랜드 그라데이션 (blue → purple → pink)
+// Tailwind v4 호환: gradient 클래스와 animation을 분리해야 애니메이션이 동작한다.
 export const AI_GRADIENT_CLASSES =
   'bg-linear-to-br from-blue-500 via-purple-500 to-pink-500';
 

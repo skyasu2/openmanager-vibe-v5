@@ -123,7 +123,7 @@ export default function FeatureCardModal({
     [selectedCardId]
   );
 
-  // 🔧 P0: 통합 키보드 핸들러 (ESC 닫기 + Tab 포커스 트래핑)
+  // 통합 키보드 핸들러 (ESC 닫기 + Tab 포커스 트래핑)
   useEffect(() => {
     if (!isVisible) return;
 
@@ -146,7 +146,7 @@ export default function FeatureCardModal({
     // 모달 열릴 때 첫 포커스 가능한 요소로 이동
     getFocusableElements()[0]?.focus();
 
-    // 🔧 단일 이벤트 리스너로 ESC + Tab 모두 처리 (성능 최적화)
+    // 단일 이벤트 리스너로 ESC + Tab 모두 처리 (성능 최적화)
     // Tab 핸들러는 매 keydown마다 DOM을 재조회하여 showDiagram/vibeView 전환 후에도 stale 방지
     const handleKeyDown = (e: KeyboardEvent) => {
       // ESC: 모달 닫기
@@ -377,7 +377,7 @@ export default function FeatureCardModal({
     </div>
   );
 
-  // ✅ Portal 기반 모달 렌더링 (AI 교차검증 기반 개선)
+  // Portal 기반 모달 렌더링
   // 클라이언트 사이드에서만 Portal 렌더링하고, isVisible과 selectedCard로 가시성 제어
 
   if (typeof document === 'undefined') {
@@ -410,7 +410,7 @@ export default function FeatureCardModal({
       />
 
       {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
-      {/* 🔧 P1: dvh 단위로 모바일 주소바 문제 해결, motion-reduce 지원 */}
+      {/* dvh 단위로 모바일 주소바 문제 해결, motion-reduce 지원 */}
       <div
         ref={actualModalRef}
         className={`relative z-10 w-full transform overflow-hidden rounded-2xl border border-white/[0.11] bg-[#08101c] shadow-[0_32px_80px_rgba(0,0,0,0.7)] transition-all duration-300 motion-reduce:transition-none max-h-[88dvh] max-w-[92vw] sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl ${!cardData.id ? 'hidden' : ''}`}

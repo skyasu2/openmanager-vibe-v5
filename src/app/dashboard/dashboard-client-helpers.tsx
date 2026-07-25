@@ -1,30 +1,18 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 
-export const AnimatedAISidebar = dynamic(
-  async () => {
-    const AISidebarV4 = await import('@/components/ai-sidebar/AISidebarV4');
+const AI_SIDEBAR_EXIT_DURATION_MS = 300;
 
-    return function AnimatedAISidebarWrapper(props: {
-      isOpen: boolean;
-      onClose: () => void;
-      [key: string]: unknown;
-    }) {
-      const { isOpen, onClose, ...otherProps } = props;
-      return (
-        <>
-          {isOpen && (
-            <AISidebarV4.default
-              onClose={onClose}
-              isOpen={isOpen}
-              {...otherProps}
-            />
-          )}
-        </>
-      );
-    };
-  },
+type AnimatedAISidebarProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  [key: string]: unknown;
+};
+
+const LazyAISidebar = dynamic(
+  () => import('@/components/ai-sidebar/AISidebarV4'),
   {
     loading: () => (
       <div className="fixed inset-0 z-50 h-dvh w-screen max-w-none border-l border-gray-200 bg-white md:right-0 md:left-auto md:w-96 lg:w-[680px]">
@@ -36,6 +24,35 @@ export const AnimatedAISidebar = dynamic(
     ssr: false,
   }
 );
+
+export function AnimatedAISidebar(props: AnimatedAISidebarProps) {
+  const { isOpen, ...otherProps } = props;
+  const [isPresent, setIsPresent] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsPresent(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setIsPresent(false),
+      AI_SIDEBAR_EXIT_DURATION_MS
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen]);
+
+  if (!isPresent) return null;
+
+  return (
+    <LazyAISidebar
+      isOpen={isOpen}
+      {...otherProps}
+      onExitAnimationEnd={() => setIsPresent(false)}
+    />
+  );
+}
 
 export const ContentLoadingSkeleton = () => (
   <div className="min-h-screen bg-gray-100 p-6">

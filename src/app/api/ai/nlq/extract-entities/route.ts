@@ -1,7 +1,7 @@
 /**
  * POST /api/ai/nlq/extract-entities
  *
- * Groq Llama 4 Scout로 쿼리에서 엔티티(server/metric/timeRange)를 추출.
+ * Groq GPT-OSS 120B로 쿼리에서 엔티티(server/metric/timeRange)를 추출.
  * 클래리피케이션 사전 차단에 사용됩니다.
  *
  * Note: URL의 `nlq`는 Natural Language Query 기능 카테고리를 가리키는 feature slug이며,
@@ -121,6 +121,9 @@ async function postHandler(request: NextRequest) {
       prompt: queryForLLM,
       temperature: 0,
       maxOutputTokens: 320,
+      // gpt-oss-120b는 reasoning 모델 → 기본 reasoning이 320 예산의 ~86%를 소비(라이브 확인).
+      // 'low'로 낮춰 좁은 예산 truncation 방지 + 지연/토큰 절감(structured 결과는 동등/개선).
+      providerOptions: { groq: { reasoningEffort: 'low' } },
       timeout: GROQ_TIMEOUT_MS,
       output: Output.object({
         schema: EntitySchema,

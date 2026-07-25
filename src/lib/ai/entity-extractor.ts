@@ -1,10 +1,10 @@
 /**
- * LLM Entity Extractor — Groq Llama 4 Scout 기반
+ * LLM Entity Extractor — Groq GPT-OSS 120B 기반
  *
  * 쿼리에서 server_id / metric / time_range 슬롯을 추출하여
  * 불필요한 클래리피케이션을 사전 차단합니다.
  *
- * 모델: Groq meta-llama/llama-4-scout-17b-16e-instruct (500K TPD, 무료)
+ * 모델: Groq openai/gpt-oss-120b (reasoningEffort=low)
  * 평균 레이턴시: ~200ms (단문 JSON 추출)
  */
 

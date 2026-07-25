@@ -141,7 +141,7 @@ export const AI_ASSISTANT_ARCHITECTURE: ArchitectureDiagram = {
         {
           id: 'rr-groq',
           label: 'Groq',
-          sublabel: 'Llama 4 Scout · Text Pool · 저지연',
+          sublabel: 'GPT-OSS 120B · Text Pool · 저지연',
           type: 'tertiary',
           icon: '⚡',
         },

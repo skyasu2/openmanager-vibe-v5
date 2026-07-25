@@ -24,7 +24,7 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
       'LPU(Language Processing Unit) 기반 초고속 추론 인프라. GPU 대비 일관된 응답 속도와 낮은 지연시간으로 500 Tokens/s 속도 제공',
     implementation:
       '→ text pool fallback 및 agent 정책별 tool-calling 경로. 높은 도구 실행력으로 실시간 메트릭 조회와 이상 분석을 보조',
-    version: 'Llama 4 Scout (17B)',
+    version: 'GPT-OSS 120B',
     status: 'active',
     icon: '⚡',
     tags: ['LPU', 'Tool-calling', '초고속'],
@@ -45,14 +45,14 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     type: 'commercial',
   },
   {
-    name: 'Gemini 2.5 Flash-Lite',
+    name: 'Gemini 3.1 Flash-Lite',
     category: 'ai',
     importance: 'high',
     description:
-      'Google의 고효율 멀티모달 AI 모델. 사고 토큰 소비 없는 안정적 추론과 1M 토큰 컨텍스트, 이미지 분석, 실시간 웹 검색 지원',
+      'Google의 고효율 멀티모달 AI 모델. 1M 토큰 컨텍스트와 이미지 분석을 지원하며, 런타임은 thinkingLevel=minimal로 사고 토큰을 최소화',
     implementation:
-      '→ Vision Agent 전용. 대시보드 스크린샷 분석, 1M 컨텍스트 기반 대용량 로그 분석 담당. 할당량(RPD 1,000) 최적화로 안정적 운영 보장',
-    version: 'gemini-2.5-flash-lite',
+      '→ Vision Agent 전용. 대시보드 스크린샷과 긴 로그 컨텍스트를 분석하며, 계정별 무료 티어 한도를 런타임 quota guard로 보호',
+    version: 'gemini-3.1-flash-lite',
     status: 'active',
     icon: '👁️',
     tags: ['Vision', '1M-Context', 'Cost-Efficient'],

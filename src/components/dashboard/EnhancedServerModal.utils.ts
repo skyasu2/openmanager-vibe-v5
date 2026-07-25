@@ -1,5 +1,5 @@
 /**
- * 🔧 Enhanced Server Modal Utility Functions
+ * Enhanced Server Modal Utility Functions
  *
  * Utility functions for server modal operations:
  * - Metric color determination based on server status and values
@@ -85,7 +85,7 @@ export const getMetricColorByStatus = (
  */
 export const getStatusTheme = (status?: ServerStatus): StatusTheme => {
   switch (status) {
-    case 'online': // 🔧 수정: 'healthy' → 'online' (타입 통합)
+    case 'online': // 'healthy' → 'online' (타입 통합)
       return {
         gradient: 'from-green-500 to-emerald-600',
         bgLight: 'bg-green-50',

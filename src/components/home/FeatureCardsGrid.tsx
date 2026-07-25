@@ -162,7 +162,7 @@ export default function FeatureCardsGrid() {
     (state) => state.aiAgent.isEnabled
   );
 
-  // 🔧 모달 열림 시 body 스크롤 잠금 (ESC/외부클릭 핸들러는 모달 내부에서 처리)
+  // 모달 열림 시 body 스크롤 잠금 (ESC/외부클릭 핸들러는 모달 내부에서 처리)
   useEffect(() => {
     if (!selectedCard) return;
 
@@ -174,7 +174,7 @@ export default function FeatureCardsGrid() {
     };
   }, [selectedCard]);
 
-  // ✅ 핵심 수정: aiAgent.isEnabled primitive 값으로 의존성 변경 (React Error #310 근본 해결)
+  // 의존성은 aiAgent.isEnabled primitive 값으로 유지 (객체 참조 시 React Error #310 발생)
   const handleCardClick = useCallback(
     (cardId: string) => {
       logger.info('🎯 [FeatureCard] 카드 클릭됨:', cardId);
@@ -192,7 +192,7 @@ export default function FeatureCardsGrid() {
         );
       }
     },
-    [aiAgentEnabled] // primitive 값 의존성으로 React Error #310 완전 해결
+    [aiAgentEnabled]
   );
 
   const closeModal = useCallback(() => {
@@ -217,7 +217,7 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 🔧 Feature Card Modal - 상시 렌더링 + isVisible로 가시성 제어 (깜빡임 방지) */}
+      {/* 상시 렌더링 + isVisible로 가시성 제어 (마운트/언마운트 시 깜빡임 방지) */}
       <FeatureCardModal
         selectedCard={selectedCardData}
         onClose={closeModal}

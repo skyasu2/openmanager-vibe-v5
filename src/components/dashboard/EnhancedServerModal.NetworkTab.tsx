@@ -9,7 +9,7 @@ import { RealtimeChart } from './EnhancedServerModal.components';
  * - 네트워크 대역폭 사용률 차트 (실제 데이터)
  * - 서버 연결 정보
  *
- * ✅ v2.0 변경사항:
+ * v2.0 변경사항:
  * - In/Out 분리 → 단일 Network 대역폭 사용률
  * - Latency 추정값 제거
  * - 불필요한 추정값 섹션 정리

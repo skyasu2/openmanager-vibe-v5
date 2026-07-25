@@ -43,7 +43,7 @@ interface DashboardStatus {
 
 /**
  * DashboardContent Props
- * 🔧 Phase 4 (2026-01-28): Props 기반 데이터 흐름
+ * Props 기반 데이터 흐름
  * - DashboardClient → DashboardContent → ServerDashboard로 props 전달
  * - 중복 fetch 제거 (useServerDashboard 호출 최소화)
  */
@@ -202,7 +202,7 @@ export default memo(function DashboardContent({
 
             <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
               <div className="min-w-0">
-                {/* 🔧 Phase 4 (2026-01-28): Props 기반 데이터 흐름
+                {/* Props 기반 데이터 흐름
                       - DashboardClient → DashboardContent → ServerDashboard로 전달
                       - 중복 fetch 제거 (useServerDashboard 호출 1회로 최적화)
                       - ServerDashboard 그래프는 client-only lazy chunk로 분리 */}

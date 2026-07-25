@@ -80,13 +80,13 @@ const DashboardHeader = memo(function DashboardHeader({
     };
   }, []);
 
-  // 🔧 P2: 세분화된 Selector - aiAgent.isEnabled만 구독하여 불필요한 리렌더 방지
+  // 세분화된 Selector - aiAgent.isEnabled만 구독하여 불필요한 리렌더 방지
   const isAIAgentEnabled = useUnifiedAdminStore(
     (state) => state.aiAgent.isEnabled
   );
   // 🔐 사용자 권한 확인
   const permissions = useUserPermissions();
-  // 🔧 새로운 AI 사이드바 상태 (선택적 구독)
+  // 새로운 AI 사이드바 상태 (선택적 구독)
   const isSidebarOpen = useAISidebarStore((state) => state.isOpen);
   const setSidebarOpen = useAISidebarStore((state) => state.setOpen);
 

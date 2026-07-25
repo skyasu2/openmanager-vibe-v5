@@ -10,9 +10,9 @@
 
 import type { ComponentType } from 'react';
 import type { ServerHealthSummary, ServerSpecs } from '@/types/server/base';
-import type { ServerStatus } from '@/types/server-enums'; // 🔧 수정: Single Source of Truth
+import type { ServerStatus } from '@/types/server-enums'; // Single Source of Truth
 
-// 🔧 수정: re-export 제거, 직접 사용
+// re-export 제거, 직접 사용
 export type NetworkStatus = 'excellent' | 'good' | 'poor' | 'offline';
 export type LogLevel = 'info' | 'warn' | 'error';
 export type ServiceStatus =

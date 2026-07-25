@@ -10,7 +10,7 @@ import {
 } from 'node:stream/web';
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { expect, vi } from 'vitest';
+import { vi } from 'vitest';
 
 // React를 global에 추가 (jsdom 환경에서 JSX 지원)
 globalThis.React = React;
@@ -36,14 +36,10 @@ if (typeof globalThis.TransformStream === 'undefined') {
   });
 }
 
-import { toHaveNoViolations } from 'jest-axe';
 import {
   createSupabaseMock,
   SupabaseMockBuilder,
 } from './helpers/supabase-mock';
-
-// jest-axe matcher 등록
-expect.extend(toHaveNoViolations);
 
 // Supabase Client Mock - 향상된 Builder 패턴 사용
 vi.mock('@/lib/supabase/client', () => {

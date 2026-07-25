@@ -117,6 +117,7 @@ export interface ChatMessage {
 export interface AISidebarV2Props {
   isOpen: boolean;
   onClose: () => void;
+  onExitAnimationEnd?: () => void;
   className?: string;
 }
 

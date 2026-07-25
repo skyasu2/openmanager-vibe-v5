@@ -41,7 +41,7 @@ import { ArtifactWorkspacePanel } from './artifact-workspace/ArtifactWorkspacePa
 import SystemContextPanel from './SystemContextPanel';
 import { useAIAssistantLightTheme } from './useAIAssistantLightTheme';
 
-// 🔧 공통 로직은 useAIChatCore 훅에서 관리
+// 공통 로직은 useAIChatCore 훅에서 관리
 
 interface AIWorkspaceProps {
   /** Dashboard route body mode. Avoids the legacy standalone AI shell. */
@@ -83,7 +83,7 @@ export default function AIWorkspace({
     setIsMounted(true);
   }, []);
 
-  // 🔧 공통 chat surface 상태 (selectedFunction + store 구독 번들)
+  // 공통 chat surface 상태 (selectedFunction + store 구독 번들)
   const {
     selectedFunction,
     setSelectedFunction,

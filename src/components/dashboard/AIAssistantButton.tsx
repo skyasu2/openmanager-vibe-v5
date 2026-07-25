@@ -23,7 +23,7 @@ interface AIAssistantButtonProps {
  * - AI 사이드바 토글 기능
  * - 활성화 상태에 따른 시각적 피드백
  * - Hydration 불일치 방지
- * - ✨ 그라데이션 애니메이션 (gradient-diagonal)
+ * - 그라데이션 애니메이션 (gradient-diagonal)
  *
  * @example
  * ```tsx

@@ -31,7 +31,7 @@ import { EnhancedAIChat } from './EnhancedAIChat';
 import { ResizeHandle } from './ResizeHandle';
 import { MessageComponent } from './SidebarMessage';
 
-// 🔧 공통 로직은 useAIChatCore 훅에서 관리
+// 공통 로직은 useAIChatCore 훅에서 관리
 // - Hybrid AI Query (Streaming + Job Queue)
 // - 세션 제한
 // - 메시지 변환
@@ -46,6 +46,7 @@ const MOBILE_BREAKPOINT = 768; // md breakpoint
 export const AISidebarV4: FC<AISidebarV3Props> = ({
   isOpen,
   onClose,
+  onExitAnimationEnd,
   className = '',
   sessionId: propSessionId,
   queryAsOfDataSlot,
@@ -54,7 +55,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // 🔐 권한 확인
   const permissions = useUserPermissions();
 
-  // 🔧 공통 chat surface 상태 (selectedFunction + store 구독 번들)
+  // 공통 chat surface 상태 (selectedFunction + store 구독 번들)
   const {
     selectedFunction,
     setSelectedFunction,
@@ -371,6 +372,11 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
         )}
         // 📐 데스크톱에서는 동적 너비 적용
         style={!isMobile ? { width: `${width}px` } : undefined}
+        onAnimationEnd={(event) => {
+          if (!isOpen && event.target === event.currentTarget) {
+            onExitAnimationEnd?.();
+          }
+        }}
         // 📱 스와이프 제스처 지원
         onTouchStart={handleSwipeTouchStart}
         onTouchMove={handleSwipeTouchMove}

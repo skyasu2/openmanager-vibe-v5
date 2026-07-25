@@ -28,7 +28,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       features: [
         '✨ Z.AI: GLM Flash (128K ctx) — 일반 답변/tool-loop text pool 구성원, second account key는 analysis pool 쿼터 분리용',
         '🌊 Mistral AI: mistral-small-latest (32K ctx) — 일반 답변/tool-loop text pool 구성원, 무료 티어 친화적 텍스트 처리',
-        '⚡ Groq Cloud: LPU 기반 초고속 추론 (meta-llama/llama-4-scout-17b-16e-instruct, 131K ctx) — text pool fallback 및 agent 정책별 tool-calling 경로',
+        '⚡ Groq Cloud: LPU 기반 초고속 추론 (openai/gpt-oss-120b, 131K ctx) — text pool fallback 및 agent 정책별 tool-calling 경로',
         '🧠 Cerebras Inference: gpt-oss-120b — 짧은 structured-output routing/context/evidence 판단용 analysis pool 선두 후보',
         '👁️ Gemini Flash-Lite: Vision Agent 전용, 스크린샷과 긴 로그 컨텍스트 분석 — 사고 토큰 없는 안정적 비전 분석 경로',
         '▲ Vercel AI SDK 7.0: streamText, generateText + Output.object 중심 API — tool-calling LLM과 structured output 기반 스트리밍 응답',
@@ -45,7 +45,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'Mistral AI (Text Pool, 32K)',
         'Groq Cloud (Text Pool / Tool-calling, 131K)',
         'Cerebras Inference gpt-oss-120b (Analysis Pool)',
-        'Gemini 2.5 Flash-Lite (Vision)',
+        'Gemini 3.1 Flash-Lite (Vision)',
         'Vercel AI SDK 7.0',
         'Tool-calling LLM + Decision Layer',
         'Knowledge Retrieval Lite (Postgres FTS + metadata boost)',
