@@ -30,6 +30,8 @@ export type AssistantPlannerDriftReasonCode =
   | 'artifact_kind_mismatch'
   | 'reason_code_mismatch'
   | 'local_decision_missing'
+  /** 프론트 decision에 execution mode 정보가 없어 실행 후에야 비교할 수 있는 상태 */
+  | 'local_execution_mode_unknown'
   | 'shadow_plan_unavailable';
 
 export type AssistantPlannerShadowCandidate = {
@@ -164,6 +166,7 @@ const PLANNER_DRIFT_REASON_CODES = new Set<AssistantPlannerDriftReasonCode>([
   'artifact_kind_mismatch',
   'reason_code_mismatch',
   'local_decision_missing',
+  'local_execution_mode_unknown',
   'shadow_plan_unavailable',
 ]);
 
