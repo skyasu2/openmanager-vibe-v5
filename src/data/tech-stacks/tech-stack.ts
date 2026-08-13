@@ -5,9 +5,9 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'React 19',
     category: 'framework',
     importance: 'critical',
-    description:
-      'Meta의 UI 라이브러리. Concurrent Rendering, Server Components, Suspense, Transitions 등 최신 렌더링 패턴 제공',
-    implementation: '→ Concurrent 기능과 Server Components로 성능 최적화 적용',
+    description: 'Meta의 UI 라이브러리',
+    implementation:
+      '→ 화면 전체. 대시보드·AI 화면은 상호작용이 많아 대부분 Client Component',
     version: '19.2.6',
     status: 'active',
     icon: '⚛️',
@@ -18,11 +18,10 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Next.js 16',
     category: 'framework',
     importance: 'critical',
-    description:
-      'Vercel의 React 풀스택 프레임워크. App Router, Server Actions, Partial Prerendering, Edge Runtime, 자동 코드 분할 제공',
+    description: 'Vercel의 React 풀스택 프레임워크',
     implementation:
-      '→ App Router + Server Actions + PPR로 최적화된 렌더링 구현',
-    version: '16.2.6',
+      '→ App Router + Server Actions. API Routes로 데이터 제공, 캐싱은 cacheComponents',
+    version: '16.2.9',
     status: 'active',
     icon: '▲',
     tags: ['프레임워크', '오픈소스', 'SSR'],
@@ -32,9 +31,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'TypeScript 6.0',
     category: 'language',
     importance: 'critical',
-    description:
-      'Microsoft의 정적 타입 언어. JavaScript 슈퍼셋으로 컴파일 타임 타입 검사, IDE 자동완성, 리팩토링 안전성 제공',
-    implementation: '→ strict 모드로 컴파일 타임 오류 방지 및 개발 생산성 향상',
+    description: 'JavaScript에 정적 타입을 더한 언어',
+    implementation: '→ 프론트엔드와 AI 엔진 전체. strict 모드',
     version: '6.0.3',
     status: 'active',
     icon: '🔷',
@@ -46,8 +44,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     category: 'language',
     importance: 'critical',
     description:
-      'Node.js: V8 기반 서버사이드 JS 런타임. Hono: Web Standards API 기반 초경량 웹 프레임워크로 Express 대비 10배 빠른 성능',
-    implementation: '→ Cloud Run에서 AI Engine 백엔드로 운영. TypeScript 기반',
+      'Node.js는 서버사이드 JS 런타임, Hono는 Web Standards 기반 경량 웹 프레임워크',
+    implementation: '→ Cloud Run에서 도는 AI Engine 서버',
     version: '24.x',
     status: 'active',
     icon: '🚀',
@@ -58,10 +56,9 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Nivo Line + SVG Sparkline',
     category: 'ui',
     importance: 'high',
-    description:
-      'Nivo Line과 순수 SVG 기반 차트 구성. 서버 카드 스파크라인은 자체 SVG로 가볍게 렌더링하고, 상세 시계열은 Nivo Line으로 예측선/이상 구간/임계값을 표현',
+    description: 'React 차트 라이브러리(Nivo)와 직접 만든 SVG 스파크라인',
     implementation:
-      '→ NivoTimeSeriesChart(예측+이상치), SvgSparkline(서버카드 스파크라인) 구현. Recharts 의존성 제거',
+      '→ 상세 시계열은 Nivo(예측선·이상 구간·임계값), 서버 카드 미니차트는 자체 SVG',
     version: '0.99.x',
     status: 'active',
     icon: '📊',
@@ -72,38 +69,21 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'uPlot',
     category: 'ui',
     importance: 'high',
-    description:
-      'Canvas 기반 초고성능 시계열 차트 라이브러리. Grafana가 채택한 렌더링 엔진으로, 10,000+ 데이터 포인트도 60fps 유지. SVG 대비 10배 빠른 렌더링',
-    implementation:
-      '→ RealtimeChart에서 사용. pre-computed JSON → prometheus-to-uplot 변환 → Canvas 렌더링. 다크모드, 드래그 줌, auto-resize 지원',
+    description: 'Canvas 기반 경량 시계열 차트 라이브러리. Grafana가 채택',
+    implementation: '→ 대시보드 고밀도 시계열 차트. 드래그 줌, 다크 모드',
     version: '1.6.32',
     status: 'active',
     icon: '📈',
-    tags: ['Canvas', '고성능', 'Grafana급'],
-    type: 'opensource',
-  },
-  {
-    name: 'Prometheus Format',
-    category: 'framework',
-    importance: 'high',
-    description:
-      'CNCF 표준 모니터링 데이터 포맷. 라벨 기반 다차원 시계열 모델을 OpenTelemetry metric model과 함께 사용해 대시보드와 AI 분석 데이터 계약을 정렬',
-    implementation:
-      '→ 24시간 metrics/logs window와 Resource Catalog/Timeseries를 기준으로 서버 메타데이터와 시계열 조회를 표준화',
-    version: 'OpenMetrics',
-    status: 'active',
-    icon: '🔥',
-    tags: ['CNCF', '시계열', 'SSOT', 'Metrics'],
+    tags: ['Canvas', '시계열', 'Grafana 채택'],
     type: 'opensource',
   },
   {
     name: 'OpenTelemetry',
     category: 'framework',
     importance: 'high',
-    description:
-      'CNCF 관측성 표준. Prometheus 메트릭을 OTel Semantic Convention으로 변환하여 시스템 전체 데이터 일관성 확보. Resource Catalog로 서버 메타데이터 표준화',
+    description: 'CNCF 관측성 표준. 라벨 기반 다차원 시계열 모델',
     implementation:
-      '→ dashboard와 AI Engine이 같은 OpenTelemetry snapshot contract를 소비하고, Resource Catalog로 서버 메타데이터를 표준화',
+      '→ 메트릭 이름·라벨 규칙과 로그 형식의 기준(system.cpu.utilization 등 semconv 이름). 대시보드와 AI 엔진이 같은 스냅샷을 소비',
     version: 'Semantic Conv. 1.x',
     status: 'active',
     icon: '🔭',
@@ -113,11 +93,10 @@ export const TECH_STACK_ITEMS: TechItem[] = [
   {
     name: 'Loki-Compatible Log Format',
     category: 'framework',
-    importance: 'medium',
+    importance: 'low',
     description:
-      'Grafana Loki Push API와 호환되는 로그 구조. 실제 Loki 서버를 내장한 것은 아니며, 라벨 기반 스트림 모델(job, hostname, level)로 구조화된 로그를 다루기 위한 형식',
-    implementation:
-      '→ OTel hourly JSON에 로그가 내장(slot.logs[]), 나노초 타임스탬프 + severityText + resource 속성 지원. LogsTab에서 severity 필터링 UI 제공',
+      'Grafana Loki Push API와 호환되는 로그 구조. 실제 Loki 서버는 쓰지 않음',
+    implementation: '→ 로그 탐색 화면의 severity·라벨 필터링',
     version: 'Loki 3.0+ API',
     status: 'active',
     icon: '📋',
@@ -128,9 +107,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'TanStack Query v5',
     category: 'framework',
     importance: 'high',
-    description:
-      '비동기 상태 관리 라이브러리. 서버 데이터 캐싱, 자동 리패칭, 낙관적 업데이트, 무한 스크롤, 오프라인 지원',
-    implementation: '→ 서버 데이터 캐싱 및 자동 리패칭으로 API 호출 최적화',
+    description: '서버 데이터 캐싱·리패칭 라이브러리',
+    implementation: '→ 대시보드 서버 목록과 메트릭 조회',
     version: '5.x',
     status: 'active',
     icon: '🔄',
@@ -141,9 +119,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Supabase Auth',
     category: 'framework',
     importance: 'critical',
-    description:
-      'Supabase 인증 서비스. OAuth, Magic Link, 이메일/비밀번호 인증 제공. Row Level Security(RLS)와 통합되어 DB 수준 보안',
-    implementation: '→ SSR 패키지로 쿠키 기반 세션 관리. RLS 정책 연동',
+    description: 'Supabase의 인증 서비스. OAuth·이메일 로그인, RLS 연동',
+    implementation: '→ 로그인과 세션. 쿠키 기반 SSR 세션 + RLS 정책',
     version: 'Auth v2',
     status: 'active',
     icon: '🔒',
@@ -154,9 +131,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Tailwind CSS 4.2',
     category: 'ui',
     importance: 'high',
-    description:
-      '유틸리티 퍼스트 CSS 프레임워크. v4 Oxide 엔진으로 빌드 10배 향상, CSS-first 설정, 클래스 기반 스타일링',
-    implementation: '→ 컴포넌트 스타일링 전체 적용. 다크 모드, 반응형 지원',
+    description: '유틸리티 클래스 기반 CSS 프레임워크',
+    implementation: '→ 전체 스타일링. 다크 모드와 반응형',
     version: '4.2.1',
     status: 'active',
     icon: '🎨',
@@ -167,9 +143,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Radix UI',
     category: 'ui',
     importance: 'high',
-    description:
-      '접근성 우선 Headless UI 라이브러리. 스타일 없는 프리미티브 컴포넌트로 완전한 커스터마이징 가능. WAI-ARIA 준수',
-    implementation: '→ Dialog, Tooltip, Dropdown 등 복잡한 UI 패턴에 사용',
+    description: '접근성 우선 Headless UI 프리미티브',
+    implementation: '→ Dialog·Tooltip·Slot을 공용 컴포넌트로 래핑',
     status: 'active',
     icon: '🏬',
     tags: ['UI', '접근성', '컴포넌트'],
@@ -179,9 +154,8 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Zustand 5.0',
     category: 'framework',
     importance: 'medium',
-    description:
-      '경량 상태 관리 라이브러리. Redux 대비 간결한 API, 미들웨어 지원, React 외부에서도 사용 가능. 번들 사이즈 1KB',
-    implementation: '→ 글로벌 UI 상태 및 Admin 설정 관리에 사용',
+    description: '경량 전역 상태 관리 라이브러리',
+    implementation: '→ AI 사이드바와 Admin 설정 등 UI 상태',
     version: '5.0.11',
     status: 'active',
     icon: '🧰',
@@ -192,11 +166,9 @@ export const TECH_STACK_ITEMS: TechItem[] = [
     name: 'Zod 4',
     category: 'framework',
     importance: 'high',
-    description:
-      'TypeScript-first 스키마 선언 및 검증 라이브러리. 런타임 타입 검증, 자동 타입 추론, 파서 조합, 커스텀 에러 메시지 지원',
-    implementation:
-      '→ API 응답/요청 검증, 환경변수 검증, 폼 유효성 검사에 전역 사용',
-    version: '4.0',
+    description: 'TypeScript 기반 스키마 검증 라이브러리',
+    implementation: '→ API 요청·응답과 환경변수 검증',
+    version: '4.3.6',
     status: 'active',
     icon: '🛡️',
     tags: ['검증', 'TypeScript', '스키마'],

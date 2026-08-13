@@ -278,8 +278,10 @@ export default function FeatureCardModal({
                   </span>
                 )}
               </h3>
-              {/* overview 텍스트 — 스크린리더 전용 (시각 영역에서 제거) */}
-              <p id="modal-description" className="sr-only">
+              <p
+                id="modal-description"
+                className="mx-auto mt-4 max-w-3xl text-sm leading-6 text-gray-300"
+              >
                 {cardData.id === 'vibe-coding'
                   ? vibeView === 'history'
                     ? '바이브 코딩 여정: 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL)로 이어진 개발 환경의 변화를 시간 순서대로 보여줍니다.'
@@ -291,7 +293,14 @@ export default function FeatureCardModal({
 
           {/* AI Sub-Sections (Grid Layout) */}
           {cardData.subSections && (
-            <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div
+              className={`mb-10 grid grid-cols-1 gap-4 ${
+                // 열 수를 항목 수에 맞춘다. 고정 3열이면 2개일 때 빈 칸이 남는다.
+                cardData.subSections.length >= 3
+                  ? 'md:grid-cols-3'
+                  : 'md:grid-cols-2'
+              }`}
+            >
               {cardData.subSections.map((section) => (
                 <div
                   key={section.title}

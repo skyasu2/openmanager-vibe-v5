@@ -45,6 +45,7 @@ export function buildAssistantMessageFromAsyncResult(
     Boolean(result.providerAttempts && result.providerAttempts.length > 0) ||
     typeof result.usedFallback === 'boolean' ||
     Boolean(result.fallbackReason) ||
+    Boolean(result.finishReason) ||
     typeof result.ttfbMs === 'number' ||
     typeof result.rotationSlot === 'number';
   const metadata =
@@ -116,6 +117,9 @@ export function buildAssistantMessageFromAsyncResult(
           }),
           ...(result.fallbackReason && {
             fallbackReason: result.fallbackReason,
+          }),
+          ...(result.finishReason && {
+            finishReason: result.finishReason,
           }),
           ...(typeof result.ttfbMs === 'number' && {
             ttfbMs: result.ttfbMs,

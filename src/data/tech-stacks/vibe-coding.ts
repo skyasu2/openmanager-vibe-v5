@@ -8,11 +8,10 @@ export const VIBE_CODING_DATA: VibeCodeData = {
     {
       name: 'Google Antigravity',
       category: 'ai',
-      importance: 'medium',
-      description:
-        'Agent-first AI-powered IDE - AI 에이전트가 계획, 실행, 검증까지 자율 수행 (Google)',
+      importance: 'low',
+      description: 'Google의 에이전트 중심 AI IDE (VS Code 포크)',
       implementation:
-        'VS Code 포크 기반 IDE. 이 프로젝트에서는 CLI 도구(Claude Code / Codex / Gemini) 실행 환경으로 주로 활용하며, 프론트엔드 시각 확인과 터미널 분할에 사용',
+        '→ CLI 도구를 띄우는 작업 환경. 터미널 분할과 프론트엔드 시각 확인용',
       status: 'active',
       icon: '🌌',
       tags: ['Google', 'Agent-First', 'IDE'],
@@ -23,8 +22,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       category: 'ai',
       importance: 'high',
       description:
-        'Anthropic의 Model Context Protocol. AI가 외부 도구, 데이터 소스, API에 표준화된 방식으로 접근하는 오픈 프로토콜. 다양한 MCP 서버로 AI 기능 확장',
-      implementation: `→ ${MCP_SERVERS.TOTAL_ACTIVE}개 서버 상시 연동: ${ACTIVE_MCP_SERVER_NAMES}. storybook은 온디맨드, Lighthouse는 CLI 스크립트로 사용`,
+        'AI가 외부 도구·데이터에 표준 방식으로 접근하는 프로토콜 (Anthropic)',
+      implementation: `→ ${MCP_SERVERS.TOTAL_ACTIVE}개 서버 설정: ${ACTIVE_MCP_SERVER_NAMES}. 필요할 때 브라우저·DB·배포 상태를 직접 조회`,
       status: 'active',
       icon: '🔌',
       tags: ['MCP', 'Protocol', '확장기능'],
@@ -35,9 +34,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       category: 'ai',
       importance: 'critical',
       description:
-        'An agentic coding tool that lives in your terminal, understands your codebase (Anthropic)',
-      implementation:
-        '기획·아키텍처 설계부터 구현·리팩토링·배포까지 전체 개발 사이클을 주도. MCP 서버로 외부 시스템 직접 제어. v8.10.x 이후에도 핵심 설계·리뷰 역할 유지',
+        '터미널에서 코드베이스를 이해하고 작업하는 AI 에이전트 (Anthropic)',
+      implementation: '→ 메인 개발 도구. 아키텍처 설계, 구현, 코드 리뷰를 담당',
       status: 'active',
       icon: '🤖',
       tags: ['Anthropic', 'Agentic', 'MCP'],
@@ -47,11 +45,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       name: 'Cross-Model AI Review',
       category: 'ai',
       importance: 'critical',
-      description:
-        'AI가 작성한 코드는 다른 AI 모델이 리뷰 - Single Point of Failure 방지',
+      description: '중요 변경을 다른 AI 모델로 교차 검토하는 방식',
       implementation:
-        '주로 Claude Code로 진행한 구현을 Codex/Gemini로 수동 교차 검토. 동일 모델의 편향(bias)과 blind spot을 다른 모델이 보완하지만, 커밋 시 자동 트리거는 사용하지 않음',
-      version: 'v5.0',
+        '→ Claude Code로 만든 결과를 Codex/Gemini에 수동으로 검토 요청. 커밋 시 자동 실행은 하지 않음',
       status: 'active',
       icon: '🔄',
       tags: ['Cross-Model', 'Bias방지', '수동검증'],
@@ -61,11 +57,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       name: 'Codex CLI',
       category: 'ai',
       importance: 'high',
-      description:
-        'A lightweight coding agent that runs in your terminal (OpenAI)',
-      implementation:
-        'Generate, edit, and run code using natural language. ChatGPT Plus/Pro 플랜으로 사용. v8.10.x 이후 구현·리팩토링·테스트 보완을 집중 담당. bounded refactor와 배포 전 정리를 주로 담당',
-      version: 'v0.138.0',
+      description: '터미널에서 동작하는 경량 코딩 에이전트 (OpenAI)',
+      implementation: '→ 구현, 리팩토링, 테스트 보완을 주로 담당',
       status: 'active',
       icon: '💎',
       tags: ['OpenAI', 'Lightweight', 'ChatGPT'],
@@ -75,14 +68,11 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       name: 'Gemini CLI',
       category: 'ai',
       importance: 'high',
-      description:
-        'An open-source AI agent that brings the power of Gemini directly into your terminal (Google)',
-      implementation:
-        'Lightweight access to Gemini - the most direct path from prompt to model. 1M 토큰 컨텍스트로 대규모 분석. Cross-Model 리뷰어',
-      version: 'v0.45.2',
+      description: 'Gemini를 터미널에서 쓰는 오픈소스 AI 에이전트 (Google)',
+      implementation: '→ 리서치와 대규모 코드 분석, 교차 검토',
       status: 'active',
       icon: '✨',
-      tags: ['Google', 'OpenSource', '1M-Context'],
+      tags: ['Google', 'OpenSource', 'Research'],
       type: 'opensource',
       aiType: 'cloud-ai',
     },
@@ -92,7 +82,7 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       importance: 'high',
       description: 'GitLab canonical 저장소와 GitHub 공개 스냅샷을 분리 운영',
       implementation:
-        'git push gitlab main → validate, semver tag pipeline → Vercel production 배포. npm run sync:github 로 코드 전용 스냅샷을 GitHub에 선택적 반영. 내부 문서·테스트·QA 자산은 GitLab에만 유지',
+        '→ GitHub에는 코드 전용 스냅샷만 반영하고 내부 문서·QA 자산은 GitLab에만 유지',
       status: 'active',
       icon: '🦊',
       tags: ['GitLab', 'Dual-Remote', 'Vercel배포'],
@@ -102,11 +92,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       name: 'Vitest 4.1',
       category: 'testing',
       importance: 'high',
-      description:
-        'Vite 기반 차세대 테스트 프레임워크. Jest 호환 API, 네이티브 ESM, HMR 지원으로 초고속 테스트 실행. 워치 모드에서 변경 파일만 재실행',
-      implementation:
-        '→ unit/integration/contract 테스트의 기본 축. 빠른 로컬 피드백과 CI 비용 절감을 위해 minimal/ci/main 설정을 분리해 운영',
-      version: '4.1.2',
+      description: 'Vite 기반 테스트 프레임워크',
+      implementation: '→ 단위·통합·계약 테스트. 로컬용과 CI용 설정을 분리',
+      version: '4.1.8',
       status: 'active',
       icon: '🧪',
       tags: ['테스트', 'Vite', 'Jest호환'],
@@ -117,9 +105,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       category: 'tooling',
       importance: 'high',
       description:
-        'Rust 기반 초고속 Linter + Formatter. ESLint/Prettier 통합 대체, 단일 도구로 린트와 포맷팅 동시 수행. 10배 빠른 속도',
+        'Rust 기반 Linter + Formatter. ESLint/Prettier를 한 도구로 대체',
       implementation:
-        '→ scripts/dev/biome-wrapper.sh를 통해 로컬/CI/훅 검증을 단일 경로로 통일. 빠른 feedback loop가 목표이며, 일부 ESLint 플러그인 생태계는 트레이드오프로 감수',
+        '→ 로컬·CI·git 훅을 같은 명령으로 통일. 대신 ESLint 플러그인 생태계는 포기',
       version: '2.4.9',
       status: 'active',
       icon: '🔧',
@@ -129,11 +117,10 @@ export const VIBE_CODING_DATA: VibeCodeData = {
     {
       name: 'Knip 6.0',
       category: 'tooling',
-      importance: 'high',
-      description:
-        'unused dependency를 넘어 export, file, type dead surface까지 추적하는 정적 분석 도구',
+      importance: 'medium',
+      description: '쓰이지 않는 파일·export·의존성을 찾아내는 정적 분석 도구',
       implementation:
-        '→ release 전 정리와 대규모 refactor 전후에 dead code를 탐지. AI가 남기기 쉬운 잔재를 장기적으로 줄이는 위생 도구로 사용',
+        '→ 릴리스 전 정리와 리팩토링 전후에 실행. AI가 남기기 쉬운 잔재를 걷어내는 용도',
       version: '6.0.5',
       status: 'active',
       icon: '🧹',
@@ -143,11 +130,10 @@ export const VIBE_CODING_DATA: VibeCodeData = {
     {
       name: 'Storybook 10',
       category: 'testing',
-      importance: 'high',
-      description:
-        'UI 컴포넌트를 앱 외부의 독립 환경에서 개발·테스트하는 프론트엔드 워크숍. 버튼 하나, 카드 하나를 다양한 상태(정상/경고/에러 등)로 시각 확인하며 살아있는 문서로 관리',
+      importance: 'medium',
+      description: 'UI 컴포넌트를 앱 밖에서 따로 개발·확인하는 도구',
       implementation:
-        '→ src/components 기준 52개 스토리(~39% 컴포넌트 커버리지), 전체 56개 스토리 유지. addon-mcp로 AI가 컴포넌트 문서를 직접 조회·스토리 생성 가능. @storybook/nextjs-vite 기반',
+        '→ 컴포넌트를 정상·경고·에러 상태별로 시각 확인. addon-mcp로 AI가 컴포넌트 문서를 직접 조회',
       version: '10.2.10',
       status: 'active',
       icon: '📖',
@@ -158,10 +144,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       name: 'Playwright 1.58',
       category: 'testing',
       importance: 'high',
-      description:
-        'Microsoft의 E2E 테스트 프레임워크. Chromium/Firefox/WebKit 크로스 브라우저, 자동 대기, 트레이싱, 스크린샷 캡처 지원',
+      description: 'Microsoft의 브라우저 E2E 테스트 프레임워크',
       implementation:
-        '→ 로컬 회귀와 Vercel 실환경 QA를 모두 담당. MCP 서버로 브라우저를 직접 제어하고 release-facing evidence를 함께 남김',
+        '→ 로컬 회귀와 배포 후 QA. MCP 서버로 브라우저를 직접 조작하며 증거 스크린샷을 남김',
       version: '1.58.2',
       status: 'active',
       icon: '🎭',
@@ -171,11 +156,10 @@ export const VIBE_CODING_DATA: VibeCodeData = {
     {
       name: 'Context-Aware Git Hooks',
       category: 'custom',
-      importance: 'high',
-      description:
-        '문서/코드/아티팩트/no-op push를 구분해 필요한 검증만 실행하는 커스텀 훅 오케스트레이션',
+      importance: 'medium',
+      description: '변경 종류에 따라 필요한 검증만 실행하는 직접 만든 git 훅',
       implementation:
-        '→ Husky 엔트리포인트 위에 pre-push.js를 두고 fast/verify/strict 모드를 나눠 운영. 일반 lint-staged보다 유지보수는 어렵지만, 불필요한 전체 검증을 크게 줄임',
+        '→ 문서 변경과 코드 변경을 구분해 검증 강도를 나눔. 유지보수는 번거롭지만 불필요한 전체 검증을 줄임',
       version: 'pre-push.js',
       status: 'active',
       icon: '🪝',
@@ -190,9 +174,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'ChatGPT',
         category: 'ai',
         importance: 'critical',
-        description: '프로젝트 최초 시작 도구 - AI로 개별 페이지 생성',
+        description: '프로젝트 최초 시작 도구',
         implementation:
-          'GPT-3.5/4.0으로 HTML/CSS/JS 페이지를 개별적으로 생성. 프롬프트 기반으로 모니터링 웹 인터페이스의 기초를 구축. 각 페이지를 독립적으로 개발',
+          '→ HTML/CSS/JS 페이지를 하나씩 생성해 모니터링 화면의 기초를 만듦',
         version: 'GPT-3.5/4.0',
         status: 'history',
         icon: '🤖',
@@ -203,9 +187,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'GitHub Web Interface',
         category: 'custom',
         importance: 'high',
-        description: 'Git CLI 없이 웹 인터페이스로 파일 수동 업로드',
-        implementation:
-          '로컬에서 ChatGPT로 생성한 파일들을 GitHub 웹사이트에서 직접 업로드. 체계적인 버전 관리 없이 파일 기반 관리',
+        description: 'Git CLI 없이 웹에서 파일을 직접 업로드',
+        implementation: '→ 생성한 파일을 웹 UI로 올리던 시기. 버전 관리 없음',
         status: 'history',
         icon: '🌐',
         tags: ['수동업로드', 'Git없음', '웹기반'],
@@ -215,9 +198,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'Netlify',
         category: 'deployment',
         importance: 'high',
-        description: '최초 배포 플랫폼 - 정적 사이트 & 목업 호스팅',
-        implementation:
-          'GitHub 저장소와 연동하여 정적 사이트 자동 배포. 복잡한 서버 로직 없이 HTML/JS 수준의 목업을 빠르게 띄우던 용도',
+        description: '최초 배포 플랫폼',
+        implementation: '→ 정적 목업을 빠르게 띄우던 용도',
         status: 'history',
         icon: '🌍',
         tags: ['정적배포', '첫배포', 'Mockup', '단순호스팅'],
@@ -227,9 +209,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: '기본 텍스트 에디터',
         category: 'utility',
         importance: 'medium',
-        description: '로컬 개발을 위한 기본 에디터',
-        implementation:
-          'AI 통합 없는 기본 텍스트 에디터로 ChatGPT 생성 코드 수정. VSCode 없이 메모장 수준 편집',
+        description: 'AI 연동이 없는 기본 에디터',
+        implementation: '→ 생성된 코드를 손으로 고치던 단계',
         status: 'history',
         icon: '📝',
         tags: ['1단계', '수동개발', 'Copy&Paste', 'Netlify'],
@@ -243,9 +224,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'Cursor AI (Auto Dev)',
         category: 'ai',
         importance: 'critical',
-        description: '2단계 — AI 보조 코딩 도입 (Cursor)',
-        implementation:
-          'IDE 안에서 AI가 파일을 수정해주는 "Vibe Coding"의 탄생. 수동 복붙에서 벗어나 생산성이 비약적으로 향상된 시기',
+        description: 'IDE 안에서 AI가 파일을 직접 고치기 시작한 단계',
+        implementation: '→ 수동 복붙에서 벗어난 시기',
         version: '0.42+',
         status: 'history',
         icon: '🚀',
@@ -256,9 +236,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'Vercel + Supabase',
         category: 'deployment',
         importance: 'high',
-        description: '현재까지 이어지는 인프라 표준 정립',
+        description: '지금까지 이어지는 인프라 조합',
         implementation:
-          'Cursor 시기에 도입된 이 조합(Next.js+Vercel+Supabase)은 현재 4단계 Agentic Era까지 변함없이 우리 서비스의 단단한 뼈대가 되어주고 있음',
+          '→ 이 시기에 정한 Next.js + Vercel + Supabase 조합을 현재까지 유지',
         status: 'history',
         icon: '⚡',
         tags: ['FullStack', '핵심기반', '현재도사용중'],
@@ -284,7 +264,7 @@ export const VIBE_CODING_DATA: VibeCodeData = {
       stage3: {
         title: '후기 단계',
         description:
-          'Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GCP Functions 활용',
+          'Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GitHub Actions 기반 검증',
       },
       stage4: {
         title: '현재 단계',
@@ -299,9 +279,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'WSL + Claude Code (Main)',
         category: 'ai',
         importance: 'critical',
-        description: '3단계 핵심 - 메인 개발 환경의 이동 (IDE → WSL)',
-        implementation:
-          '이 시점부터 WSL 터미널이 메인 개발 스테이지가 됨. Claude Code가 등장하여 실질적인 개발을 주도하기 시작함',
+        description: '메인 개발 환경이 IDE에서 WSL 터미널로 옮겨간 분기점',
+        implementation: '→ Claude Code가 실제 개발을 주도하기 시작',
         status: 'history',
         icon: '🐧',
         tags: ['3단계', 'WSL-Main', 'Claude-Code', '분기점'],
@@ -311,9 +290,8 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'Visual Aux (Windsurf/VSCode)',
         category: 'ai',
         importance: 'medium',
-        description: 'IDE의 역할 축소 - 보조 및 시각적 분석',
-        implementation:
-          'Windsurf와 VSCode를 사용하지만, 역할은 "보조"로 축소됨. 주로 프론트엔드 스크린샷 분석이나 단순 뷰어 역할을 담당',
+        description: 'IDE 역할이 보조로 축소된 시기',
+        implementation: '→ 스크린샷 확인과 뷰어 용도로만 사용',
         status: 'history',
         icon: '👁️',
         tags: ['IDE-Secondary', '시각분석', '보조역할'],
@@ -323,9 +301,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'GitHub + GitHub Actions',
         category: 'custom',
         importance: 'high',
-        description: 'canonical 저장소 + CI/CD 자동화 (GitLab 도입 전)',
+        description: 'GitLab 도입 전 canonical 저장소와 CI',
         implementation:
-          'origin/main 을 canonical 로 운영하며 GitHub Actions로 CI(lint/type/test), Dependabot으로 의존성 자동 업데이트. GitLab 도입 후 canonical 역할을 gitlab remote로 이전하고 GitHub는 공개 스냅샷 전용으로 전환',
+          '→ GitHub Actions로 lint·type·test를 돌리던 단계. 이후 canonical은 GitLab으로 옮기고 GitHub는 공개 스냅샷 전용이 됨',
         status: 'history',
         icon: '🐙',
         tags: ['GitHub', 'Actions', 'Dependabot', 'CI/CD'],
@@ -339,9 +317,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'GitLab (Canonical)',
         category: 'custom',
         importance: 'critical',
-        description: '4단계 핵심 - canonical 저장소를 GitLab으로 전환',
+        description: 'canonical 저장소를 GitLab으로 전환',
         implementation:
-          'GitHub에서 GitLab으로 canonical 역할 이전. git push gitlab main → GitLab CI validate/deploy/smoke → Vercel production 배포 체계 확립. GitHub는 공개 코드 스냅샷(npm run sync:github)으로 역할 분리하고, ci:local(shell 직접 실행)이 전체 검증 표준 경로',
+          '→ 배포 권한을 GitLab CI로 모으고 GitHub는 공개 코드 스냅샷 전용으로 분리',
         status: 'active',
         icon: '🦊',
         tags: ['4단계', 'GitLab', 'canonical', 'Vercel연동'],
@@ -351,9 +329,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'Multi-AI CLI (Manual Cross-Use)',
         category: 'ai',
         importance: 'critical',
-        description: 'Claude Code 중심 + 수동 교차 사용형 Multi-CLI 운영',
+        description: 'Claude Code 중심으로 여러 AI CLI를 수동 교차 사용',
         implementation:
-          'Claude Code(아키텍처·설계·구현 중심), Codex(구현·리팩토링 및 테스트 보완), Gemini(리서치/분석)를 사용자가 수동 전환하며 교차 사용. 자동 라우팅보다는 사람 판단으로 필요한 CLI를 선택해 구현과 검토를 나누는 운영 방식',
+          '→ Claude Code(설계·구현), Codex(구현·리팩토링), Gemini(리서치)를 사람이 골라 씀. 자동 라우팅은 쓰지 않음',
         status: 'active',
         icon: '🤝',
         tags: ['Multi-AI', 'Manual-Cross-Use', 'Codex', 'Gemini'],
@@ -363,10 +341,9 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'ci:local (Shell CI)',
         category: 'tooling',
         importance: 'high',
-        description:
-          '로컬 전체 검증 표준 - GitLab shell executor 동등 직접 실행',
+        description: 'GitLab CI와 같은 검증을 로컬에서 먼저 돌리는 경로',
         implementation:
-          'npm run ci:local로 로컬 전체 검증을 수동 실행합니다. GitLab CI는 wsl2-docker tag의 shell executor로 WSL2에서 직접 실행하므로, 로컬 개발 환경과 동일 — Docker 컨테이너 불필요. pre-push hook은 빠른 변경 범위 검증만 수행합니다.',
+          '→ GitLab CI가 WSL2 shell executor로 돌아 로컬 환경과 동일. 태그를 밀기 전에 같은 검증을 통과시킴',
         status: 'active',
         icon: '🖥️',
         tags: ['로컬CI', 'pre-push', 'GitLab-CI-Active'],
@@ -376,13 +353,12 @@ export const VIBE_CODING_DATA: VibeCodeData = {
         name: 'Cloud Run AI Engine',
         category: 'ai',
         importance: 'high',
-        description: 'Vercel 분리 AI 엔진 - Free Tier 운영',
+        description: 'Vercel과 분리해 운영하는 AI 엔진',
         implementation:
-          'Vercel(Frontend)과 Cloud Run(AI Engine)으로 하이브리드 아키텍처 운영. Metrics Query/Analyst/Reporter/Advisor/Vision 실행 에이전트 + Knowledge Retrieval Lite(BM25 RPC + metadata boost). Cloud Run Free Tier 엄수(1vCPU, 512Mi)',
-        version: 'v8.10+',
+          '→ Metrics Query·Analyst·Reporter·Advisor·Vision 에이전트와 지식 검색을 담당',
         status: 'active',
         icon: '☁️',
-        tags: ['Cloud-Run', 'AI-Engine', 'Free-Tier', 'Tool-Calling'],
+        tags: ['Cloud-Run', 'AI-Engine', 'Tool-Calling'],
         type: 'commercial',
       },
     ],

@@ -23,6 +23,7 @@ import type {
   IncidentReportArtifact,
   MonitoringAnalysisArtifact,
 } from '@/lib/ai/domains/monitoring/artifact-types';
+import type { ClientFinishReason } from '@/lib/ai/finish-reason';
 import type { RouteDecision } from '@/lib/ai/route-decision';
 import type { SemanticQueryTrace } from '@/lib/ai/semantic-intent-frame';
 import type {
@@ -169,6 +170,7 @@ export interface ChatMessage {
     latencyTier?: 'fast' | 'normal' | 'slow' | 'very_slow';
     resolvedMode?: 'single' | 'multi';
     modeSelectionSource?: string;
+    finishReason?: ClientFinishReason;
     provider?: string;
     modelId?: string;
     providerAttempts?: ProviderAttemptTelemetry[];

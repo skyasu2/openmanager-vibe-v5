@@ -189,7 +189,7 @@ export const AI_ASSISTANT_ARCHITECTURE: ArchitectureDiagram = {
         {
           id: 'otel-data',
           label: 'OTel Data',
-          sublabel: '18대 서버 · 144개 시점',
+          sublabel: '18대 서버 메트릭·로그',
           type: 'tertiary',
           icon: '📈',
         },

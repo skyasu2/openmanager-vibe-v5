@@ -251,6 +251,7 @@ export function transformUIMessageToEnhanced(
     Boolean(metadata?.providerAttempts?.length) ||
     typeof metadata?.usedFallback === 'boolean' ||
     Boolean(metadata?.fallbackReason) ||
+    Boolean(metadata?.finishReason) ||
     typeof metadata?.ttfbMs === 'number';
 
   // 분석 근거 생성 (assistant 메시지에만)
@@ -324,6 +325,9 @@ export function transformUIMessageToEnhanced(
             }),
             ...(metadata?.fallbackReason && {
               fallbackReason: metadata.fallbackReason,
+            }),
+            ...(metadata?.finishReason && {
+              finishReason: metadata.finishReason,
             }),
             ...(typeof metadata?.ttfbMs === 'number' && {
               ttfbMs: metadata.ttfbMs,

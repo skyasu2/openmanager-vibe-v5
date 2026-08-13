@@ -50,8 +50,6 @@ interface AIWorkspaceProps {
   queryAsOfDataSlot?: JobDataSlot;
   /** Dashboard servers used for read-only contextual matching in embedded mode. */
   serverContextServers?: Server[];
-  /** @deprecated kept for older stories/tests; sidebar uses AISidebarV4. */
-  mode?: 'fullscreen';
 }
 
 /**

@@ -121,10 +121,10 @@ function Home() {
             </span>
           </h1>
           <p className="landing-hero-subtitle mb-3 text-xl font-semibold leading-snug tracking-normal text-white sm:text-2xl md:text-3xl">
-            서버 운영을 AI에게 묻다
+            AI 어시스턴트로 서버를 모니터링합니다
           </p>
           <p className="landing-hero-kicker text-sm font-medium leading-relaxed tracking-normal text-white/[0.78] sm:text-base">
-            자연어 질의 · 장애 감지 · 운영 보고서를 AI가 실시간으로 처리합니다
+            자연어로 묻고, 메트릭·로그 근거와 함께 답을 받습니다
           </p>
         </div>
 

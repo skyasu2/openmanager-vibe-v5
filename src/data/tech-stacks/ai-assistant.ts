@@ -6,24 +6,22 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Cerebras Inference',
     category: 'ai',
     importance: 'critical',
-    description:
-      '세계 최대 AI 칩 Wafer-Scale Engine(WSE-3) 기반 추론 서비스. 850,000개 코어가 단일 웨이퍼에 집적되어 GPU 클러스터의 통신 병목 없이 초고속 추론 제공',
+    description: '웨이퍼 스케일 칩(WSE-3) 기반 추론 서비스',
     implementation:
-      '→ 짧은 routing/context/evidence-classifier 같은 structured-output analysis pool 선두 후보. 일반 답변/tool-loop text rotation에서는 제외',
+      '→ 라우팅·근거 판정처럼 짧은 분류 응답 전용. production에서 tool-calling을 기본 비활성화해 일반 답변 pool에서는 제외',
     version: 'gpt-oss-120b',
     status: 'active',
     icon: '🧠',
-    tags: ['WSE-3', 'Planning', '웨이퍼스케일'],
+    tags: ['WSE-3', '분류 전용', '웨이퍼스케일'],
     type: 'commercial',
   },
   {
     name: 'Groq Cloud',
     category: 'ai',
     importance: 'critical',
-    description:
-      'LPU(Language Processing Unit) 기반 초고속 추론 인프라. GPU 대비 일관된 응답 속도와 낮은 지연시간으로 500 Tokens/s 속도 제공',
+    description: 'LPU 전용 칩 기반 추론 서비스',
     implementation:
-      '→ text pool fallback 및 agent 정책별 tool-calling 경로. 높은 도구 실행력으로 실시간 메트릭 조회와 이상 분석을 보조',
+      '→ 일반 답변 fallback과 도구 호출 경로. 런타임 쿼터 가드로 호출량 관리',
     version: 'GPT-OSS 120B',
     status: 'active',
     icon: '⚡',
@@ -34,10 +32,8 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Mistral AI',
     category: 'ai',
     importance: 'high',
-    description:
-      '프랑스 AI 스타트업의 효율적인 오픈웨이트 LLM. 무료 티어 보호를 위해 Large 대신 Small 계열을 text fallback 기본값으로 사용',
-    implementation:
-      '→ 일반 답변/tool-loop text pool 구성원. 내부 지식 검색 runtime과 임베딩 경로에서는 제외',
+    description: '프랑스 Mistral의 오픈웨이트 LLM',
+    implementation: '→ 일반 답변과 도구 루프. Large 대신 Small 계열 사용',
     version: 'mistral-small-latest',
     status: 'active',
     icon: '🛡️',
@@ -48,14 +44,12 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Gemini 3.1 Flash-Lite',
     category: 'ai',
     importance: 'high',
-    description:
-      'Google의 고효율 멀티모달 AI 모델. 1M 토큰 컨텍스트와 이미지 분석을 지원하며, 런타임은 thinkingLevel=minimal로 사고 토큰을 최소화',
-    implementation:
-      '→ Vision Agent 전용. 대시보드 스크린샷과 긴 로그 컨텍스트를 분석하며, 계정별 무료 티어 한도를 런타임 quota guard로 보호',
-    version: 'gemini-3.1-flash-lite',
+    description: 'Google의 경량 멀티모달 모델',
+    implementation: '→ Vision Agent 전용. 스크린샷과 긴 로그 분석',
+    version: 'gemini-3.5-flash-lite',
     status: 'active',
     icon: '👁️',
-    tags: ['Vision', '1M-Context', 'Cost-Efficient'],
+    tags: ['Vision', 'Multimodal', 'Cost-Efficient'],
     type: 'commercial',
   },
 
@@ -64,11 +58,10 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Vercel AI SDK',
     category: 'ai',
     importance: 'critical',
-    description:
-      'Vercel이 개발한 AI 애플리케이션 프레임워크. generateText + Output.object와 streamText를 통해 tool-calling LLM 응답, structured output, 스트리밍을 제공',
+    description: 'LLM 호출·스트리밍·structured output을 다루는 프레임워크',
     implementation:
-      'deterministic/single-first 런타임을 기본값으로 두고, RCA/report/advisor/vision 같은 복잡 질의만 5개 라우팅 에이전트로 escalation',
-    version: '6.0',
+      '→ 모든 LLM 호출과 응답 스트리밍. 단순 조회는 고정 경로로 처리하고 복잡한 질의만 전문 에이전트로 넘김',
+    version: '7.0',
     status: 'active',
     icon: '▲',
     tags: ['AI SDK', 'Streaming', 'Tool Calling', 'Decision Layer'],
@@ -79,10 +72,9 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Supabase Postgres',
     category: 'database',
     importance: 'high',
-    description:
-      'PostgreSQL Full Text Search 기반 운영 지식 검색 인덱스. 원본 지식은 repo 문서/seed JSON에 두고 Supabase는 재생성 가능한 serving index로 사용',
+    description: 'PostgreSQL 관리형 데이터베이스',
     implementation:
-      '운영 runbook, 장애 사례, 토폴로지 문서를 knowledge_base에 materialize하고 search_knowledge_text RPC로 검색',
+      '→ 운영 지식 검색 인덱스. 원본은 repo 문서/seed JSON에 두고 Supabase는 다시 만들 수 있는 검색용 사본',
     version: 'PostgreSQL 17 + FTS RPC',
     status: 'active',
     icon: '🐘',
@@ -93,10 +85,9 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Knowledge Retrieval Lite',
     category: 'ai',
     importance: 'high',
-    description:
-      'PostgreSQL Full Text Search와 metadata boost를 결합한 경량 지식 검색 계층. 외부 검색 SaaS나 graph runtime 없이 직접 구성',
+    description: '직접 만든 경량 지식 검색 계층',
     implementation:
-      'Supabase search_knowledge_text RPC + 메타데이터 부스트로 검색 흐름을 구성. Reporter/Advisor Agent의 searchKnowledgeBase 도구로 연결',
+      '→ 운영 runbook·장애 이력·토폴로지 검색. Postgres 전문검색 + 메타데이터 부스트로 구성하고 외부 검색 SaaS는 쓰지 않음',
     version: 'In-house',
     status: 'active',
     icon: '🔍',
@@ -108,10 +99,9 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Custom Monitoring ML (TypeScript)',
     category: 'ai',
     importance: 'high',
-    description:
-      '경량 커스텀 이상 탐지 계층. 이동평균과 표준편차 기반 통계 탐지로 실시간 응답성과 설명 가능성을 우선한 운영형 ML 구현',
+    description: '직접 만든 통계 기반 이상 탐지',
     implementation:
-      '→ Analyst Agent에서 사용. SimpleAnomalyDetector로 이상 신호를 빠르게 감지하고 보고서 생성 파이프라인에 연결',
+      '→ 이동평균과 표준편차로 이상 신호를 감지. Analyst Agent가 보고서 생성 전에 사용',
     version: 'In-house',
     status: 'active',
     icon: '🧪',
@@ -121,11 +111,10 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
   {
     name: 'Trend Predictor (Enhanced)',
     category: 'ai',
-    importance: 'medium',
-    description:
-      '선형 회귀 기반 추세 예측에 임계값 도달/복귀 ETA 계산을 결합한 확장 모듈. 운영자가 선제 대응 시점을 판단할 수 있도록 보조',
+    importance: 'low',
+    description: '직접 만든 추세 예측 모듈',
     implementation:
-      '→ TrendPredictor + TrendPredictor.enhanced 경로에서 사용. 상승/하락 추세와 임계값 이벤트 시점을 함께 제공',
+      '→ 선형 회귀로 상승·하락 추세와 임계값 도달 시점을 계산해 선제 대응 판단을 보조',
     version: 'Custom',
     status: 'active',
     icon: '📈',
@@ -136,11 +125,10 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
   {
     name: 'Langfuse',
     category: 'ai',
-    importance: 'medium',
-    description:
-      'AI 애플리케이션 관측성 플랫폼. LLM 호출 추적, 프롬프트 버전 관리, 품질 모니터링을 제공',
+    importance: 'low',
+    description: 'LLM 호출 추적·관측성 플랫폼',
     implementation:
-      '→ 모든 AI 호출에 통합. 토큰 사용량, 응답 시간, 에러율 추적 및 프롬프트 품질 분석',
+      '→ 호출 추적과 provider fallback 지표 수집. 프롬프트 관리 기능은 쓰지 않음',
     version: 'langfuse v3.38',
     status: 'active',
     icon: '📊',
@@ -151,10 +139,9 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'Upstash Redis',
     category: 'database',
     importance: 'medium',
-    description:
-      'Serverless Redis 서비스. 짧게 유지되는 카운터와 상태를 빠르게 읽고 써서 AI 호출 흐름을 조율',
+    description: 'Serverless Redis',
     implementation:
-      '→ 요청 제한, AI 제공자별 쿼터/쿨다운, AI job 중복 방지, Langfuse 사용량 카운터, 일부 단기 cache/session 상태에 사용. 무료 티어 500K commands/month',
+      '→ 요청 제한, provider별 쿼터·쿨다운, AI 작업 중복 실행 방지',
     status: 'active',
     icon: '⚡',
     tags: ['Redis', 'RateLimit', 'Quota', 'Jobs'],
@@ -165,10 +152,9 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     name: 'GCP Cloud Run',
     category: 'deployment',
     importance: 'high',
-    description:
-      'Google Cloud의 서버리스 컨테이너 플랫폼. 요청이 없으면 Scale to Zero로 비용 절감, 트래픽 증가 시 자동 확장',
+    description: 'Google Cloud의 서버리스 컨테이너 플랫폼',
     implementation:
-      'Node.js 24 + Hono 웹 프레임워크로 AI 엔진 컨테이너 운영. asia-northeast1(서울) 리전 배포',
+      '→ AI Engine 실행. 도쿄 리전(asia-northeast1), 요청이 없으면 0으로 축소',
     version: 'asia-northeast1',
     status: 'active',
     icon: '☁️',

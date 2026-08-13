@@ -11,6 +11,7 @@ import type {
   LegacyServerResponse,
   ServerHistory,
 } from '@/schemas/server-schemas/server-details.schema';
+import { ServerDetailQuerySchema } from '@/schemas/server-schemas/server-details.schema';
 import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import {
   normalizeNetworkUtilizationPercent,
@@ -35,11 +36,36 @@ export const GET = withAuth(
     try {
       const { id } = await params;
       const { searchParams } = new URL(request.url);
-      const includeHistory = searchParams.get('history') === 'true';
-      const range = searchParams.get('range') || '24h';
-      const format = searchParams.get('format') || 'enhanced'; // enhanced | legacy | prometheus
-      const includeMetrics = searchParams.get('include_metrics') === 'true';
-      const includePatterns = searchParams.get('include_patterns') === 'true';
+
+      // 쿼리 계약을 스키마로 검증한다. 지원하지 않는 값을 조용히 무시하면
+      // meta.request_info가 실제 처리와 다른 값을 되돌려주게 된다.
+      const parsedQuery = ServerDetailQuerySchema.safeParse(
+        Object.fromEntries(searchParams)
+      );
+
+      if (!parsedQuery.success) {
+        const invalidParams = parsedQuery.error.issues.map((issue) =>
+          issue.path.join('.')
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid query parameter',
+            message: `지원하지 않는 쿼리 값입니다: ${invalidParams.join(', ')}`,
+            invalid_params: invalidParams,
+            timestamp: new Date().toISOString(),
+          },
+          { status: 400 }
+        );
+      }
+
+      const query = parsedQuery.data;
+      const includeHistory = query.history === 'true';
+      const range = query.range;
+      const format = query.format;
+      const includeMetrics = query.include_metrics === 'true';
+      const includePatterns = query.include_patterns === 'true';
 
       debug.log(
         `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`

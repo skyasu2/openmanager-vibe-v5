@@ -590,3 +590,7 @@ storybook-static/
 
 # Planning tmp/ — local-only scratch files, not committed
 reports/planning/tmp/
+
+# msw가 install마다 재생성하는 브라우저 워커. 이 저장소는 node 서버 모드만 쓰고
+# (setupWorker 참조 0건), 6a3b07542에서 orphan asset으로 한 번 정리한 적이 있다.
+public/mockServiceWorker.js

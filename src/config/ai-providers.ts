@@ -67,7 +67,7 @@ export const AI_PROVIDERS: AIProviderConfig[] = [
   {
     name: 'Gemini',
     role: 'Vision primary',
-    model: 'gemini-3.1-flash-lite',
+    model: 'gemini-3.5-flash-lite',
     description: 'Primary vision provider for screenshot and multimodal analysis',
     color: 'bg-emerald-500',
   },

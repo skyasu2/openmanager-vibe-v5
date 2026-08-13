@@ -87,7 +87,7 @@ export const CLOUD_PLATFORM_ARCHITECTURE: ArchitectureDiagram = {
         {
           id: 'cerebras',
           label: 'Cerebras',
-          sublabel: '텍스트 pool · gpt-oss-120b',
+          sublabel: '분석 pool · gpt-oss-120b',
           type: 'tertiary',
           icon: '🧠',
         },
@@ -130,7 +130,7 @@ export const CLOUD_PLATFORM_ARCHITECTURE: ArchitectureDiagram = {
       label: '순환',
       type: 'dashed',
     },
-    { from: 'cloudrun', to: 'cerebras', label: '순환', type: 'dashed' },
+    { from: 'cloudrun', to: 'cerebras', label: '분석', type: 'dashed' },
     {
       from: 'cloudrun',
       to: 'gemini-provider',

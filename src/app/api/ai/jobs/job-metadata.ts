@@ -5,6 +5,10 @@ import {
   normalizeAssistantResult,
 } from '@/lib/ai/assistant-contract';
 import {
+  type ClientFinishReason,
+  normalizeClientFinishReason,
+} from '@/lib/ai/finish-reason';
+import {
   normalizeRouteDecision,
   type RouteDecision,
 } from '@/lib/ai/route-decision';
@@ -46,6 +50,7 @@ export interface ClientJobMetadata {
   latencyTier?: 'fast' | 'normal' | 'slow' | 'very_slow';
   resolvedMode?: 'single' | 'multi';
   modeSelectionSource?: string;
+  finishReason?: ClientFinishReason;
   routeDecision?: RouteDecision;
   assistantPlan?: AssistantPlan;
   assistantResult?: AssistantResult;
@@ -181,6 +186,7 @@ export function sanitizeJobMetadataForClient(
       ? metadata.resolvedMode
       : undefined;
   const modeSelectionSource = getNonEmptyString(metadata.modeSelectionSource);
+  const finishReason = normalizeClientFinishReason(metadata.finishReason);
   const routeDecision = normalizeRouteDecision(metadata.routeDecision);
   const assistantPlan = normalizeAssistantPlan(metadata.assistantPlan);
   const assistantResult = normalizeAssistantResult(metadata.assistantResult);
@@ -213,6 +219,7 @@ export function sanitizeJobMetadataForClient(
     ...(latencyTier && { latencyTier }),
     ...(resolvedMode && { resolvedMode }),
     ...(modeSelectionSource && { modeSelectionSource }),
+    ...(finishReason && { finishReason }),
     ...(routeDecision && { routeDecision }),
     ...(assistantPlan && { assistantPlan }),
     ...(assistantResult && { assistantResult }),

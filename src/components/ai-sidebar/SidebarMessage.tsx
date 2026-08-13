@@ -94,7 +94,8 @@ export const MessageComponent = memo<{
       message.role === 'assistant' &&
       !message.isStreaming &&
       (Boolean(message.metadata?.handoffHistory?.length) ||
-        Boolean(responseLatencyLabel));
+        Boolean(responseLatencyLabel) ||
+        message.metadata?.finishReason === 'length');
     const isCollapsibleAssistantResponse = Boolean(
       assistantResponseView?.shouldCollapse
     );
@@ -261,6 +262,14 @@ export const MessageComponent = memo<{
                       title={responseLatencyLabel.title}
                     >
                       {responseLatencyLabel.label}
+                    </span>
+                  )}
+                  {message.metadata?.finishReason === 'length' && (
+                    <span
+                      className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800"
+                      title="모델 출력 한도에 도달해 답변이 일부 생략되었습니다."
+                    >
+                      답변 일부 생략
                     </span>
                   )}
                 </div>

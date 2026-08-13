@@ -44,13 +44,10 @@ export const ServerSpecsSchema = z.object({
 
 // ===== 서버 상세 쿼리 =====
 
-export const _ServerDetailQuerySchema = z.object({
+export const ServerDetailQuerySchema = z.object({
   history: z.enum(['true', 'false']).optional(),
   range: z.string().optional().default('24h'),
-  format: z
-    .enum(['enhanced', 'legacy', 'prometheus'])
-    .optional()
-    .default('enhanced'),
+  format: z.enum(['enhanced', 'legacy']).optional().default('enhanced'),
   include_metrics: z.enum(['true', 'false']).optional(),
   include_patterns: z.enum(['true', 'false']).optional(),
 });
@@ -79,7 +76,7 @@ export const ServerHistorySchema = z.object({
 
 // ===== 레거시 서버 응답 =====
 
-export const _LegacyServerResponseSchema = z.object({
+const LegacyServerResponseSchema = z.object({
   success: z.literal(true),
   server: z.object({
     id: z.string(),
@@ -121,7 +118,7 @@ export const _LegacyServerResponseSchema = z.object({
 
 // ===== 향상된 서버 응답 =====
 
-export const _EnhancedServerResponseSchema = z.object({
+const EnhancedServerResponseSchema = z.object({
   success: z.literal(true),
   meta: z.object({
     request_info: z.object({
@@ -169,27 +166,10 @@ export const _EnhancedServerResponseSchema = z.object({
   }),
 });
 
-// ===== 에러 응답 =====
-
-export const _ServerErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string(),
-  message: z.string(),
-  available_servers: z
-    .array(
-      z.object({
-        id: z.string(),
-        hostname: z.string(),
-      })
-    )
-    .optional(),
-  timestamp: TimestampSchema,
-});
-
 // ===== 타입 내보내기 (사용 중인 것만 유지) =====
 
 export type ServerHistory = z.infer<typeof ServerHistorySchema>;
-export type LegacyServerResponse = z.infer<typeof _LegacyServerResponseSchema>;
+export type LegacyServerResponse = z.infer<typeof LegacyServerResponseSchema>;
 export type EnhancedServerResponse = z.infer<
-  typeof _EnhancedServerResponseSchema
+  typeof EnhancedServerResponseSchema
 >;

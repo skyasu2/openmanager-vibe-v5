@@ -222,18 +222,25 @@ const ENVIRONMENT = {
   },
 } as const;
 
-// 🔌 Codex MCP 서버 설정 (SSOT - .codex/config.toml 기준)
+// 🔌 MCP 서버 설정
+// SSOT는 tracked 설정 파일 2개다. `.codex/config.toml`은 gitignore되므로 참조하지 않는다.
+//   - Codex:      config/templates/codex.config.toml.template
+//   - Claude Code: .mcp.json
+// 두 파일과의 정합은 src/data/feature-cards.data.test.ts 계약 테스트가 강제한다.
 export const MCP_SERVERS = {
-  // 활성화된 MCP 서버 목록 (8/8, 2026-06-10 동기화)
+  // Codex와 Claude Code 양쪽에 모두 등록된 서버. 랜딩 노출 기준이다.
   ACTIVE: [
     'chrome-devtools', // 브라우저 런타임 진단
-    'diagram-converter', // Mermaid 렌더/검증
     'github', // 저장소 관리
     'next-devtools', // Next.js 런타임 진단
-    'openaiDeveloperDocs', // OpenAI 공식 문서
     'playwright', // E2E 테스트
     'supabase-db', // DB 관리
     'vercel', // 배포 관리
+  ] as const,
+
+  // Codex 설정에만 있는 서버. 공통 목록이 아니므로 랜딩에 노출하지 않는다.
+  CODEX_ONLY: [
+    'openaiDeveloperDocs', // OpenAI 공식 문서
   ] as const,
 
   // 온디맨드 MCP 서버 (상시 등록 아님)
@@ -241,7 +248,7 @@ export const MCP_SERVERS = {
     'storybook', // 컴포넌트 문서·스토리 조회 (Storybook dev 필요)
   ] as const,
 
-  // 제거된 MCP 서버 (2026-06-10 업데이트)
+  // 제거된 MCP 서버
   REMOVED: [
     'context7', // 활용도 저하로 제거
     'filesystem', // Claude Code 내장 도구와 중복
@@ -255,10 +262,11 @@ export const MCP_SERVERS = {
     'tavily', // built-in WebSearch로 대체
     'serena', // Claude Code built-in 도구(Read/Edit/Grep/Glob)로 대체
     'lighthouse', // MCP 제거, CLI 스크립트(npm run lighthouse:*)로 유지
+    'diagram-converter', // Codex/Claude 설정에서 제거
   ] as const,
 
-  // 서버 수
-  TOTAL_ACTIVE: 8,
+  // 공통 서버 수 (ACTIVE 길이와 일치)
+  TOTAL_ACTIVE: 6,
 } as const;
 
 // MCP 서버 목록 타입 (타입 안전성)

@@ -36,6 +36,29 @@ if (typeof globalThis.TransformStream === 'undefined') {
   });
 }
 
+// jsdom 28에는 AnimationEvent 생성자가 없다. 없으면 fireEvent.animationEnd가
+// 만든 이벤트를 React가 onAnimationEnd 합성 이벤트로 라우팅하지 못해서,
+// 네이티브 리스너는 받는데 React 핸들러만 조용히 건너뛴다.
+if (typeof globalThis.AnimationEvent === 'undefined') {
+  class AnimationEventPolyfill extends Event {
+    readonly animationName: string;
+    readonly elapsedTime: number;
+    readonly pseudoElement: string;
+
+    constructor(type: string, init: AnimationEventInit = {}) {
+      super(type, init);
+      this.animationName = init.animationName ?? '';
+      this.elapsedTime = init.elapsedTime ?? 0;
+      this.pseudoElement = init.pseudoElement ?? '';
+    }
+  }
+
+  Object.defineProperty(globalThis, 'AnimationEvent', {
+    value: AnimationEventPolyfill,
+    writable: true,
+  });
+}
+
 import {
   createSupabaseMock,
   SupabaseMockBuilder,

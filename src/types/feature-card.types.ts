@@ -17,8 +17,6 @@ export interface FeatureCard {
   gradient: string;
   detailedContent: {
     overview: string;
-    features: string[];
-    technologies: string[];
   };
   subSections?: {
     title: string;

@@ -125,8 +125,15 @@ const FeatureCardItem = memo(
             >
               {card.description}
             </p>
-            <span id={actionId} className="sr-only">
-              상세 정보 보기
+            <span
+              id={actionId}
+              className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-white/65 transition-colors group-hover:text-white/90"
+            >
+              상세 보기
+              <ArrowRight
+                aria-hidden="true"
+                className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none"
+              />
             </span>
 
             {/* AI 어시스턴트 필요 표시 */}
@@ -135,11 +142,6 @@ const FeatureCardItem = memo(
                 AI 어시스턴트 모드 필요
               </div>
             )}
-
-            <ArrowRight
-              aria-hidden="true"
-              className="mt-auto h-4 w-4 self-end text-white/60 transition-transform group-hover:translate-x-0.5 group-hover:text-white/90 motion-reduce:transform-none"
-            />
           </div>
 
           {/* 호버 효과 - 단순화 */}

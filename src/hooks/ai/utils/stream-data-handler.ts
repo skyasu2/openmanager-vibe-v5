@@ -9,6 +9,7 @@ import {
   mergeDeveloperPanelData,
   normalizeDeveloperContextStreamPayload,
 } from '@/lib/ai/developer-panel';
+import { normalizeClientFinishReason } from '@/lib/ai/finish-reason';
 import { normalizeRouteDecision } from '@/lib/ai/route-decision';
 import { normalizeSemanticQueryTrace } from '@/lib/ai/semantic-intent-frame';
 import { logger } from '@/lib/logging';
@@ -419,6 +420,11 @@ export function handleStreamDataPart(
     const resolvedMode = extractResolvedModeFromDoneData(doneData);
     const modeSelectionSource =
       extractModeSelectionSourceFromDoneData(doneData);
+    const finishReason = normalizeClientFinishReason(
+      doneData?.metadata && typeof doneData.metadata === 'object'
+        ? (doneData.metadata as Record<string, unknown>).finishReason
+        : undefined
+    );
     const retrieval = extractRetrievalMetadataFromDoneData(doneData);
     const evidenceCards = extractEvidenceCardsFromDoneData(doneData);
     const provider = extractStringFromDoneData(doneData, 'provider');
@@ -443,6 +449,7 @@ export function handleStreamDataPart(
       ...(latencyTier && { latencyTier }),
       ...(resolvedMode && { resolvedMode }),
       ...(modeSelectionSource && { modeSelectionSource }),
+      ...(finishReason && { finishReason }),
       ...(toolsCalled.length > 0 && { toolsCalled }),
       ...(evidenceCards && { evidenceCards }),
       ...(retrieval && { retrieval }),
@@ -476,6 +483,7 @@ export function handleStreamDataPart(
       fallbackReason ||
       typeof ttfbMs === 'number' ||
       typeof rotationSlot === 'number' ||
+      finishReason ||
       routeDecision ||
       assistantPlan ||
       assistantResult ||

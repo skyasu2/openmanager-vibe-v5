@@ -9,6 +9,7 @@ import {
   extractAIErrorDetailsFromPayload,
   inferAIErrorDetailsFromMessage,
 } from '@/lib/ai/error-details';
+import { normalizeClientFinishReason } from '@/lib/ai/finish-reason';
 import { normalizeRouteDecision } from '@/lib/ai/route-decision';
 import { normalizeSemanticQueryTrace } from '@/lib/ai/semantic-intent-frame';
 import {
@@ -206,6 +207,7 @@ export function connectAsyncQuerySSE(
         metadata.providerAttempts
       );
       const fallbackReason = getNonEmptyString(metadata.fallbackReason);
+      const finishReason = normalizeClientFinishReason(metadata.finishReason);
       const ttfbMs = getFiniteNumber(metadata.ttfbMs);
       const rotationSlot = getFiniteNumber(metadata.rotationSlot);
       const routeDecision = normalizeRouteDecision(metadata.routeDecision);
@@ -254,6 +256,7 @@ export function connectAsyncQuerySSE(
           usedFallback: metadata.usedFallback,
         }),
         ...(fallbackReason && { fallbackReason }),
+        ...(finishReason && { finishReason }),
         ...(ttfbMs !== undefined && { ttfbMs }),
         ...(rotationSlot !== undefined && { rotationSlot }),
         ...(routeDecision && { routeDecision }),

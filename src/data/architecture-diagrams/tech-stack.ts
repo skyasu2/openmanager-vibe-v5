@@ -4,7 +4,7 @@ export const TECH_STACK_ARCHITECTURE: ArchitectureDiagram = {
   id: 'tech-stack',
   title: '프론트엔드 기술 스택',
   description:
-    'Next.js 16, React 19, TypeScript 6.0 기반 UI와 144 슬롯 시계열 차트, AI 스트리밍 화면을 레이어별로 분리한 구조입니다.',
+    'Next.js 16, React 19, TypeScript 6.0 기반 UI와 시계열 차트, AI 스트리밍 화면을 레이어별로 분리한 구조입니다.',
   layers: [
     {
       title: '화면 표현',
@@ -67,7 +67,7 @@ export const TECH_STACK_ARCHITECTURE: ArchitectureDiagram = {
         {
           id: 'nextjs',
           label: 'Next.js 16',
-          sublabel: 'App Router + PPR',
+          sublabel: 'App Router + Server Actions',
           type: 'highlight',
           icon: '▲',
         },

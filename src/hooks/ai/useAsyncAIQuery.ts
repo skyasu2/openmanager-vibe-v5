@@ -35,6 +35,7 @@ import {
   buildRateLimitErrorDetails,
   inferAIErrorDetailsFromMessage,
 } from '@/lib/ai/error-details';
+import type { ClientFinishReason } from '@/lib/ai/finish-reason';
 import type { RouteDecision } from '@/lib/ai/route-decision';
 import type {
   DomainIntentFramePayload,
@@ -93,6 +94,7 @@ export interface AsyncQueryResult {
   latencyTier?: 'fast' | 'normal' | 'slow' | 'very_slow';
   resolvedMode?: 'single' | 'multi';
   modeSelectionSource?: string;
+  finishReason?: ClientFinishReason;
   provider?: string;
   modelId?: string;
   providerAttempts?: AsyncQueryProviderAttempt[];
