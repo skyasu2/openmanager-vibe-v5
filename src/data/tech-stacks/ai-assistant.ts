@@ -22,7 +22,7 @@ export const AI_ASSISTANT_TECH_STACK: TechItem[] = [
     description: 'LPU 전용 칩 기반 추론 서비스',
     implementation:
       '→ 일반 답변 fallback과 도구 호출 경로. 런타임 쿼터 가드로 호출량 관리',
-    version: 'GPT-OSS 120B',
+    version: 'GPT-OSS 20B',
     status: 'active',
     icon: '⚡',
     tags: ['LPU', 'Tool-calling', '초고속'],

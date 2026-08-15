@@ -689,7 +689,9 @@ export function getProviderDisplayName(provider: string): string {
 /**
  * Extract short model name from full model ID.
  * Examples:
- *   "meta-llama/llama-4-scout-17b-16e-instruct" → "llama-4-scout"
+ *   "openai/gpt-oss-20b" → "gpt-oss-20b"
+ *   "openai/gpt-oss-120b" → "gpt-oss-120b"
+ *   "meta-llama/llama-4-scout-17b-16e-instruct" → "llama-4-scout" (historical traces)
  *   "mistral-small-latest" → "mistral-small"
  *   "glm-4-flash" → "glm-4-flash"
  */

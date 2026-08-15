@@ -20,9 +20,10 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { memo } from 'react';
+import { getThreshold } from '@/config/rules';
 import type { ServerStatus } from '@/types/server';
 
-type ResourceMetricKey = 'CPU' | 'MEM' | 'DISK';
+type ResourceMetricKey = 'CPU' | 'MEM' | 'DISK' | 'NET';
 
 export interface WelcomeServerMetric {
   id: string;
@@ -31,6 +32,7 @@ export interface WelcomeServerMetric {
   cpu?: number;
   memory?: number;
   disk?: number;
+  network?: number;
 }
 
 /**
@@ -133,17 +135,61 @@ function getHighestResource(server: WelcomeServerMetric): {
   metricValue: number;
 } {
   const metrics = [
-    { metricLabel: 'CPU' as const, metricValue: toFinitePercent(server.cpu) },
     {
+      key: 'cpu' as const,
+      metricLabel: 'CPU' as const,
+      metricValue: toFinitePercent(server.cpu),
+    },
+    {
+      key: 'memory' as const,
       metricLabel: 'MEM' as const,
       metricValue: toFinitePercent(server.memory),
     },
-    { metricLabel: 'DISK' as const, metricValue: toFinitePercent(server.disk) },
+    {
+      key: 'disk' as const,
+      metricLabel: 'DISK' as const,
+      metricValue: toFinitePercent(server.disk),
+    },
+    {
+      key: 'network' as const,
+      metricLabel: 'NET' as const,
+      metricValue: toFinitePercent(server.network),
+    },
   ];
 
-  return metrics.reduce((highest, current) =>
-    current.metricValue > highest.metricValue ? current : highest
-  );
+  return metrics.reduce((highest, current) => {
+    const highestThreshold = getThreshold(highest.key);
+    const currentThreshold = getThreshold(current.key);
+    const highestRank =
+      highest.metricValue >= highestThreshold.critical
+        ? 2
+        : highest.metricValue >= highestThreshold.warning
+          ? 1
+          : 0;
+    const currentRank =
+      current.metricValue >= currentThreshold.critical
+        ? 2
+        : current.metricValue >= currentThreshold.warning
+          ? 1
+          : 0;
+    if (currentRank !== highestRank) {
+      return currentRank > highestRank ? current : highest;
+    }
+    return current.metricValue > highest.metricValue ? current : highest;
+  });
+}
+
+function formatWelcomeAlertLabel(snapshot: WelcomeSystemSnapshot): string {
+  if (snapshot.warning === 0 && snapshot.critical === 0) {
+    return '경고 0건';
+  }
+
+  return [
+    snapshot.warning > 0 ? `경고 ${snapshot.warning}건` : null,
+    snapshot.critical > 0 ? `위험 ${snapshot.critical}건` : null,
+  ]
+    .filter((part): part is string => part !== null)
+    .join(' · ');
 }
 
 export function buildWelcomeSystemSnapshot(
@@ -280,7 +326,7 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
   const promptCards = prompts ?? buildDynamicPrompts(snapshot);
   const alertCount = (snapshot?.warning ?? 0) + (snapshot?.critical ?? 0);
   const summaryText = snapshot
-    ? `${snapshot.total}대 중 ${snapshot.online}대 온라인 · 경고 ${alertCount}건${
+    ? `${snapshot.total}대 중 ${snapshot.online}대 온라인 · ${formatWelcomeAlertLabel(snapshot)}${
         snapshot.offline > 0 ? ` · 오프라인 ${snapshot.offline}대` : ''
       } · CPU 평균 ${snapshot.cpuAverage}%`
     : '18대 관측 서버의 최신 상태를 불러오는 중';

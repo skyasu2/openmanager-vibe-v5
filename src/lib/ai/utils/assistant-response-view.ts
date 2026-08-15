@@ -35,6 +35,34 @@ interface ResponseMetadataInput {
 const COLLAPSE_CHAR_THRESHOLD = 680;
 const COLLAPSE_LINE_THRESHOLD = 14;
 
+/**
+ * 결정론 템플릿을 그대로 내보내는 도구.
+ *
+ * 이 답변들은 문구와 줄 구조가 이미 저자가 정한 것이라 요약/상세를 추측할 대상이 아니다.
+ * 길이 휴리스틱에 맡기면 같은 도구가 낸 형제 답변이 글자 수만으로 갈린다 —
+ * 정체성 답변 2종이 788자/583자라 한쪽만 접히던 것이 실제 사례다.
+ */
+const AUTHORED_TEMPLATE_TOOL_IDS = new Set<string>([
+  'supervisor-runtime-assistant-identity',
+  // 같은 성격의 저자 템플릿이다. 지금은 짧아 휴리스틱에 걸리지 않지만,
+  // 한쪽만 등록해 두면 문구가 길어질 때 형제 답변끼리 렌더가 갈린다.
+  'supervisor-runtime-assistant-usage-examples',
+]);
+
+function isAuthoredTemplateResponse(
+  data: Record<string, unknown> | null | undefined
+): boolean {
+  const analysisBasis = data?.analysisBasis;
+  if (!analysisBasis || typeof analysisBasis !== 'object') return false;
+
+  const toolsCalled = (analysisBasis as { toolsCalled?: unknown }).toolsCalled;
+  if (!Array.isArray(toolsCalled)) return false;
+
+  return toolsCalled.some(
+    (tool) => typeof tool === 'string' && AUTHORED_TEMPLATE_TOOL_IDS.has(tool)
+  );
+}
+
 function splitIntoParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n/)
@@ -181,11 +209,15 @@ export function resolveAssistantResponseView(
   const normalizedContent = typeof content === 'string' ? content : '';
   const structured = data ? normalizeStructuredResponse(data) : null;
 
-  if (!structured) {
-    return createAssistantResponseView(normalizedContent);
-  }
-
-  if (!structured.summary.trim()) {
+  // 명시적 구조 > 저자 원문 > 길이 휴리스틱 순으로 신뢰한다.
+  if (!structured?.summary.trim()) {
+    if (isAuthoredTemplateResponse(data)) {
+      return {
+        summary: normalizedContent.trim(),
+        details: null,
+        shouldCollapse: false,
+      };
+    }
     return createAssistantResponseView(normalizedContent);
   }
 

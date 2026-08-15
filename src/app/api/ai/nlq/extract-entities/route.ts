@@ -1,7 +1,8 @@
 /**
  * POST /api/ai/nlq/extract-entities
  *
- * Groq GPT-OSS 120B로 쿼리에서 엔티티(server/metric/timeRange)를 추출.
+ * Groq GPT-OSS 20B로 쿼리에서 엔티티(server/metric/timeRange)를 추출하고,
+ * 저신뢰도 또는 모호한 결과만 GPT-OSS 120B로 재평가합니다.
  * 클래리피케이션 사전 차단에 사용됩니다.
  *
  * Note: URL의 `nlq`는 Natural Language Query 기능 카테고리를 가리키는 feature slug이며,
@@ -13,8 +14,13 @@ import { generateText, Output } from 'ai';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { GROQ_TEXT_MODEL_ID } from '@/config/ai-providers';
 import {
+  GROQ_TEXT_FALLBACK_MODEL_ID,
+  GROQ_TEXT_MODEL_ID,
+} from '@/config/ai-providers';
+import {
+  ENTITY_CONFIDENCE_THRESHOLD,
+  type ExtractedEntities,
   KNOWN_ENTITY_SERVER_IDS,
   normalizeExtractedEntitiesForQuery,
   SEMANTIC_AGGREGATIONS,
@@ -71,6 +77,53 @@ const EntitySchema = z.object({
   confidence: z.number().min(0).max(100),
 });
 
+async function generateEntities(
+  modelId: string,
+  query: string
+): Promise<ExtractedEntities> {
+  const { output } = await generateText({
+    model: groq(modelId),
+    instructions: SYSTEM_PROMPT,
+    prompt: query,
+    temperature: 0,
+    maxOutputTokens: 320,
+    providerOptions: { groq: { reasoningEffort: 'low' } },
+    timeout: GROQ_TIMEOUT_MS,
+    output: Output.object({
+      schema: EntitySchema,
+      name: 'nlq_entities',
+      description:
+        'Extract monitoring entities and a semantic intent frame for clarification.',
+    }),
+  });
+
+  return normalizeExtractedEntitiesForQuery(output, query);
+}
+
+function shouldEscalateToFallback(entities: ExtractedEntities): boolean {
+  const intentFrame = entities.intentFrame;
+
+  return (
+    entities.confidence < ENTITY_CONFIDENCE_THRESHOLD ||
+    (intentFrame !== undefined &&
+      (intentFrame.confidence < ENTITY_CONFIDENCE_THRESHOLD ||
+        intentFrame.ambiguity === 'high' ||
+        intentFrame.intent === 'unknown' ||
+        intentFrame.executionMode === 'unknown'))
+  );
+}
+
+function getEntityQualityScore(entities: ExtractedEntities): number {
+  const intentFrame = entities.intentFrame;
+  let score = Math.max(entities.confidence, intentFrame?.confidence ?? 0);
+
+  if (intentFrame?.ambiguity === 'high') score -= 20;
+  if (intentFrame?.intent === 'unknown') score -= 20;
+  if (intentFrame?.executionMode === 'unknown') score -= 10;
+
+  return score;
+}
+
 async function postHandler(request: NextRequest) {
   let query: unknown;
 
@@ -114,44 +167,77 @@ async function postHandler(request: NextRequest) {
     );
   }
 
-  try {
-    const { output } = await generateText({
-      model: groq(GROQ_TEXT_MODEL_ID),
-      instructions: SYSTEM_PROMPT,
-      prompt: queryForLLM,
-      temperature: 0,
-      maxOutputTokens: 320,
-      // gpt-oss-120b는 reasoning 모델 → 기본 reasoning이 320 예산의 ~86%를 소비(라이브 확인).
-      // 'low'로 낮춰 좁은 예산 truncation 방지 + 지연/토큰 절감(structured 결과는 동등/개선).
-      providerOptions: { groq: { reasoningEffort: 'low' } },
-      timeout: GROQ_TIMEOUT_MS,
-      output: Output.object({
-        schema: EntitySchema,
-        name: 'nlq_entities',
-        description:
-          'Extract monitoring entities and a semantic intent frame for clarification.',
-      }),
-    });
+  const responseMetadata = {
+    inputType: guard.inputType,
+    ...(guard.logExtract && { logExtract: guard.logExtract }),
+    ...(guard.truncated && { truncated: true }),
+  };
 
-    return NextResponse.json({
-      ...normalizeExtractedEntitiesForQuery(output, queryForLLM),
-      inputType: guard.inputType,
-      ...(guard.logExtract && { logExtract: guard.logExtract }),
-      ...(guard.truncated && { truncated: true }),
-    });
+  let primaryEntities: ExtractedEntities;
+
+  try {
+    primaryEntities = await generateEntities(GROQ_TEXT_MODEL_ID, queryForLLM);
   } catch (error) {
-    logger.warn('[AI NLQ] entity extraction provider fallback', {
+    logger.warn('[AI NLQ] primary entity extraction failed', {
+      model: GROQ_TEXT_MODEL_ID,
       error: error instanceof Error ? error.message : String(error),
     });
-    return NextResponse.json(
-      {
-        confidence: 0,
-        inputType: guard.inputType,
-        ...(guard.logExtract && { logExtract: guard.logExtract }),
-        ...(guard.truncated && { truncated: true }),
-      },
-      { status: 200 }
+
+    try {
+      const fallbackEntities = await generateEntities(
+        GROQ_TEXT_FALLBACK_MODEL_ID,
+        queryForLLM
+      );
+      return NextResponse.json({
+        ...fallbackEntities,
+        ...responseMetadata,
+      });
+    } catch (fallbackError) {
+      logger.warn('[AI NLQ] fallback entity extraction failed', {
+        model: GROQ_TEXT_FALLBACK_MODEL_ID,
+        error:
+          fallbackError instanceof Error
+            ? fallbackError.message
+            : String(fallbackError),
+      });
+      return NextResponse.json({ confidence: 0, ...responseMetadata });
+    }
+  }
+
+  if (!shouldEscalateToFallback(primaryEntities)) {
+    return NextResponse.json({
+      ...primaryEntities,
+      ...responseMetadata,
+    });
+  }
+
+  try {
+    const fallbackEntities = await generateEntities(
+      GROQ_TEXT_FALLBACK_MODEL_ID,
+      queryForLLM
     );
+    const selectedEntities =
+      getEntityQualityScore(fallbackEntities) >
+      getEntityQualityScore(primaryEntities)
+        ? fallbackEntities
+        : primaryEntities;
+
+    return NextResponse.json({
+      ...selectedEntities,
+      ...responseMetadata,
+    });
+  } catch (error) {
+    logger.warn(
+      '[AI NLQ] quality fallback unavailable; keeping primary result',
+      {
+        model: GROQ_TEXT_FALLBACK_MODEL_ID,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    );
+    return NextResponse.json({
+      ...primaryEntities,
+      ...responseMetadata,
+    });
   }
 }
 

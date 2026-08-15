@@ -37,6 +37,7 @@ import { useChatHistory } from './core/useChatHistory';
 import { useChatQueue } from './core/useChatQueue';
 import { useChatSession } from './core/useChatSession';
 import { useChatSessionState } from './core/useChatSessionState';
+import { useRegenerateCooldown } from './core/useRegenerateCooldown';
 import type {
   UseAIChatCoreOptions as UseAIChatCoreOptionsBase,
   UseAIChatCoreReturn as UseAIChatCoreReturnBase,
@@ -54,8 +55,6 @@ export { convertThinkingStepsToUI };
 
 export interface UseAIChatCoreOptions extends UseAIChatCoreOptionsBase {}
 export interface UseAIChatCoreReturn extends UseAIChatCoreReturnBase {}
-
-const REGENERATE_COOLDOWN_MS = 5_000;
 
 // ============================================================================
 // Hook
@@ -110,10 +109,12 @@ export function useAIChatCore(
   const [developerPanelData, setDeveloperPanelData] =
     useState<DeveloperPanelData | null>(null);
   const developerPanelDataRef = useRef<DeveloperPanelData | null>(null);
-  const [regenerateCooldownUntilMs, setRegenerateCooldownUntilMs] = useState(0);
-  const regenerateCooldownTimeoutRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const {
+    cooldownUntilMs: regenerateCooldownUntilMs,
+    cooldownSeconds: regenerateCooldownSeconds,
+    startCooldown: startRegenerateCooldown,
+    clearCooldown: clearRegenerateCooldown,
+  } = useRegenerateCooldown();
 
   // Refs
   const lastQueryRef = useRef<string>('');
@@ -233,36 +234,8 @@ export function useAIChatCore(
   });
   setHybridMessagesRef.current = setMessages;
   const isGenerating = hybridIsLoading || artifactIsLoading;
-  const regenerateCooldownRemainingMs = Math.max(
-    0,
-    regenerateCooldownUntilMs - Date.now()
-  );
-  const regenerateCooldownSeconds =
-    regenerateCooldownRemainingMs > 0
-      ? Math.ceil(regenerateCooldownRemainingMs / 1000)
-      : 0;
   const canRegenerateLastResponse =
     !isGenerating && regenerateCooldownSeconds === 0;
-
-  const clearRegenerateCooldown = useCallback(() => {
-    if (regenerateCooldownTimeoutRef.current) {
-      clearTimeout(regenerateCooldownTimeoutRef.current);
-      regenerateCooldownTimeoutRef.current = null;
-    }
-    setRegenerateCooldownUntilMs(0);
-  }, []);
-
-  const startRegenerateCooldown = useCallback(() => {
-    if (regenerateCooldownTimeoutRef.current) {
-      clearTimeout(regenerateCooldownTimeoutRef.current);
-    }
-
-    setRegenerateCooldownUntilMs(Date.now() + REGENERATE_COOLDOWN_MS);
-    regenerateCooldownTimeoutRef.current = setTimeout(() => {
-      regenerateCooldownTimeoutRef.current = null;
-      setRegenerateCooldownUntilMs(0);
-    }, REGENERATE_COOLDOWN_MS);
-  }, []);
 
   const {
     streamTraceIds,
@@ -441,14 +414,6 @@ export function useAIChatCore(
     sendQuery,
     startRegenerateCooldown,
   ]);
-
-  useEffect(() => {
-    return () => {
-      if (regenerateCooldownTimeoutRef.current) {
-        clearTimeout(regenerateCooldownTimeoutRef.current);
-      }
-    };
-  }, []);
 
   /**
    * 마지막 쿼리 재시도

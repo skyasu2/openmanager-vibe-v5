@@ -4,7 +4,7 @@ export const AI_ASSISTANT_ARCHITECTURE: ArchitectureDiagram = {
   id: 'ai-assistant',
   title: 'AI 어시스턴트 런타임',
   description:
-    'Next.js 스트림 프록시와 artifact BFF/local 실행 경로를 분리하고, Cloud Run Supervisor 및 monitoring origin 컨텍스트 보존까지 포함한 현재 구현 기준 구조입니다.',
+    '모니터링 도메인 전용 application harness입니다. Next.js 스트림 프록시와 artifact BFF/local 실행 경로를 분리하고, Cloud Run Supervisor 및 monitoring origin 컨텍스트 보존까지 포함한 현재 구현 기준 구조입니다.',
   layers: [
     {
       title: '사용자 입력',
@@ -141,7 +141,7 @@ export const AI_ASSISTANT_ARCHITECTURE: ArchitectureDiagram = {
         {
           id: 'rr-groq',
           label: 'Groq',
-          sublabel: 'GPT-OSS 120B · Text Pool · 저지연',
+          sublabel: 'GPT-OSS 20B · Text Pool · 120B 폴백',
           type: 'tertiary',
           icon: '⚡',
         },

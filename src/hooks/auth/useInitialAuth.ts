@@ -215,7 +215,6 @@ export function useInitialAuth() {
       }
       logger.info(debugWithEnv('🧹 useInitialAuth 타이머 정리 완료'));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initializeAuth]);
 
   useEffect(() => {

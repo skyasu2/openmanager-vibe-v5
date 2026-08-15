@@ -30,35 +30,22 @@ import {
   getAICache,
   recordCacheOutcome,
 } from '@/lib/ai/cache/ai-response-cache';
-import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { buildAITimingHeaders, startAITimer } from '@/lib/ai/observability';
-import { buildJobQueryAsOf } from '@/lib/ai/query-as-of';
-import { normalizeSupervisorDeviceType } from '@/lib/ai/supervisor/request-contracts';
 import {
   type HybridMessage,
   normalizeMessagesForCloudRun,
 } from '@/lib/ai/utils/message-normalizer';
-import { createCloudRunAuthHeaders } from '@/lib/ai-proxy/cloud-run-auth';
 import { getRequiredCloudRunConfig } from '@/lib/ai-proxy/cloud-run-config';
-import { getAPIAuthContext, withAuth } from '@/lib/auth/api-auth';
+import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
-import {
-  createRateLimitIdentityHeaders,
-  getRateLimitIdentity,
-} from '@/lib/security/rate-limit-identity';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { runWithTraceId } from '@/lib/tracing/async-context';
-import {
-  createInternalDisclosureFields,
-  resolveSupervisorInternalDisclosureMode,
-} from '../../internal-disclosure-mode';
 import {
   applySanitizedQueryToMessages,
   extractAndValidateQuery,
 } from '../../request-utils';
 import { requestSchema } from '../../schemas';
-import { resolveScopedSessionIds } from '../../session-owner';
 import {
   createStreamErrorResponse,
   createStreamFallbackResponse,
@@ -73,24 +60,21 @@ import {
   resolveStreamCachePolicy,
 } from './stream-cache-policy';
 import { createOutputFilterStream } from './stream-output-filter';
+import { resolveStreamRequestContext } from './stream-request-context';
 import {
-  AI_FIRST_QUERY_HEADER,
-  AI_WARMUP_STARTED_AT_HEADER,
   createDeveloperContextDataParts as buildDeveloperContextDataParts,
   createDeveloperContextStreamPart,
   createSupervisorStreamHeaders,
-  normalizeFrontendLocalRouteDecision,
+  logStreamTerminal,
   prependStreamDataPart,
   trackFirstQueryLatency,
 } from './stream-response-builder';
 import {
-  fetchWithResponseHeaderTimeout,
   getSupervisorStreamAbortTimeoutMs,
   getSupervisorStreamRetryTimeoutMs,
-  isWarmupAwareFirstQuery,
   parseOptionalDurationHeader,
-  parseWarmupStartedAt,
 } from './stream-timeouts';
+import { executeCloudRunStreamFetch } from './stream-upstream-fetch';
 
 // ============================================================================
 // ⚡ maxDuration - Vercel 빌드 타임 상수
@@ -100,41 +84,6 @@ import {
 // @see src/config/ai-proxy.config.ts (런타임 타임아웃 설정)
 // ============================================================================
 export const maxDuration = 60;
-
-const STREAM_CIRCUIT_BREAKER_SERVICE = 'cloud-run-supervisor-stream';
-
-type CloudRunStreamFetchResult =
-  | { type: 'upstream'; response: Response }
-  | { type: 'terminal'; response: Response };
-
-function isSecurityPolicyBlockResponse(
-  status: number,
-  errorText: string
-): boolean {
-  if (status !== 400) return false;
-  if (!errorText.trim()) return false;
-
-  const lowerText = errorText.toLowerCase();
-  if (
-    lowerText.includes('prompt_injection') ||
-    lowerText.includes('security: blocked input')
-  ) {
-    return true;
-  }
-
-  try {
-    const parsed = JSON.parse(errorText) as unknown;
-    if (!parsed || typeof parsed !== 'object') return false;
-    const record = parsed as Record<string, unknown>;
-    return [record.error, record.code, record.message].some(
-      (value) =>
-        typeof value === 'string' &&
-        /prompt_injection|security:\s*blocked input/i.test(value)
-    );
-  } catch {
-    return false;
-  }
-}
 
 function resolveTraceContext(req: NextRequest): {
   enabled: boolean;
@@ -186,17 +135,19 @@ export const POST = withAuth(
         const parseResult = requestSchema.safeParse(body);
 
         if (!parseResult.success) {
-          logger.warn(
-            '⚠️ [SupervisorStreamV2] Invalid payload:',
-            parseResult.error.issues
-          );
+          const issueDetail = parseResult.error.issues
+            .map((i) => i.message)
+            .join(', ');
+          logStreamTerminal({
+            category: 'invalid_payload',
+            httpStatus: 400,
+            detail: issueDetail,
+          });
           return NextResponse.json(
             {
               success: false,
               error: 'Invalid request payload',
-              details: parseResult.error.issues
-                .map((i) => i.message)
-                .join(', '),
+              details: issueDetail,
             },
             { status: 400 }
           );
@@ -213,43 +164,26 @@ export const POST = withAuth(
           metadata,
           semanticQueryTrace,
         } = parseResult.data;
-        const queryAsOf = buildJobQueryAsOf(
-          new Date().toISOString(),
-          queryAsOfDataSlot
-        );
-        const localRouteDecision = normalizeFrontendLocalRouteDecision(
-          rawLocalRouteDecision
-        );
-        if (rawLocalRouteDecision !== undefined && !localRouteDecision) {
-          logger.warn(
-            '[SupervisorStreamV2] Ignoring invalid localRouteDecision payload'
-          );
-        }
-
-        const { sessionId, backendSessionId, cacheSessionId } =
-          resolveScopedSessionIds(req, bodySessionId ?? chatSessionId);
-        const deviceType = normalizeSupervisorDeviceType(
-          req.headers.get('X-Device-Type')
-        );
-        const rateLimitIdentity = getRateLimitIdentity(req, backendSessionId);
-        const rateLimitIdentityHeaders =
-          createRateLimitIdentityHeaders(rateLimitIdentity);
-        const internalDisclosureMode = resolveSupervisorInternalDisclosureMode(
-          getAPIAuthContext(req)
-        );
-        const internalDisclosureFields = createInternalDisclosureFields({
-          mode: internalDisclosureMode,
-          audience: 'supervisor',
-          subject: backendSessionId,
-        });
-        const warmupStartedAt = parseWarmupStartedAt(
-          req.headers.get(AI_WARMUP_STARTED_AT_HEADER)
-        );
-        const isFirstQuery = req.headers.get(AI_FIRST_QUERY_HEADER) === '1';
-        const isFirstWarmupQuery = isWarmupAwareFirstQuery(
+        const {
+          queryAsOf,
+          localRouteDecision,
+          sessionId,
+          backendSessionId,
+          cacheSessionId,
+          deviceType,
+          rateLimitIdentityHeaders,
+          internalDisclosureMode,
+          internalDisclosureFields,
           warmupStartedAt,
-          isFirstQuery
-        );
+          isFirstQuery,
+          isFirstWarmupQuery,
+        } = resolveStreamRequestContext({
+          req,
+          chatSessionId,
+          bodySessionId,
+          queryAsOfDataSlot,
+          rawLocalRouteDecision,
+        });
 
         trackFirstQueryLatency({ isFirstQuery, warmupStartedAt, sessionId });
 
@@ -258,16 +192,19 @@ export const POST = withAuth(
         );
         if (!queryResult.ok) {
           if (queryResult.reason === 'blocked') {
-            logger.warn(
-              `🛡️ [SupervisorStreamV2] Blocked injection: ${queryResult.inputCheck?.patterns.join(', ')}`
-            );
             if (queryResult.warning) {
               logger.warn(
                 `🛡️ [SupervisorStreamV2] Security warning: ${queryResult.warning}`
               );
             }
+            logStreamTerminal({
+              category: 'policy_blocked',
+              httpStatus: 200,
+              detail: queryResult.inputCheck?.patterns.join(', '),
+            });
             return createStreamPolicyBlockResponse();
           }
+          logStreamTerminal({ category: 'empty_query', httpStatus: 400 });
           return NextResponse.json(
             {
               success: false,
@@ -300,10 +237,13 @@ export const POST = withAuth(
         const normalizedParse =
           NORMALIZED_MESSAGES_SCHEMA.safeParse(normalizedMessages);
         if (!normalizedParse.success) {
-          logger.warn(
-            '⚠️ [SupervisorStreamV2] Invalid normalized messages:',
-            normalizedParse.error.issues
-          );
+          logStreamTerminal({
+            category: 'invalid_normalized_messages',
+            httpStatus: 400,
+            detail: normalizedParse.error.issues
+              .map((i) => i.message)
+              .join(', '),
+          });
           return NextResponse.json(
             { success: false, error: 'Invalid normalized messages' },
             { status: 400 }
@@ -323,7 +263,11 @@ export const POST = withAuth(
 
         const cloudRunConfig = getRequiredCloudRunConfig();
         if (!cloudRunConfig.ok) {
-          logger.error(`❌ [SupervisorStreamV2] ${cloudRunConfig.message}`);
+          logStreamTerminal({
+            category: 'config_unavailable',
+            httpStatus: 503,
+            detail: cloudRunConfig.message,
+          });
           return NextResponse.json(
             { success: false, error: 'Streaming not available' },
             { status: 503 }
@@ -413,166 +357,56 @@ export const POST = withAuth(
             dataParts: createDeveloperContextDataParts(false),
           });
 
-        let fallbackReason = 'circuit_breaker_open';
-        const fetchResult =
-          await executeWithCircuitBreakerAndFallback<CloudRunStreamFetchResult>(
-            STREAM_CIRCUIT_BREAKER_SERVICE,
-            async () => {
-              for (const [i, timeoutMs] of attemptTimeouts.entries()) {
-                const attempt = i + 1;
-                const hasNextAttempt = i < attemptTimeouts.length - 1;
-
-                try {
-                  logger.info(
-                    `[SupervisorStreamV2] Cloud Run attempt ${attempt}/${attemptTimeouts.length} (timeout=${timeoutMs}ms)`
-                  );
-                  const response = await fetchWithResponseHeaderTimeout(
-                    streamUrl,
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'text/event-stream',
-                        ...(await createCloudRunAuthHeaders({
-                          apiSecret: cloudRunConfig.apiSecret,
-                          serviceUrl: streamUrl,
-                        })),
-                        ...rateLimitIdentityHeaders,
-                        ...(traceContext.enabled
-                          ? {
-                              [TRACEPARENT_HEADER]: traceContext.traceparent,
-                              [traceContext.traceIdHeader]:
-                                traceContext.traceId,
-                            }
-                          : {}),
-                      },
-                      body: JSON.stringify({
-                        messages: normalizedMessages,
-                        sessionId: backendSessionId,
-                        deviceType,
-                        enableWebSearch,
-                        enableRAG,
-                        queryAsOf,
-                        ...internalDisclosureFields,
-                        ...(localRouteDecision && { localRouteDecision }),
-                        ...(metadata && { metadata }),
-                        ...(semanticQueryTrace !== undefined &&
-                        semanticQueryTrace !== null
-                          ? { semanticQueryTrace }
-                          : {}),
-                      }),
-                      signal: req.signal,
-                    },
-                    timeoutMs
-                  );
-
-                  if (response.ok) {
-                    return { type: 'upstream', response };
-                  }
-
-                  const errorText = await response.text();
-                  const status = response.status;
-                  const isRetryableStatus =
-                    status >= 500 || status === 408 || status === 504;
-
-                  logger.error(
-                    `❌ [SupervisorStreamV2] Cloud Run error (attempt ${attempt}): ${status} - ${errorText}`
-                  );
-
-                  if (isSecurityPolicyBlockResponse(status, errorText)) {
-                    return {
-                      type: 'terminal',
-                      response: createStreamPolicyBlockResponse(),
-                    };
-                  }
-
-                  if (isRetryableStatus && hasNextAttempt) {
-                    logger.warn(
-                      `[SupervisorStreamV2] Retrying after upstream ${status} (attempt ${attempt + 1}/${attemptTimeouts.length})`
-                    );
-                    continue;
-                  }
-
-                  if (isRetryableStatus) {
-                    fallbackReason = `cloud_run_${status}`;
-                    throw new Error(
-                      `Cloud Run retryable status ${status}: ${errorText}`
-                    );
-                  }
-
-                  return {
-                    type: 'terminal',
-                    response: createStreamErrorResponse(
-                      `AI 엔진 오류 (${status}). 잠시 후 다시 시도해주세요.`
-                    ),
-                  };
-                } catch (error) {
-                  if (
-                    error instanceof Error &&
-                    error.message.startsWith('Cloud Run retryable status')
-                  ) {
-                    throw error;
-                  }
-
-                  // AbortError: caller disconnect | TimeoutError: response header timeout
-                  const isAbortError =
-                    error instanceof Error &&
-                    (error.name === 'AbortError' ||
-                      error.name === 'TimeoutError');
-
-                  if (isAbortError && hasNextAttempt) {
-                    logger.warn(
-                      `[SupervisorStreamV2] Attempt ${attempt} timeout; retrying (${attempt + 1}/${attemptTimeouts.length})`
-                    );
-                    continue;
-                  }
-
-                  if (!isAbortError && hasNextAttempt) {
-                    logger.warn(
-                      `[SupervisorStreamV2] Attempt ${attempt} failed; retrying (${attempt + 1}/${attemptTimeouts.length})`
-                    );
-                    continue;
-                  }
-
-                  if (isAbortError) {
-                    logger.error(
-                      '❌ [SupervisorStreamV2] Request timeout, using fallback'
-                    );
-                    fallbackReason = 'cloud_run_timeout';
-                    throw error;
-                  }
-
-                  logger.error(
-                    '❌ [SupervisorStreamV2] Upstream fetch failed, using fallback'
-                  );
-                  fallbackReason = 'cloud_run_fetch_failed';
-                  throw error;
-                }
-              }
-
-              fallbackReason = 'cloud_run_unavailable';
-              throw new Error('No Cloud Run response after retries');
+        const { result: fetchResult, fallbackReason } =
+          await executeCloudRunStreamFetch({
+            streamUrl,
+            apiSecret: cloudRunConfig.apiSecret,
+            attemptTimeouts,
+            upstreamBody: {
+              messages: normalizedMessages,
+              sessionId: backendSessionId,
+              deviceType,
+              enableWebSearch,
+              enableRAG,
+              queryAsOf,
+              ...internalDisclosureFields,
+              ...(localRouteDecision && { localRouteDecision }),
+              ...(metadata && { metadata }),
+              ...(semanticQueryTrace !== undefined &&
+              semanticQueryTrace !== null
+                ? { semanticQueryTrace }
+                : {}),
             },
-            async () => ({
-              type: 'terminal',
-              response: createFallbackStreamResponse(fallbackReason),
-            })
-          );
+            rateLimitIdentityHeaders,
+            traceContext,
+            signal: req.signal,
+            createFallbackStreamResponse,
+          });
 
         if (fetchResult.source === 'fallback') {
-          logger.info(
-            `[SupervisorStreamV2] Circuit breaker fallback response (${fallbackReason})`
-          );
+          logStreamTerminal({
+            category: 'upstream_fallback',
+            httpStatus: 200,
+            detail: fallbackReason,
+          });
           return fetchResult.data.response;
         }
 
         if (fetchResult.data.type === 'terminal') {
+          logStreamTerminal({
+            category: fetchResult.data.category,
+            httpStatus: 200,
+          });
           return fetchResult.data.response;
         }
 
         const cloudRunResponse = fetchResult.data.response;
 
         if (!cloudRunResponse.body) {
+          logStreamTerminal({
+            category: 'upstream_empty_body',
+            httpStatus: 500,
+          });
           return NextResponse.json(
             { success: false, error: 'No response body' },
             { status: 500 }
@@ -627,6 +461,11 @@ export const POST = withAuth(
         });
       } catch (error) {
         logger.error('❌ [SupervisorStreamV2] Error:', error);
+        logStreamTerminal({
+          category: 'unhandled_error',
+          httpStatus: 200,
+          detail: error instanceof Error ? error.message : undefined,
+        });
         return createStreamErrorResponse(
           'AI 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
         );

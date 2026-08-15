@@ -1,6 +1,6 @@
 {
   "name": "openmanager-ai",
-  "version": "8.15.40",
+  "version": "8.15.45",
   "private": true,
   "license": "GPL-3.0-only",
   "author": "skyasu2 (https://github.com/skyasu2)",
@@ -66,7 +66,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@biomejs/biome": "^2.4.9",
+    "@biomejs/biome": "2.4.9",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@next/bundle-analyzer": "^16.2.6",
     "@opentelemetry/api": "^1.9.1",

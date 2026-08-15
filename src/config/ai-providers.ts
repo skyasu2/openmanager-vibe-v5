@@ -5,7 +5,7 @@
  * - 실제 구현 기준: cloud-run/ai-engine/src/services/ai-sdk/model-provider.ts
  * - 에이전트별 선택 체인 기준: cloud-run/ai-engine/src/services/ai-sdk/agents/config/agent-model-selectors.ts
  * - UI에는 "현재 라우팅 정책"만 노출하며, 개별 요청의 실시간 선택 결과를 의미하지 않는다.
- * - 2026-07-22 런타임 provider policy와 동기화
+ * - 2026-08-14 런타임 provider policy와 동기화 (Groq gpt-oss-20b + 120b 폴백)
  */
 
 export interface AIProviderConfig {
@@ -23,7 +23,8 @@ export interface AIProviderConfig {
   dailyTokenLimit?: string;
 }
 
-export const GROQ_TEXT_MODEL_ID = 'openai/gpt-oss-120b';
+export const GROQ_TEXT_MODEL_ID = 'openai/gpt-oss-20b';
+export const GROQ_TEXT_FALLBACK_MODEL_ID = 'openai/gpt-oss-120b';
 export const ZAI_TEXT_MODEL_ID = 'glm-4.7-flash';
 
 /**
@@ -33,10 +34,10 @@ export const ZAI_TEXT_MODEL_ID = 'glm-4.7-flash';
 export const AI_PROVIDERS: AIProviderConfig[] = [
   {
     name: 'Groq',
-    role: 'Groq-first text mesh',
+    role: 'Text mesh fallback (gpt-oss-20b + 120b)',
     model: GROQ_TEXT_MODEL_ID,
     description:
-      'Fast text provider for Supervisor, Metrics Query, Orchestrator, and fallback paths',
+      'Fast text fallback for Supervisor, Metrics Query, Orchestrator; gpt-oss-120b is the intra-provider quota-isolated fallback',
     color: 'bg-purple-500',
   },
   {

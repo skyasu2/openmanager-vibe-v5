@@ -291,7 +291,6 @@ export function SystemBootstrap(): React.ReactNode {
       }
     };
     // 🔒 의존성 배열에서 bootstrapStatus 제거 - 상태 변경 시 재실행 방지
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSystemStarted]);
 
   // 시스템 초기화 상태 표시 제거됨 (웹 알람 삭제에 따라)

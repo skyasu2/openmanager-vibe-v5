@@ -1,11 +1,10 @@
 /**
- * LLM Entity Extractor — Groq GPT-OSS 120B 기반
+ * LLM Entity Extractor — Groq GPT-OSS 20B + 선택적 120B 재평가
  *
  * 쿼리에서 server_id / metric / time_range 슬롯을 추출하여
  * 불필요한 클래리피케이션을 사전 차단합니다.
  *
- * 모델: Groq openai/gpt-oss-120b (reasoningEffort=low)
- * 평균 레이턴시: ~200ms (단문 JSON 추출)
+ * 기본 모델: Groq openai/gpt-oss-20b (reasoningEffort=low)
  */
 
 import {
@@ -41,6 +40,7 @@ export interface ExtractedEntities {
 }
 
 export const ENTITY_CONFIDENCE_THRESHOLD = 80;
+const ENTITY_EXTRACTION_TIMEOUT_MS = 7000;
 
 export const KNOWN_ENTITY_SERVER_IDS = getRegisteredServerIds() as [
   RegisteredServerId,
@@ -735,7 +735,7 @@ export async function extractEntities(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(ENTITY_EXTRACTION_TIMEOUT_MS),
     });
 
     if (!res.ok) return { confidence: 0 };

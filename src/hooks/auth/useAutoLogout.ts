@@ -242,7 +242,6 @@ export function useAutoLogout({
       }
       clearCountdownInterval();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     // 초기 타이머 설정
     resetTimers,
@@ -282,7 +281,6 @@ export function useAutoLogout({
   // 로그인 상태가 변경될 때 타이머 재설정
   useEffect(() => {
     resetTimers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetTimers]); // resetTimers는 ref 기반으로 안정적
 
   return {

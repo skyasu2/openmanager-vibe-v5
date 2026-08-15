@@ -67,7 +67,7 @@ type AIResponseEvent = {
  * logAIRequest({
  *   operation: 'chat',
  *   system: 'groq',
- *   model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+ *   model: 'openai/gpt-oss-20b',
  *   agent: 'nlq',
  *   sessionId: 'user_guest_session_123',
  *   querySummary: '서버 CPU 사용률이 높은 이유는?',
@@ -100,7 +100,7 @@ export function logAIRequest(event: AIRequestEvent): void {
  * logAIResponse({
  *   operation: 'chat',
  *   system: 'groq',
- *   model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+ *   model: 'openai/gpt-oss-20b',
  *   inputTokens: 1200,
  *   outputTokens: 450,
  *   latencyMs: 2340,

@@ -1,4 +1,5 @@
 import type { UIMessage } from 'ai';
+import { getThreshold } from '@/config/rules';
 import type {
   AssistantPlan,
   AssistantResult,
@@ -218,17 +219,42 @@ function metricLine(label: string, value: unknown): string | null {
 
 function getDominantMetric(
   server: Record<string, unknown>
-): { label: string; value: number } | null {
-  const metrics = [
-    { label: 'CPU', value: toFiniteNumber(server.cpu) },
-    { label: '메모리', value: toFiniteNumber(server.memory) },
-    { label: '디스크', value: toFiniteNumber(server.disk) },
-  ].filter(
-    (entry): entry is { label: string; value: number } => entry.value !== null
-  );
+): { label: string; value: number; severityRank: number } | null {
+  const metrics = (
+    [
+      { key: 'cpu', label: 'CPU' },
+      { key: 'memory', label: '메모리' },
+      { key: 'disk', label: '디스크' },
+      { key: 'network', label: '네트워크' },
+    ] as const
+  )
+    .map((entry) => {
+      const value = toFiniteNumber(server[entry.key]);
+      if (value === null) return null;
+      const threshold = getThreshold(entry.key);
+      const severityRank =
+        value >= threshold.critical ? 2 : value >= threshold.warning ? 1 : 0;
+      return { label: entry.label, value, severityRank };
+    })
+    .filter(
+      (
+        entry
+      ): entry is {
+        label: 'CPU' | '메모리' | '디스크' | '네트워크';
+        value: number;
+        severityRank: number;
+      } => entry !== null
+    );
 
   if (metrics.length === 0) return null;
-  return metrics.sort((left, right) => right.value - left.value)[0] ?? null;
+  return (
+    metrics.sort((left, right) => {
+      if (left.severityRank !== right.severityRank) {
+        return right.severityRank - left.severityRank;
+      }
+      return right.value - left.value;
+    })[0] ?? null
+  );
 }
 
 function buildSingleServerMetricsFallback(
@@ -251,6 +277,7 @@ function buildSingleServerMetricsFallback(
     metricLine('CPU', server.cpu),
     metricLine('메모리', server.memory),
     metricLine('디스크', server.disk),
+    metricLine('네트워크', server.network),
   ].filter((line): line is string => line !== null);
 
   const lines = [
@@ -262,11 +289,15 @@ function buildSingleServerMetricsFallback(
 
   if (
     dominantMetric &&
-    (dominantMetric.value >= 80 || status === '경고' || status === '위험')
+    (dominantMetric.severityRank > 0 || status === '경고' || status === '위험')
   ) {
+    const causeHint =
+      dominantMetric.label === '네트워크'
+        ? '연결 수, 인터페이스 오류, LB 백엔드 큐를 확인하세요.'
+        : '상위 프로세스, 관련 로그, 캐시 eviction/OOM/GC 같은 직접 원인을 확인하세요.';
     lines.push(
       '',
-      `권고: ${dominantMetric.label} ${formatPercent(dominantMetric.value)} 기준으로 우선 점검이 필요합니다. 상위 프로세스, 관련 로그, 캐시 eviction/OOM/GC 같은 직접 원인을 확인하세요.`
+      `권고: ${dominantMetric.label} ${formatPercent(dominantMetric.value)} 기준으로 우선 점검이 필요합니다. ${causeHint}`
     );
   } else {
     lines.push('', '권고: 현재 수치는 즉시 조치보다 관찰 유지에 가깝습니다.');
@@ -289,10 +320,15 @@ function buildMultiServerMetricsFallback(
         entry
       ): entry is {
         server: Record<string, unknown>;
-        metric: { label: string; value: number };
+        metric: { label: string; value: number; severityRank: number };
       } => entry.metric !== null
     )
-    .sort((left, right) => right.metric.value - left.metric.value)[0];
+    .sort((left, right) => {
+      if (left.metric.severityRank !== right.metric.severityRank) {
+        return right.metric.severityRank - left.metric.severityRank;
+      }
+      return right.metric.value - left.metric.value;
+    })[0];
 
   const lines = [
     '### 서버 메트릭 요약',

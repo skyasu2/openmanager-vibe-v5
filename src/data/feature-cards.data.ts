@@ -1,7 +1,7 @@
 /**
  * Feature Cards 데이터
  * 메인 페이지에 표시되는 4개의 주요 기능 카드 데이터
- * @updated 2026-07-31 - visitor-facing AI card copy and evidence flow clarified
+ * @updated 2026-08-14 - visitor-facing copy names the domain-specific harness
  */
 
 import {
@@ -20,13 +20,25 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant',
     title: '💬 AI 어시스턴트',
     description:
-      '자연어 질의부터 장애 보고서, 다운로드 가능한 장애·이상 감지 자료까지 하나의 AI 워크스페이스에서 확인할 수 있습니다.',
+      '모니터링 도메인 전용 application harness입니다. 자연어 질의부터 장애 보고서, 다운로드 가능한 장애·이상 감지 자료까지 한 워크스페이스에서 확인합니다.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
-      overview: `서버 상태를 자연어로 묻고 현재 상태, 원인, 다음 조치안을 한 흐름에서 확인하는 운영 의사결정 AI입니다. 대시보드와 같은 시뮬레이션 OTel 관측 데이터를 바탕으로 수치와 상태를 판정하고, 복잡한 원인 분석과 보고서는 전문 에이전트가 처리합니다.`,
+      overview: `범용 챗봇이 아니라 서버 모니터링 요청 수명주기를 통제하는 application harness입니다. 가드와 결정론 fact가 LLM보다 먼저 실행되고, 대시보드와 같은 시뮬레이션 OTel 관측 데이터로 수치와 상태를 판정합니다. 복잡한 원인 분석과 보고서는 필요할 때만 전문 에이전트가 처리하며, 서버 명령은 제안만 하고 실행하지 않습니다.`,
     },
     subSections: [
+      {
+        title: '모니터링 전용 application harness',
+        description:
+          '모델 하나를 붙인 대화창이 아니라, 입력 가드·라우팅·도구·스트림 종결을 한 실행 경계로 묶습니다.',
+        icon: Bot,
+        gradient: 'from-indigo-500 to-purple-500',
+        features: [
+          '단순 조회는 모델 없이 결정론 경로로 종료',
+          '복잡한 질의만 전문 에이전트로 확대',
+          '범위 밖 요청과 실제 서버 실행은 거절',
+        ],
+      },
       {
         title: '관측 데이터 기반 분석',
         description:

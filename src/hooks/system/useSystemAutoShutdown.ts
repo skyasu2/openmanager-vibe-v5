@@ -87,7 +87,6 @@ export function useSystemAutoShutdown({
         clearInterval(updateIntervalRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isSystemStarted,
     hasWarned5Min,
